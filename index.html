@@ -1,0 +1,165 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta name="theme-color" content="#17202a" />
+  <title>TAD Lab Manager — Prototype</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="brand-mark">TAD</div>
+        <div><strong>Lab Manager</strong><span>Prototype v0.1</span></div>
+      </div>
+      <nav id="nav">
+        <button data-view="dashboard" class="active">Dashboard</button>
+        <button data-view="report">Report a Problem</button>
+        <button data-view="reports">Reports</button>
+        <button data-view="machines">Machines</button>
+        <button data-view="costs">Costs & Repairs</button>
+        <button data-view="export">Export / Backup</button>
+        <button data-view="settings">Settings</button>
+      </nav>
+      <div class="sidebar-footer">
+        <div class="local-pill">● Local prototype</div>
+        <small>Data stays in this browser until Firebase is connected.</small>
+      </div>
+    </aside>
+
+    <main>
+      <header class="topbar">
+        <button class="mobile-menu" id="mobileMenu">☰</button>
+        <div>
+          <h1 id="pageTitle">Dashboard</h1>
+          <p id="pageSubtitle">Lab equipment status, issues, repairs, and costs.</p>
+        </div>
+        <div class="top-actions">
+          <button class="btn secondary" id="quickReport">+ New Report</button>
+        </div>
+      </header>
+
+      <section id="view-dashboard" class="view active">
+        <div class="hero">
+          <div>
+            <span class="eyebrow">TAD LAB OPERATIONS</span>
+            <h2>Know what is broken, what it costs, and what needs attention.</h2>
+            <p>This first-generation prototype replaces the core Power Automate workflow and adds a long-term maintenance record.</p>
+          </div>
+          <button class="btn primary" data-go="report">Report an issue</button>
+        </div>
+
+        <div class="stats-grid" id="statsGrid"></div>
+
+        <div class="two-col">
+          <article class="card">
+            <div class="card-head"><div><h3>Open issues</h3><p>Newest and highest urgency first.</p></div><button class="text-btn" data-go="reports">View all</button></div>
+            <div id="openIssues"></div>
+          </article>
+          <article class="card">
+            <div class="card-head"><div><h3>Machines needing attention</h3><p>Status derived from unresolved reports.</p></div></div>
+            <div id="machineAttention"></div>
+          </article>
+        </div>
+
+        <article class="card">
+          <div class="card-head"><div><h3>Recent maintenance costs</h3><p>Completed repairs and expenses.</p></div><button class="text-btn" data-go="costs">Explore costs</button></div>
+          <div id="recentCosts"></div>
+        </article>
+      </section>
+
+      <section id="view-report" class="view">
+        <div class="content-grid form-layout">
+          <article class="card">
+            <div class="card-head"><div><h3>Report a machine problem</h3><p>Designed for a student scanning the QR code attached to a machine.</p></div></div>
+            <form id="reportForm" class="form-grid">
+              <label class="full">Machine
+                <select id="reportMachine" required></select>
+                <small id="qrHint">Scanning a machine QR code can preselect this automatically.</small>
+              </label>
+              <label>Urgency
+                <select id="urgency" required>
+                  <option value="Low">Low — usable</option>
+                  <option value="Medium" selected>Medium — degraded</option>
+                  <option value="High">High — difficult to use</option>
+                  <option value="Critical">Critical — stop using</option>
+                </select>
+              </label>
+              <label>Is the machine usable?
+                <select id="usable"><option value="Yes">Yes</option><option value="Partially">Partially</option><option value="No">No</option></select>
+              </label>
+              <label class="full">What's the issue?
+                <textarea id="issue" rows="5" required placeholder="Describe what you saw, heard, or were trying to do..."></textarea>
+              </label>
+              <label class="full">What fixes have you tried?
+                <textarea id="attempted" rows="3" placeholder="Example: restarted machine, reloaded filament, checked emergency stop..."></textarea>
+              </label>
+              <label>Preferred contact
+                <input id="contact" placeholder="Email, name, or leave blank" />
+              </label>
+              <label>Helpful resource or link
+                <input id="resource" placeholder="Optional manual / video / URL" />
+              </label>
+              <label class="full">Photo for immediate troubleshooting (prototype)
+                <input id="photo" type="file" accept="image/*" capture="environment" />
+                <small>The prototype does not store the photo. In production we can send it with the notification and discard it.</small>
+              </label>
+              <label class="check full"><input type="checkbox" id="notify" checked /> <span>Notify this machine's stakeholders when submitted</span></label>
+              <div class="form-actions full"><button type="reset" class="btn secondary">Clear</button><button class="btn primary" type="submit">Submit report</button></div>
+            </form>
+          </article>
+          <aside class="card sticky-card">
+            <h3>Notification preview</h3>
+            <div id="notificationPreview" class="notification-preview"></div>
+            <div class="notice"><strong>Prototype behavior</strong><br/>No email is actually sent yet. This shows exactly who the production notification service would contact.</div>
+          </aside>
+        </div>
+      </section>
+
+      <section id="view-reports" class="view">
+        <article class="card">
+          <div class="card-head wrap"><div><h3>Issue reports</h3><p>Permanent structured record of submitted problems.</p></div>
+            <div class="filters"><select id="reportStatusFilter"><option>All</option><option>Open</option><option>Diagnosing</option><option>Waiting for Part</option><option>Resolved</option></select><input id="reportSearch" placeholder="Search reports..." /></div>
+          </div>
+          <div id="reportsTable"></div>
+        </article>
+      </section>
+
+      <section id="view-machines" class="view">
+        <div class="section-actions"><p>Each machine gets a stable ID so its QR code can keep working even if its name, room, or stakeholders change.</p><button class="btn primary" id="addMachine">+ Add Machine</button></div>
+        <div id="machineCards" class="machine-grid"></div>
+      </section>
+
+      <section id="view-costs" class="view">
+        <div class="stats-grid" id="costStats"></div>
+        <article class="card">
+          <div class="card-head"><div><h3>Repair & expense history</h3><p>Track parts, service, labor, and downtime against each machine.</p></div><button class="btn primary small" id="addRepair">+ Add repair / cost</button></div>
+          <div id="repairsTable"></div>
+        </article>
+      </section>
+
+      <section id="view-export" class="view">
+        <div class="two-col">
+          <article class="card export-card"><div class="big-icon">⇩</div><h3>Download spreadsheet data</h3><p>Export reports, machines, repairs, or a combined workbook-friendly set as CSV files.</p><div class="stack"><button class="btn primary" data-export="reports">Download Reports CSV</button><button class="btn secondary" data-export="machines">Download Machines CSV</button><button class="btn secondary" data-export="repairs">Download Repairs CSV</button></div></article>
+          <article class="card export-card"><div class="big-icon">⟲</div><h3>Full app backup</h3><p>Download all prototype data as JSON. This can later be used for migration, restoration, or archival.</p><div class="stack"><button class="btn primary" id="backupJson">Download Full Backup</button><label class="btn secondary file-btn">Restore Backup<input type="file" id="restoreJson" accept="application/json" /></label></div></article>
+        </div>
+        <article class="card"><h3>Long-term records</h3><p>In the Firebase version, this screen can also provide date-range exports, fiscal-year summaries, machine lifetime-cost reports, and an actual multi-sheet <strong>.xlsx</strong> workbook. The data model in this prototype is already structured for that.</p></article>
+      </section>
+
+      <section id="view-settings" class="view">
+        <div class="two-col">
+          <article class="card"><h3>Prototype storage</h3><p>This version uses <strong>localStorage</strong>, which makes it safe to test without accounts, hosting costs, or a backend. Data exists only in this browser.</p><button class="btn danger" id="resetDemo">Reset to demo data</button></article>
+          <article class="card"><h3>Production path</h3><ol class="steps"><li>Approve/refine this workflow and UI.</li><li>Replace localStorage with Firestore.</li><li>Add authenticated staff/admin access.</li><li>Add secure email notification function.</li><li>Generate permanent machine QR codes.</li><li>Add Bemidji State / TAD branding.</li></ol></article>
+        </div>
+        <article class="card"><h3>Notification policy</h3><p>Stakeholders are attached to machines, not hard-coded into a flow. Change the responsible people once and future reports use the new routing automatically.</p><div id="routingList"></div></article>
+      </section>
+    </main>
+  </div>
+
+  <dialog id="modal"><form method="dialog" class="modal-card"><button class="modal-close" value="cancel">×</button><div id="modalBody"></div></form></dialog>
+  <div id="toast" class="toast"></div>
+  <script src="app.js"></script>
+</body>
+</html>
