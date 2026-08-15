@@ -1,0 +1,2942 @@
+[
+  {
+    "order": 12,
+    "title": "#1 Photo from email to Photoshop- sized for puzzle",
+    "url": "https://www.iorad.com/player/27388/-1-Photo-from-email-to-Photoshop--sized-for-puzzle?helpcenter=4666&roleId=13221",
+    "type": "Software Skill",
+    "equipment": "",
+    "confidence": "Not applicable",
+    "tags": [
+      "Adobe Photoshop",
+      "Photography / Image Sourcing"
+    ],
+    "author": "",
+    "notes": ""
+  },
+  {
+    "order": 10,
+    "title": "#2 Photoshop a sized photo to prepare for wood puzzle",
+    "url": "https://www.iorad.com/player/27290/-2-Photoshop-a-sized-photo-to-prepare-for-wood-puzzle?helpcenter=4666&roleId=13221",
+    "type": "Software Skill",
+    "equipment": "",
+    "confidence": "Not applicable",
+    "tags": [
+      "Adobe Photoshop"
+    ],
+    "author": "",
+    "notes": ""
+  },
+  {
+    "order": 1,
+    "title": "3D Print on Afinia H800 (TAD)",
+    "url": "https://www.iorad.com/player/13755/3D-Print-on-Afinia-H800--TAD-?helpcenter=4666&roleId=13221",
+    "type": "Machine / Equipment Workflow",
+    "equipment": "Afinia H800 3D Printer",
+    "confidence": "High",
+    "tags": [
+      "Printing / Prepress"
+    ],
+    "author": "",
+    "notes": ""
+  },
+  {
+    "order": 193,
+    "title": "3D Print on an Anycubic 3D printer",
+    "url": "https://www.iorad.com/player/2274895/3D-Print-on-an-Anycubic-3D-printer?helpcenter=4666&roleId=13221",
+    "type": "Machine / Equipment Workflow",
+    "equipment": "Anycubic 3D Printer",
+    "confidence": "High",
+    "tags": [
+      "Printing / Prepress"
+    ],
+    "author": "",
+    "notes": ""
+  },
+  {
+    "order": 182,
+    "title": "3D Print on Ender 3 Pro with Creality Slicer",
+    "url": "https://www.iorad.com/player/2222130/3D-Print-on-Ender-3-Pro-with-Creality-Slicer?helpcenter=4666&roleId=13221",
+    "type": "Machine / Equipment Workflow",
+    "equipment": "Creality Ender 3 Pro 3D Printer",
+    "confidence": "High",
+    "tags": [
+      "Creality Slicer",
+      "Printing / Prepress"
+    ],
+    "author": "",
+    "notes": ""
+  },
+  {
+    "order": 196,
+    "title": "3D Print on Prusa Printer",
+    "url": "https://www.iorad.com/player/2290831/3D-Print-on-Prusa-Printer?helpcenter=4666&roleId=13221",
+    "type": "Machine / Equipment Workflow",
+    "equipment": "Prusa 3D Printer",
+    "confidence": "High",
+    "tags": [
+      "Printing / Prepress"
+    ],
+    "author": "",
+    "notes": ""
+  },
+  {
+    "order": 116,
+    "title": "3D Scan with Creality Scanner",
+    "url": "https://www.iorad.com/player/1878982/3D-Scan-with-Creality-Scanner?helpcenter=4666&roleId=13221",
+    "type": "Machine / Equipment Workflow",
+    "equipment": "Creality 3D Scanner",
+    "confidence": "High",
+    "tags": [],
+    "author": "",
+    "notes": ""
+  },
+  {
+    "order": 74,
+    "title": "Acrylic Glasses",
+    "url": "https://www.iorad.com/player/105713/Acrylic-Glasses?helpcenter=4666&roleId=13221",
+    "type": "Machine / Equipment Workflow",
+    "equipment": "Epilog Laser Cutter",
+    "confidence": "Approved",
+    "tags": [],
+    "author": "",
+    "notes": "Approved for TAD Lab Manager in the 77-tutorial review."
+  },
+  {
+    "order": 28,
+    "title": "Acrylic Light Box 1: PREP ACRYLIC ART",
+    "url": "https://www.iorad.com/player/49468/Acrylic-Light-Box-1--PREP-ACRYLIC-ART?helpcenter=4666&roleId=13221",
+    "type": "Machine / Equipment Workflow",
+    "equipment": "Epilog Laser Cutter",
+    "confidence": "Approved",
+    "tags": [],
+    "author": "",
+    "notes": "Approved for TAD Lab Manager in the 77-tutorial review."
+  },
+  {
+    "order": 33,
+    "title": "Acrylic Light Box 2: CLEANUP OPTION",
+    "url": "https://www.iorad.com/player/51995/Acrylic-Light-Box-2--CLEANUP-OPTION?helpcenter=4666&roleId=13221",
+    "type": "Machine / Equipment Workflow",
+    "equipment": "Epilog Laser Cutter",
+    "confidence": "Approved",
+    "tags": [],
+    "author": "",
+    "notes": "Approved for TAD Lab Manager in the 77-tutorial review."
+  },
+  {
+    "order": 31,
+    "title": "Acrylic Light Box 2: TEXT OPTION",
+    "url": "https://www.iorad.com/player/51992/Acrylic-Light-Box-2--TEXT-OPTION?helpcenter=4666&roleId=13221",
+    "type": "Machine / Equipment Workflow",
+    "equipment": "Epilog Laser Cutter",
+    "confidence": "Approved",
+    "tags": [],
+    "author": "",
+    "notes": "Approved for TAD Lab Manager in the 77-tutorial review."
+  },
+  {
+    "order": 29,
+    "title": "Acrylic Light Box 3: PREP BOX ART",
+    "url": "https://www.iorad.com/player/49529/Acrylic-Light-Box-3--PREP-BOX-ART?helpcenter=4666&roleId=13221",
+    "type": "Machine / Equipment Workflow",
+    "equipment": "Epilog Laser Cutter",
+    "confidence": "Approved",
+    "tags": [],
+    "author": "",
+    "notes": "Approved for TAD Lab Manager in the 77-tutorial review."
+  },
+  {
+    "order": 123,
+    "title": "Add a 1-inch Grid to Your Artwork (TAD)",
+    "url": "https://www.iorad.com/player/1888625/Add-a-1-inch-Grid-to-Your-Artwork--TAD-?helpcenter=4666&roleId=13221",
+    "type": "Project / General Skill",
+    "equipment": "",
+    "confidence": "Not applicable",
+    "tags": [],
+    "author": "",
+    "notes": ""
+  },
+  {
+    "order": 203,
+    "title": "Add a Color Layer in Clip Studio Paint",
+    "url": "https://www.iorad.com/player/2365372/Add-a-Color-Layer-in-Clip-Studio-Paint?helpcenter=4666&roleId=13221",
+    "type": "Software Skill",
+    "equipment": "",
+    "confidence": "Not applicable",
+    "tags": [
+      "Clip Studio Paint"
+    ],
+    "author": "",
+    "notes": ""
+  },
+  {
+    "order": 202,
+    "title": "Add and Edit Word Balloons in Clip Studio Paint",
+    "url": "https://www.iorad.com/player/2365364/Add-and-Edit-Word-Balloons-in-Clip-Studio-Paint?helpcenter=4666&roleId=13221",
+    "type": "Software Skill",
+    "equipment": "",
+    "confidence": "Not applicable",
+    "tags": [
+      "Clip Studio Paint"
+    ],
+    "author": "",
+    "notes": ""
+  },
+  {
+    "order": 130,
+    "title": "Add Layers and Frames to your Shadowbox Design (TAD)",
+    "url": "https://www.iorad.com/player/1914652/Add-Layers-and-Frames-to-your-Shadowbox-Design--TAD-?helpcenter=4666&roleId=13221",
+    "type": "Machine / Equipment Workflow",
+    "equipment": "Epilog Laser Cutter",
+    "confidence": "Approved",
+    "tags": [],
+    "author": "",
+    "notes": "Approved for TAD Lab Manager in the 77-tutorial review."
+  },
+  {
+    "order": 153,
+    "title": "Add Motion Blur to an Image (TAD)",
+    "url": "https://www.iorad.com/player/1941597/Add-Motion-Blur-to-an-Image--TAD-?helpcenter=4666&roleId=13221",
+    "type": "Project / General Skill",
+    "equipment": "",
+    "confidence": "Not applicable",
+    "tags": [],
+    "author": "",
+    "notes": ""
+  },
+  {
+    "order": 251,
+    "title": "Adobe Illustrator Challenge #1: Twirl Tool",
+    "url": "https://www.iorad.com/player/2711074/Adobe-Illustrator-Challenge--1--Twirl-Tool?helpcenter=4666&roleId=13221",
+    "type": "Software Skill",
+    "equipment": "",
+    "confidence": "Not applicable",
+    "tags": [
+      "Adobe Illustrator"
+    ],
+    "author": "",
+    "notes": ""
+  },
+  {
+    "order": 259,
+    "title": "Adobe Illustrator Challenge: Blend Tool, Symbols & 3D Revolve",
+    "url": "https://www.iorad.com/player/2714037/Adobe-Illustrator-Challenge--Blend-Tool--Symbols---3D-Revolve?helpcenter=4666&roleId=13221",
+    "type": "Software Skill",
+    "equipment": "",
+    "confidence": "Not applicable",
+    "tags": [
+      "Adobe Illustrator"
+    ],
+    "author": "",
+    "notes": ""
+  },
+  {
+    "order": 254,
+    "title": "Adobe Illustrator Challenge: Celtic Knot",
+    "url": "https://www.iorad.com/player/2711079/Adobe-Illustrator-Challenge--Celtic-Knot?helpcenter=4666&roleId=13221",
+    "type": "Software Skill",
+    "equipment": "",
+    "confidence": "Not applicable",
+    "tags": [
+      "Adobe Illustrator"
+    ],
+    "author": "",
+    "notes": ""
+  },
+  {
+    "order": 252,
+    "title": "Adobe Illustrator Challenge: Curvature & Reflect",
+    "url": "https://www.iorad.com/player/2711075/Adobe-Illustrator-Challenge--Curvature---Reflect?helpcenter=4666&roleId=13221",
+    "type": "Software Skill",
+    "equipment": "",
+    "confidence": "Not applicable",
+    "tags": [
+      "Adobe Illustrator"
+    ],
+    "author": "",
+    "notes": ""
+  },
+  {
+    "order": 261,
+    "title": "Adobe Illustrator Challenge: Infinitely Repeating Pattern",
+    "url": "https://www.iorad.com/player/2715142/Adobe-Illustrator-Challenge--Infinitely-Repeating-Pattern?helpcenter=4666&roleId=13221",
+    "type": "Software Skill",
+    "equipment": "",
+    "confidence": "Not applicable",
+    "tags": [
+      "Adobe Illustrator"
+    ],
+    "author": "",
+    "notes": ""
+  },
+  {
+    "order": 253,
+    "title": "Adobe Illustrator Challenge: Inflate",
+    "url": "https://www.iorad.com/player/2711076/Adobe-Illustrator-Challenge--Inflate?helpcenter=4666&roleId=13221",
+    "type": "Software Skill",
+    "equipment": "",
+    "confidence": "Not applicable",
+    "tags": [
+      "Adobe Illustrator"
+    ],
+    "author": "",
+    "notes": ""
+  },
+  {
+    "order": 258,
+    "title": "Adobe Illustrator Challenge: Inverted Round Corners",
+    "url": "https://www.iorad.com/player/2711083/Adobe-Illustrator-Challenge--Inverted-Round-Corners?helpcenter=4666&roleId=13221",
+    "type": "Software Skill",
+    "equipment": "",
+    "confidence": "Not applicable",
+    "tags": [
+      "Adobe Illustrator"
+    ],
+    "author": "",
+    "notes": ""
+  },
+  {
+    "order": 260,
+    "title": "Adobe Illustrator Challenge: Live 3D Text Effect with Extrude & Bevel",
+    "url": "https://www.iorad.com/player/2714042/Adobe-Illustrator-Challenge--Live-3D-Text-Effect-with-Extrude---Bevel?helpcenter=4666&roleId=13221",
+    "type": "Software Skill",
+    "equipment": "",
+    "confidence": "Not applicable",
+    "tags": [
+      "Adobe Illustrator"
+    ],
+    "author": "",
+    "notes": ""
+  },
+  {
+    "order": 255,
+    "title": "Adobe Illustrator Challenge: Puppet Warped Logotype",
+    "url": "https://www.iorad.com/player/2711080/Adobe-Illustrator-Challenge--Puppet-Warped-Logotype?helpcenter=4666&roleId=13221",
+    "type": "Software Skill",
+    "equipment": "",
+    "confidence": "Not applicable",
+    "tags": [
+      "Adobe Illustrator"
+    ],
+    "author": "",
+    "notes": ""
+  },
+  {
+    "order": 257,
+    "title": "Adobe Illustrator Challenge: Radial Repeat",
+    "url": "https://www.iorad.com/player/2711082/Adobe-Illustrator-Challenge--Radial-Repeat?helpcenter=4666&roleId=13221",
+    "type": "Software Skill",
+    "equipment": "",
+    "confidence": "Not applicable",
+    "tags": [
+      "Adobe Illustrator"
+    ],
+    "author": "",
+    "notes": ""
+  },
+  {
+    "order": 256,
+    "title": "Adobe Illustrator Challenge: Stretchy Buttons",
+    "url": "https://www.iorad.com/player/2711081/Adobe-Illustrator-Challenge--Stretchy-Buttons?helpcenter=4666&roleId=13221",
+    "type": "Software Skill",
+    "equipment": "",
+    "confidence": "Not applicable",
+    "tags": [
+      "Adobe Illustrator"
+    ],
+    "author": "",
+    "notes": ""
+  },
+  {
+    "order": 262,
+    "title": "Adobe Illustrator Shortcuts #1",
+    "url": "https://www.iorad.com/player/2717402/Adobe-Illustrator-Shortcuts--1?helpcenter=4666&roleId=13221",
+    "type": "Software Skill",
+    "equipment": "",
+    "confidence": "Not applicable",
+    "tags": [
+      "Adobe Illustrator"
+    ],
+    "author": "",
+    "notes": ""
+  },
+  {
+    "order": 263,
+    "title": "Adobe Illustrator Shortcuts #2",
+    "url": "https://www.iorad.com/player/2717905/Adobe-Illustrator-Shortcuts--2?helpcenter=4666&roleId=13221",
+    "type": "Software Skill",
+    "equipment": "",
+    "confidence": "Not applicable",
+    "tags": [
+      "Adobe Illustrator"
+    ],
+    "author": "",
+    "notes": ""
+  },
+  {
+    "order": 235,
+    "title": "Adobe Vector Illustration #1: iPad Shape Building & Clipping Masks",
+    "url": "https://www.iorad.com/player/2697676/Adobe-Vector-Illustration--1--iPad-Shape-Building---Clipping-Masks?helpcenter=4666&roleId=13221",
+    "type": "Software Skill",
+    "equipment": "",
+    "confidence": "Not applicable",
+    "tags": [
+      "Adobe Illustrator"
+    ],
+    "author": "",
+    "notes": ""
+  },
+  {
+    "order": 236,
+    "title": "Adobe Vector Illustration #2: Desktop Pencil Tool & Draw Inside",
+    "url": "https://www.iorad.com/player/2699113/Adobe-Vector-Illustration--2--Desktop-Pencil-Tool---Draw-Inside?helpcenter=4666&roleId=13221",
+    "type": "Software Skill",
+    "equipment": "",
+    "confidence": "Not applicable",
+    "tags": [
+      "Adobe Illustrator"
+    ],
+    "author": "",
+    "notes": ""
+  },
+  {
+    "order": 238,
+    "title": "Adobe Vector Illustration #3: Adding Background Elements",
+    "url": "https://www.iorad.com/player/2700343/Adobe-Vector-Illustration--3--Adding-Background-Elements?helpcenter=4666&roleId=13221",
+    "type": "Software Skill",
+    "equipment": "",
+    "confidence": "Not applicable",
+    "tags": [
+      "Adobe Illustrator"
+    ],
+    "author": "",
+    "notes": ""
+  },
+  {
+    "order": 239,
+    "title": "Adobe Vector Illustration #4: Simplify, Cleanup & Add Texture",
+    "url": "https://www.iorad.com/player/2700365/Adobe-Vector-Illustration--4--Simplify--Cleanup---Add-Texture?helpcenter=4666&roleId=13221",
+    "type": "Software Skill",
+    "equipment": "",
+    "confidence": "Not applicable",
+    "tags": [
+      "Adobe Illustrator"
+    ],
+    "author": "",
+    "notes": ""
+  },
+  {
+    "order": 154,
+    "title": "Afinia H800 3D Print Tutorial (TAD)",
+    "url": "https://www.iorad.com/player/1941787/Afinia-H800-3D-Print-Tutorial--TAD-?helpcenter=4666&roleId=13221",
+    "type": "Machine / Equipment Workflow",
+    "equipment": "Afinia H800 3D Printer",
+    "confidence": "High",
+    "tags": [
+      "Printing / Prepress"
+    ],
+    "author": "",
+    "notes": ""
+  },
+  {
+    "order": 144,
+    "title": "Align Material in Laser (TAD)",
+    "url": "https://www.iorad.com/player/1926818/Align-Material-in-Laser--TAD-?helpcenter=4666&roleId=13221",
+    "type": "Machine / Equipment Workflow",
+    "equipment": "Epilog Laser Cutter",
+    "confidence": "High",
+    "tags": [],
+    "author": "",
+    "notes": ""
+  },
+  {
+    "order": 243,
+    "title": "Art Brush: Stretch Between Guides (Rod of Asclepius example)",
+    "url": "https://www.iorad.com/player/2703893/Art-Brush--Stretch-Between-Guides--Rod-of-Asclepius-example-?helpcenter=4666&roleId=13221",
+    "type": "Software Skill",
+    "equipment": "",
+    "confidence": "Not applicable",
+    "tags": [
+      "Adobe Illustrator"
+    ],
+    "author": "",
+    "notes": ""
+  },
+  {
+    "order": 104,
+    "title": "Attach the Rotary on Laser (TAD)",
+    "url": "https://www.iorad.com/player/1619001/Attach-the-Rotary-on-Laser--TAD-?helpcenter=4666&roleId=13221",
+    "type": "Machine / Equipment Workflow",
+    "equipment": "Epilog Laser Cutter",
+    "confidence": "High",
+    "tags": [],
+    "author": "",
+    "notes": ""
+  },
+  {
+    "order": 14,
+    "title": "Basic Wooden Medallion PREP",
+    "url": "https://www.iorad.com/player/38686/Basic-Wooden-Medallion-PREP?helpcenter=4666&roleId=13221",
+    "type": "Machine / Equipment Workflow",
+    "equipment": "Epilog Laser Cutter",
+    "confidence": "Approved",
+    "tags": [],
+    "author": "",
+    "notes": "Approved for TAD Lab Manager in the 77-tutorial review."
+  },
+  {
+    "order": 55,
+    "title": "Blender 1: Sculpting a head",
+    "url": "https://www.iorad.com/player/95822/Blender-1--Sculpting-a-head?helpcenter=4666&roleId=13221",
+    "type": "Software Skill",
+    "equipment": "",
+    "confidence": "Not applicable",
+    "tags": [
+      "Blender"
+    ],
+    "author": "",
+    "notes": ""
+  },
+  {
+    "order": 51,
+    "title": "bringing color to your Maya models",
+    "url": "https://www.iorad.com/player/89630/bringing-color--to-your-Maya--models?helpcenter=4666&roleId=13221",
+    "type": "Software Skill",
+    "equipment": "",
+    "confidence": "Not applicable",
+    "tags": [
+      "Autodesk Maya"
+    ],
+    "author": "",
+    "notes": ""
+  },
+  {
+    "order": 181,
+    "title": "Build a Canvas with Power Tools (TAD)",
+    "url": "https://www.iorad.com/player/2184167/Build-a-Canvas-with-Power-Tools--TAD-?helpcenter=4666&roleId=13221",
+    "type": "Machine / Equipment Workflow",
+    "equipment": "Woodshop Power Tools",
+    "confidence": "Approved",
+    "tags": [
+      "Canvas Production"
+    ],
+    "author": "",
+    "notes": "Approved for TAD Lab Manager in the 77-tutorial review."
+  },
+  {
+    "order": 134,
+    "title": "Build a laser cut tripod - [full tutorial] (TAD)",
+    "url": "https://www.iorad.com/player/1915948/Build-a-laser-cut-tripod----full-tutorial---TAD-?helpcenter=4666&roleId=13221",
+    "type": "Machine / Equipment Workflow",
+    "equipment": "Epilog Laser Cutter",
+    "confidence": "High",
+    "tags": [],
+    "author": "",
+    "notes": ""
+  },
+  {
+    "order": 135,
+    "title": "Build a tripod from pre-cut wood trim (TAD)",
+    "url": "https://www.iorad.com/player/1915965/Build-a-tripod-from-pre-cut-wood-trim--TAD-?helpcenter=4666&roleId=13221",
+    "type": "Project / General Skill",
+    "equipment": "",
+    "confidence": "Not applicable",
+    "tags": [],
+    "author": "",
+    "notes": ""
+  },
+  {
+    "order": 24,
+    "title": "Build a Wood Frame for 12' Mirror",
+    "url": "https://www.iorad.com/player/40916/Build-a-Wood-Frame-for-12--Mirror?helpcenter=4666&roleId=13221",
+    "type": "Machine / Equipment Workflow",
+    "equipment": "Woodshop Power Tools",
+    "confidence": "Approved",
+    "tags": [],
+    "author": "",
+    "notes": "Approved for TAD Lab Manager in the 77-tutorial review."
+  },
+  {
+    "order": 159,
+    "title": "Build and Stretch a Canvas (TAD)",
+    "url": "https://www.iorad.com/player/1945369/Build-and-Stretch-a-Canvas--TAD-?helpcenter=4666&roleId=13221",
+    "type": "Software Skill",
+    "equipment": "",
+    "confidence": "Not applicable",
+    "tags": [
+      "Canvas Production"
+    ],
+    "author": "",
+    "notes": ""
+  },
+  {
+    "order": 174,
+    "title": "Build Canvas Frame (without power tools)",
+    "url": "https://www.iorad.com/player/2146429/Build-Canvas-Frame--without-power-tools-?helpcenter=4666&roleId=13221",
+    "type": "Machine / Equipment Workflow",
+    "equipment": "Woodshop Power Tools",
+    "confidence": "Approved",
+    "tags": [
+      "Canvas Production"
+    ],
+    "author": "",
+    "notes": "Approved for TAD Lab Manager in the 77-tutorial review."
+  },
+  {
+    "order": 223,
+    "title": "Change a bit in the Shopbot Desktop CNC Router",
+    "url": "https://www.iorad.com/player/2476842/Change-a-bit-in-the-Shopbot-Desktop-CNC-Router?helpcenter=4666&roleId=13221",
+    "type": "Machine / Equipment Workflow",
+    "equipment": "ShopBot CNC Router",
+    "confidence": "High",
+    "tags": [],
+    "author": "",
+    "notes": ""
+  },
+  {
+    "order": 126,
+    "title": "Change Cutter and pressure on Kongsberg (TAD)",
+    "url": "https://www.iorad.com/player/1889332/Change-Cutter-and-pressure-on-Kongsberg---TAD-?helpcenter=4666&roleId=13221",
+    "type": "Machine / Equipment Workflow",
+    "equipment": "Kongsberg Cutter",
+    "confidence": "High",
+    "tags": [],
+    "author": "",
+    "notes": ""
+  },
+  {
+    "order": 102,
+    "title": "Change Paper in Large Format Printer",
+    "url": "https://www.iorad.com/player/1567934/Change-Paper-in-Large-Format-Printer?helpcenter=4666&roleId=13221",
+    "type": "Machine / Equipment Workflow",
+    "equipment": "HP Latex Printer",
+    "confidence": "Approved",
+    "tags": [
+      "Printing / Prepress"
+    ],
+    "author": "",
+    "notes": "Approved for TAD Lab Manager in the 77-tutorial review."
+  },
+  {
+    "order": 173,
+    "title": "Change Substrates on the HP Latex Printer",
+    "url": "https://www.iorad.com/player/2146278/Change-Substrates-on-the-HP-Latex-Printer?helpcenter=4666&roleId=13221",
+    "type": "Machine / Equipment Workflow",
+    "equipment": "HP Latex Printer",
+    "confidence": "Approved",
+    "tags": [
+      "Printing / Prepress"
+    ],
+    "author": "",
+    "notes": "Approved for TAD Lab Manager in the 77-tutorial review."
+  },
+  {
+    "order": 67,
+    "title": "Coding with Logo: Tinker with the Fern",
+    "url": "https://www.iorad.com/player/102100/Coding-with-Logo--Tinker-with-the-Fern?helpcenter=4666&roleId=13221",
+    "type": "Software Skill",
+    "equipment": "",
+    "confidence": "Not applicable",
+    "tags": [
+      "Logo Coding"
+    ],
+    "author": "",
+    "notes": ""
+  },
+  {
+    "order": 172,
+    "title": "Color Exploded View Sketches",
+    "url": "https://www.iorad.com/player/2145594/Color-Exploded-View-Sketches?helpcenter=4666&roleId=13221",
+    "type": "Project / General Skill",
+    "equipment": "",
+    "confidence": "Not applicable",
+    "tags": [],
+    "author": "",
+    "notes": ""
+  },
+  {
+    "order": 167,
+    "title": "Color Inked Art with PhotoPea",
+    "url": "https://www.iorad.com/player/2131985/Color-Inked-Art-with-PhotoPea?helpcenter=4666&roleId=13221",
+    "type": "Software Skill",
+    "equipment": "",
+    "confidence": "Not applicable",
+    "tags": [
+      "Photopea"
+    ],
+    "author": "",
+    "notes": ""
+  },
+  {
+    "order": 120,
+    "title": "Color Mapping for Laser TAD",
+    "url": "https://www.iorad.com/player/1885894/Color-Mapping-for-Laser-TAD?helpcenter=4666&roleId=13221",
+    "type": "Machine / Equipment Workflow",
+    "equipment": "Epilog Laser Cutter",
+    "confidence": "High",
+    "tags": [
+      "Adobe Illustrator"
+    ],
+    "author": "",
+    "notes": ""
+  },
+  {
+    "order": 168,
+    "title": "Color Pencil Artwork in Photopea",
+    "url": "https://www.iorad.com/player/2133965/Color-Pencil-Artwork-in-Photopea?helpcenter=4666&roleId=13221",
+    "type": "Software Skill",
+    "equipment": "",
+    "confidence": "Not applicable",
+    "tags": [
+      "Photopea"
+    ],
+    "author": "",
+    "notes": ""
+  },
+  {
+    "order": 118,
+    "title": "Composite an Image in Photoshop (TAD)",
+    "url": "https://www.iorad.com/player/1884578/Composite-an-Image-in-Photoshop--TAD-?helpcenter=4666&roleId=13221",
+    "type": "Software Skill",
+    "equipment": "",
+    "confidence": "Not applicable",
+    "tags": [
+      "Adobe Photoshop"
+    ],
+    "author": "",
+    "notes": ""
+  },
+  {
+    "order": 177,
+    "title": "Correct Hologram Workflow",
+    "url": "https://www.iorad.com/player/2171913/Correct-Hologram-Workflow?helpcenter=4666&roleId=13221",
+    "type": "Machine / Equipment Workflow",
+    "equipment": "Epilog Laser Cutter",
+    "confidence": "Approved",
+    "tags": [
+      "Hologram Fabrication"
+    ],
+    "author": "",
+    "notes": "Approved for TAD Lab Manager in the 77-tutorial review."
+  },
+  {
+    "order": 245,
+    "title": "Create a color swatch guide in your Adobe Illustrator file",
+    "url": "https://www.iorad.com/player/2706719/Create-a-color-swatch-guide-in-your-Adobe-Illustrator-file?helpcenter=4666&roleId=13221",
+    "type": "Software Skill",
+    "equipment": "",
+    "confidence": "Not applicable",
+    "tags": [
+      "Adobe Illustrator"
+    ],
+    "author": "",
+    "notes": ""
+  },
+  {
+    "order": 140,
+    "title": "Create a Hologram Effect Using the Blend Tool (TAD)",
+    "url": "https://www.iorad.com/player/1924103/Create-a-Hologram-Effect-Using-the-Blend-Tool--TAD-?helpcenter=4666&roleId=13221",
+    "type": "Machine / Equipment Workflow",
+    "equipment": "Epilog Laser Cutter",
+    "confidence": "Approved",
+    "tags": [
+      "Adobe Illustrator",
+      "Hologram Fabrication"
+    ],
+    "author": "",
+    "notes": "Approved for TAD Lab Manager in the 77-tutorial review."
+  },
+  {
+    "order": 176,
+    "title": "Create a Tryptic using Photopea",
+    "url": "https://www.iorad.com/player/2146703/Create-a-Tryptic-using-Photopea?helpcenter=4666&roleId=13221",
+    "type": "Software Skill",
+    "equipment": "",
+    "confidence": "Not applicable",
+    "tags": [
+      "Photopea"
+    ],
+    "author": "",
+    "notes": ""
+  },
+  {
+    "order": 250,
+    "title": "Create an inverted color option for your brandmark or logo",
+    "url": "https://www.iorad.com/player/2710484/Create-an-inverted-color-option-for-your-brandmark-or-logo?helpcenter=4666&roleId=13221",
+    "type": "Project / General Skill",
+    "equipment": "",
+    "confidence": "Not applicable",
+    "tags": [],
+    "author": "",
+    "notes": ""
+  },
+  {
+    "order": 163,
+    "title": "Create DAZ 3D Anatomy Reference Images.",
+    "url": "https://www.iorad.com/player/2026284/Create-DAZ-3D-Anatomy-Reference-Images-?helpcenter=4666&roleId=13221",
+    "type": "Software Skill",
+    "equipment": "",
+    "confidence": "Not applicable",
+    "tags": [
+      "DAZ 3D"
+    ],
+    "author": "",
+    "notes": ""
+  },
+  {
+    "order": 101,
+    "title": "Create Layers for Embroidery",
+    "url": "https://www.iorad.com/player/1559537/Create-Layers-for-Embroidery?helpcenter=4666&roleId=13221",
+    "type": "Machine / Equipment Workflow",
+    "equipment": "Embroidery Machine",
+    "confidence": "High",
+    "tags": [
+      "Embroidery Preparation"
+    ],
+    "author": "",
+    "notes": ""
+  },
+  {
+    "order": 138,
+    "title": "Creating a Spiral Betty etch frame.",
+    "url": "https://www.iorad.com/player/1920910/Creating-a-Spiral-Betty-etch-frame-?helpcenter=4666&roleId=13221",
+    "type": "Project / General Skill",
+    "equipment": "",
+    "confidence": "Not applicable",
+    "tags": [],
+    "author": "",
+    "notes": ""
+  },
+  {
+    "order": 186,
+    "title": "Cut a Box with Artwork",
+    "url": "https://www.iorad.com/player/2260318/Cut-a-Box-with-Artwork?helpcenter=4666&roleId=13221",
+    "type": "Machine / Equipment Workflow",
+    "equipment": "Kongsberg Cutter",
+    "confidence": "Approved",
+    "tags": [],
+    "author": "",
+    "notes": "Approved for TAD Lab Manager in the 77-tutorial review."
+  },
+  {
+    "order": 127,
+    "title": "Cut a Box with the Kongsberg (TAD)",
+    "url": "https://www.iorad.com/player/1889383/Cut-a-Box-with-the-Kongsberg--TAD-?helpcenter=4666&roleId=13221",
+    "type": "Machine / Equipment Workflow",
+    "equipment": "Kongsberg Cutter",
+    "confidence": "High",
+    "tags": [],
+    "author": "",
+    "notes": ""
+  },
+  {
+    "order": 17,
+    "title": "Cut Background for Stencil",
+    "url": "https://www.iorad.com/player/39009/Cut-Background-for-Stencil?helpcenter=4666&roleId=13221",
+    "type": "Project / General Skill",
+    "equipment": "",
+    "confidence": "Not applicable",
+    "tags": [],
+    "author": "",
+    "notes": ""
+  },
+  {
+    "order": 2,
+    "title": "Cut Images from Backgrounds",
+    "url": "https://www.iorad.com/player/16068/Cut-Images-from-Backgrounds?helpcenter=4666&roleId=13221",
+    "type": "Project / General Skill",
+    "equipment": "",
+    "confidence": "Not applicable",
+    "tags": [],
+    "author": "",
+    "notes": ""
+  },
+  {
+    "order": 68,
+    "title": "Decoder code tutorial",
+    "url": "https://www.iorad.com/player/102416/Decoder-code-tutorial?helpcenter=4666&roleId=13221",
+    "type": "Project / General Skill",
+    "equipment": "",
+    "confidence": "Not applicable",
+    "tags": [],
+    "author": "",
+    "notes": ""
+  },
+  {
+    "order": 192,
+    "title": "Design & Heat Press a TAD Stole!",
+    "url": "https://www.iorad.com/player/2264244/Design---Heat-Press-a-TAD-Stole-?helpcenter=4666&roleId=13221",
+    "type": "Machine / Equipment Workflow",
+    "equipment": "Flat Heat Press",
+    "confidence": "High",
+    "tags": [],
+    "author": "",
+    "notes": ""
+  },
+  {
+    "order": 247,
+    "title": "Design a BeMatrix Frame with your Personal Branding",
+    "url": "https://www.iorad.com/player/2710081/Design-a-BeMatrix-Frame-with-your-Personal-Branding?helpcenter=4666&roleId=13221",
+    "type": "Project / General Skill",
+    "equipment": "",
+    "confidence": "Not applicable",
+    "tags": [],
+    "author": "",
+    "notes": ""
+  },
+  {
+    "order": 184,
+    "title": "Design a Box with Artwork",
+    "url": "https://www.iorad.com/player/2259669/Design-a-Box-with-Artwork?helpcenter=4666&roleId=13221",
+    "type": "Machine / Equipment Workflow",
+    "equipment": "Kongsberg Cutter",
+    "confidence": "Approved",
+    "tags": [],
+    "author": "",
+    "notes": "Approved for TAD Lab Manager in the 77-tutorial review."
+  },
+  {
+    "order": 246,
+    "title": "Design a Hand Lettered Logotype with Adobe Fresco and Illustrator",
+    "url": "https://www.iorad.com/player/2708485/Design-a-Hand-Lettered-Logotype-with-Adobe-Fresco-and-Illustrator?helpcenter=4666&roleId=13221",
+    "type": "Software Skill",
+    "equipment": "",
+    "confidence": "Not applicable",
+    "tags": [
+      "Adobe Illustrator",
+      "Adobe Fresco"
+    ],
+    "author": "",
+    "notes": ""
+  },
+  {
+    "order": 210,
+    "title": "Digitize a Mind Map with Prezi.com",
+    "url": "https://www.iorad.com/player/2446002/Digitize-a-Mind-Map-with-Prezi-com?helpcenter=4666&roleId=13221",
+    "type": "Software Skill",
+    "equipment": "",
+    "confidence": "Not applicable",
+    "tags": [
+      "Prezi"
+    ],
+    "author": "",
+    "notes": ""
+  },
+  {
+    "order": 189,
+    "title": "Double Sided Prints for Magazines & Business Cards",
+    "url": "https://www.iorad.com/player/2263569/Double-Sided-Prints-for-Magazines---Business-Cards?helpcenter=4666&roleId=13221",
+    "type": "Software Skill",
+    "equipment": "",
+    "confidence": "Not applicable",
+    "tags": [
+      "Printing / Prepress"
+    ],
+    "author": "",
+    "notes": ""
+  },
+  {
+    "order": 220,
+    "title": "Download a Vector Map from Open Street Maps",
+    "url": "https://www.iorad.com/player/2467796/Download-a-Vector-Map-from-Open-Street-Maps?helpcenter=4666&roleId=13221",
+    "type": "Software Skill",
+    "equipment": "",
+    "confidence": "Not applicable",
+    "tags": [
+      "Adobe Illustrator",
+      "OpenStreetMap"
+    ],
+    "author": "",
+    "notes": ""
+  },
+  {
+    "order": 27,
+    "title": "Download and Edit a Video",
+    "url": "https://www.iorad.com/player/42813/Download-and-Edit-a-Video?helpcenter=4666&roleId=13221",
+    "type": "Software Skill",
+    "equipment": "",
+    "confidence": "Not applicable",
+    "tags": [
+      "Video Production"
+    ],
+    "author": "",
+    "notes": ""
+  },
+  {
+    "order": 108,
+    "title": "Download High Resolution Images Online",
+    "url": "https://www.iorad.com/player/1867099/Download-High-Resolution-Images-Online?helpcenter=4666&roleId=13221",
+    "type": "Software Skill",
+    "equipment": "",
+    "confidence": "Not applicable",
+    "tags": [
+      "Photography / Image Sourcing"
+    ],
+    "author": "",
+    "notes": ""
+  },
+  {
+    "order": 201,
+    "title": "Draw Panels in Clip Studio (and break them!)",
+    "url": "https://www.iorad.com/player/2365258/Draw-Panels-in-Clip-Studio--and-break-them--?helpcenter=4666&roleId=13221",
+    "type": "Software Skill",
+    "equipment": "",
+    "confidence": "Not applicable",
+    "tags": [
+      "Clip Studio Paint"
+    ],
+    "author": "",
+    "notes": ""
+  },
+  {
+    "order": 88,
+    "title": "Edit a photo for Canvas Wrap",
+    "url": "https://www.iorad.com/player/159133/Edit-a-photo-for-Canvas-Wrap?helpcenter=4666&roleId=13221",
+    "type": "Machine / Equipment Workflow",
+    "equipment": "HP Latex Printer",
+    "confidence": "Approved",
+    "tags": [
+      "Canvas Production"
+    ],
+    "author": "",
+    "notes": "Approved for TAD Lab Manager in the 77-tutorial review."
+  },
+  {
+    "order": 59,
+    "title": "Edit shapes in a poster",
+    "url": "https://www.iorad.com/player/98360/Edit-shapes-in-a-poster?helpcenter=4666&roleId=13221",
+    "type": "Project / General Skill",
+    "equipment": "",
+    "confidence": "Not applicable",
+    "tags": [],
+    "author": "",
+    "notes": ""
+  },
+  {
+    "order": 79,
+    "title": "Elementry Laminator",
+    "url": "https://www.iorad.com/player/126185/Elementry-Laminator?helpcenter=4666&roleId=13221",
+    "type": "Machine / Equipment Workflow",
+    "equipment": "Laminator",
+    "confidence": "High",
+    "tags": [],
+    "author": "",
+    "notes": ""
+  },
+  {
+    "order": 265,
+    "title": "Embroidery Machine Tutorial",
+    "url": "https://www.iorad.com/player/2710821/Embroidery-Machine-Tutorial#trysteps-1",
+    "type": "Machine / Equipment Workflow",
+    "equipment": "Embroidery Machine",
+    "confidence": "High",
+    "tags": [
+      "Embroidery Preparation"
+    ],
+    "author": "Eric Carlson",
+    "notes": "Verified from iorad cover: 67 steps, about 5 minutes; Apr 2026."
+  },
+  {
+    "order": 73,
+    "title": "Engrave on Wood Action -- SHOP",
+    "url": "https://www.iorad.com/player/104289/Engrave-on-Wood-Action----SHOP?helpcenter=4666&roleId=13221",
+    "type": "Machine / Equipment Workflow",
+    "equipment": "Epilog Laser Cutter",
+    "confidence": "High",
+    "tags": [],
+    "author": "",
+    "notes": ""
+  },
+  {
+    "order": 75,
+    "title": "Engrave on Wood Action -- SHOP -- Copy",
+    "url": "https://www.iorad.com/player/107211/Engrave-on-Wood-Action----SHOP----Copy?helpcenter=4666&roleId=13221",
+    "type": "Machine / Equipment Workflow",
+    "equipment": "Epilog Laser Cutter",
+    "confidence": "Approved",
+    "tags": [],
+    "author": "",
+    "notes": "Approved for TAD Lab Manager in the 77-tutorial review."
+  },
+  {
+    "order": 63,
+    "title": "Engrave on Wood Action 300 DPI",
+    "url": "https://www.iorad.com/player/99162/Engrave-on-Wood-Action-300-DPI?helpcenter=4666&roleId=13221",
+    "type": "Machine / Equipment Workflow",
+    "equipment": "Epilog Laser Cutter",
+    "confidence": "High",
+    "tags": [],
+    "author": "",
+    "notes": ""
+  },
+  {
+    "order": 46,
+    "title": "Etch on Glass #1: Halftone Your Photo",
+    "url": "https://www.iorad.com/player/88721/Etch-on-Glass--1--Halftone-Your-Photo?helpcenter=4666&roleId=13221",
+    "type": "Machine / Equipment Workflow",
+    "equipment": "Epilog Laser Cutter",
+    "confidence": "High",
+    "tags": [
+      "Adobe Illustrator"
+    ],
+    "author": "",
+    "notes": ""
+  },
+  {
+    "order": 143,
+    "title": "Expand Text so You Don't Need to Activate Fonts (TAD)",
+    "url": "https://www.iorad.com/player/1926802/Expand-Text-so-You-Don-t-Need-to-Activate-Fonts--TAD-?helpcenter=4666&roleId=13221",
+    "type": "Project / General Skill",
+    "equipment": "",
+    "confidence": "Not applicable",
+    "tags": [],
+    "author": "",
+    "notes": ""
+  },
+  {
+    "order": 188,
+    "title": "Export InDesign Documents as PDF Spreads (TAD MAGAZINES)",
+    "url": "https://www.iorad.com/player/2262007/Export-InDesign-Documents-as-PDF-Spreads--TAD-MAGAZINES-?helpcenter=4666&roleId=13221",
+    "type": "Software Skill",
+    "equipment": "",
+    "confidence": "Not applicable",
+    "tags": [
+      "Adobe InDesign",
+      "Printing / Prepress"
+    ],
+    "author": "",
+    "notes": ""
+  },
+  {
+    "order": 166,
+    "title": "Export InDesign Files as PDFs to Print.",
+    "url": "https://www.iorad.com/player/2041769/Export-InDesign-Files-as-PDFs-to-Print-?helpcenter=4666&roleId=13221",
+    "type": "Software Skill",
+    "equipment": "",
+    "confidence": "Not applicable",
+    "tags": [
+      "Adobe InDesign",
+      "Printing / Prepress"
+    ],
+    "author": "",
+    "notes": ""
+  },
+  {
+    "order": 69,
+    "title": "Export Maya to 3D Print",
+    "url": "https://www.iorad.com/player/103571/Export-Maya-to-3D-Print?helpcenter=4666&roleId=13221",
+    "type": "Machine / Equipment Workflow",
+    "equipment": "3D Printer (General)",
+    "confidence": "Approved",
+    "tags": [
+      "Autodesk Maya",
+      "Printing / Prepress"
+    ],
+    "author": "",
+    "notes": "Approved for TAD Lab Manager in the 77-tutorial review."
+  },
+  {
+    "order": 99,
+    "title": "EZ Router Operation",
+    "url": "https://www.iorad.com/player/1556212/EZ-Router-Operation?helpcenter=4666&roleId=13221",
+    "type": "Machine / Equipment Workflow",
+    "equipment": "EZ Router CNC",
+    "confidence": "High",
+    "tags": [],
+    "author": "",
+    "notes": ""
+  },
+  {
+    "order": 169,
+    "title": "Find and use a custom font",
+    "url": "https://www.iorad.com/player/2138578/Find-and-use-a-custom-font?helpcenter=4666&roleId=13221",
+    "type": "Project / General Skill",
+    "equipment": "",
+    "confidence": "Not applicable",
+    "tags": [],
+    "author": "",
+    "notes": ""
+  },
+  {
+    "order": 87,
+    "title": "Find High Resolution Vectors Online",
+    "url": "https://www.iorad.com/player/157237/Find-High-Resolution-Vectors-Online?helpcenter=4666&roleId=13221",
+    "type": "Software Skill",
+    "equipment": "",
+    "confidence": "Not applicable",
+    "tags": [
+      "Adobe Illustrator",
+      "Photography / Image Sourcing"
+    ],
+    "author": "",
+    "notes": ""
+  },
+  {
+    "order": 121,
+    "title": "Fusion 360 Ornament TAD",
+    "url": "https://www.iorad.com/player/1887421/Fusion-360-Ornament-TAD?helpcenter=4666&roleId=13221",
+    "type": "Software Skill",
+    "equipment": "",
+    "confidence": "Not applicable",
+    "tags": [
+      "Fusion 360"
+    ],
+    "author": "",
+    "notes": ""
+  },
+  {
+    "order": 20,
+    "title": "Google Classroom for Beginners",
+    "url": "https://www.iorad.com/player/39892/Google-Classroom-for-Beginners?helpcenter=4666&roleId=13221",
+    "type": "Software Skill",
+    "equipment": "",
+    "confidence": "Not applicable",
+    "tags": [
+      "Google Classroom"
+    ],
+    "author": "",
+    "notes": ""
+  },
+  {
+    "order": 129,
+    "title": "Hand Drawn Silhouettes to Illustrator (TAD)",
+    "url": "https://www.iorad.com/player/1914644/Hand-Drawn-Silhouettes-to-Illustrator--TAD-?helpcenter=4666&roleId=13221",
+    "type": "Software Skill",
+    "equipment": "",
+    "confidence": "Not applicable",
+    "tags": [
+      "Adobe Illustrator"
+    ],
+    "author": "",
+    "notes": ""
+  },
+  {
+    "order": 209,
+    "title": "Heat pressing a Hat",
+    "url": "https://www.iorad.com/player/2445085/Heat-pressing-a-Hat?helpcenter=4666&roleId=13221",
+    "type": "Machine / Equipment Workflow",
+    "equipment": "Hat Heat Press; Flat Heat Press",
+    "confidence": "High",
+    "tags": [],
+    "author": "",
+    "notes": ""
+  },
+  {
+    "order": 160,
+    "title": "Heat pressing a Mug",
+    "url": "https://www.iorad.com/player/1948440/Heat-pressing-a-Mug?helpcenter=4666&roleId=13221",
+    "type": "Machine / Equipment Workflow",
+    "equipment": "Mug Heat Press; Flat Heat Press",
+    "confidence": "High",
+    "tags": [],
+    "author": "",
+    "notes": ""
+  },
+  {
+    "order": 152,
+    "title": "Heat pressing a T-shirt (or other flat substrate)",
+    "url": "https://www.iorad.com/player/1937653/Heat-pressing-a-T-shirt--or-other-flat-substrate-?helpcenter=4666&roleId=13221",
+    "type": "Machine / Equipment Workflow",
+    "equipment": "Flat Heat Press",
+    "confidence": "High",
+    "tags": [],
+    "author": "",
+    "notes": ""
+  },
+  {
+    "order": 112,
+    "title": "Hologram #1: Design a Press-Fit Box with Finger and Pin Joints (TAD)",
+    "url": "https://www.iorad.com/player/1875314/Hologram--1--Design-a-Press-Fit-Box-with-Finger-and-Pin-Joints--TAD-?helpcenter=4666&roleId=13221",
+    "type": "Machine / Equipment Workflow",
+    "equipment": "Epilog Laser Cutter",
+    "confidence": "Approved",
+    "tags": [
+      "Hologram Fabrication"
+    ],
+    "author": "",
+    "notes": "Approved for TAD Lab Manager in the 77-tutorial review."
+  },
+  {
+    "order": 111,
+    "title": "Hologram #2: Add the Battery Pack Cut Path (TAD)",
+    "url": "https://www.iorad.com/player/1875302/Hologram--2--Add-the-Battery-Pack-Cut-Path--TAD-?helpcenter=4666&roleId=13221",
+    "type": "Machine / Equipment Workflow",
+    "equipment": "Epilog Laser Cutter",
+    "confidence": "Approved",
+    "tags": [
+      "Adobe Illustrator",
+      "Hologram Fabrication"
+    ],
+    "author": "",
+    "notes": "Approved for TAD Lab Manager in the 77-tutorial review."
+  },
+  {
+    "order": 113,
+    "title": "Hologram #3: Initialize and Focus the Laser (TAD)",
+    "url": "https://www.iorad.com/player/1875333/Hologram--3--Initialize-and-Focus-the-Laser--TAD-?helpcenter=4666&roleId=13221",
+    "type": "Machine / Equipment Workflow",
+    "equipment": "Epilog Laser Cutter",
+    "confidence": "High",
+    "tags": [
+      "Hologram Fabrication"
+    ],
+    "author": "",
+    "notes": ""
+  },
+  {
+    "order": 114,
+    "title": "Hologram #5: Cut out your material (TAD)",
+    "url": "https://www.iorad.com/player/1875337/Hologram--5--Cut-out-your-material--TAD-?helpcenter=4666&roleId=13221",
+    "type": "Machine / Equipment Workflow",
+    "equipment": "Epilog Laser Cutter",
+    "confidence": "Approved",
+    "tags": [
+      "Hologram Fabrication"
+    ],
+    "author": "",
+    "notes": "Approved for TAD Lab Manager in the 77-tutorial review."
+  },
+  {
+    "order": 110,
+    "title": "Hologram #6: Editing and Re-cutting on Laser (TAD)",
+    "url": "https://www.iorad.com/player/1875296/Hologram--6--Editing-and-Re-cutting-on-Laser--TAD-?helpcenter=4666&roleId=13221",
+    "type": "Machine / Equipment Workflow",
+    "equipment": "Epilog Laser Cutter",
+    "confidence": "High",
+    "tags": [
+      "Hologram Fabrication"
+    ],
+    "author": "",
+    "notes": ""
+  },
+  {
+    "order": 131,
+    "title": "Hologram #6: Press-Fit it Together. (TAD)",
+    "url": "https://www.iorad.com/player/1914837/Hologram--6--Press-Fit-it-Together----TAD-?helpcenter=4666&roleId=13221",
+    "type": "Machine / Equipment Workflow",
+    "equipment": "Epilog Laser Cutter",
+    "confidence": "Approved",
+    "tags": [
+      "Hologram Fabrication"
+    ],
+    "author": "",
+    "notes": "Approved for TAD Lab Manager in the 77-tutorial review."
+  },
+  {
+    "order": 115,
+    "title": "Hologram Outline Offset Path",
+    "url": "https://www.iorad.com/player/1878470/Hologram-Outline-Offset-Path?helpcenter=4666&roleId=13221",
+    "type": "Machine / Equipment Workflow",
+    "equipment": "Epilog Laser Cutter",
+    "confidence": "Approved",
+    "tags": [
+      "Adobe Illustrator",
+      "Hologram Fabrication"
+    ],
+    "author": "",
+    "notes": "Approved for TAD Lab Manager in the 77-tutorial review."
+  },
+  {
+    "order": 241,
+    "title": "How to Create a Vector Avatar (trace a face!)",
+    "url": "https://www.iorad.com/player/2702932/How-to-Create-a-Vector-Avatar--trace-a-face--?helpcenter=4666&roleId=13221",
+    "type": "Software Skill",
+    "equipment": "",
+    "confidence": "Not applicable",
+    "tags": [
+      "Adobe Illustrator"
+    ],
+    "author": "",
+    "notes": ""
+  },
+  {
+    "order": 91,
+    "title": "How to Stretch a Canvas for Painting",
+    "url": "https://www.iorad.com/player/161906/How-to-Stretch-a-Canvas-for-Painting?helpcenter=4666&roleId=13221",
+    "type": "Software Skill",
+    "equipment": "",
+    "confidence": "Not applicable",
+    "tags": [
+      "Canvas Production"
+    ],
+    "author": "",
+    "notes": ""
+  },
+  {
+    "order": 199,
+    "title": "Ideate with Playground AI (Artificial Intelligence)",
+    "url": "https://www.iorad.com/player/2306062/Ideate-with-Playground-AI--Artificial-Intelligence-?helpcenter=4666&roleId=13221",
+    "type": "Software Skill",
+    "equipment": "",
+    "confidence": "Not applicable",
+    "tags": [
+      "Playground AI"
+    ],
+    "author": "",
+    "notes": ""
+  },
+  {
+    "order": 222,
+    "title": "Import an End Mill Bit into V Carve Pro",
+    "url": "https://www.iorad.com/player/2476479/Import-an-End-Mill-Bit-into-V-Carve-Pro?helpcenter=4666&roleId=13221",
+    "type": "Machine / Equipment Workflow",
+    "equipment": "ShopBot CNC Router",
+    "confidence": "High",
+    "tags": [
+      "VCarve Pro"
+    ],
+    "author": "",
+    "notes": ""
+  },
+  {
+    "order": 204,
+    "title": "Improve Audio on any Video with Audacity Plugin: Compress Dynamics",
+    "url": "https://www.iorad.com/player/2365898/Improve-Audio-on-any-Video-with-Audacity-Plugin--Compress-Dynamics?helpcenter=4666&roleId=13221",
+    "type": "Software Skill",
+    "equipment": "",
+    "confidence": "Not applicable",
+    "tags": [
+      "Audacity",
+      "Video Production"
+    ],
+    "author": "",
+    "notes": ""
+  },
+  {
+    "order": 56,
+    "title": "InDesign: Export Page as PDF (Kelliher Yearbook)",
+    "url": "https://www.iorad.com/player/96161/InDesign--Export-Page-as-PDF--Kelliher-Yearbook-?helpcenter=4666&roleId=13221",
+    "type": "Software Skill",
+    "equipment": "",
+    "confidence": "Not applicable",
+    "tags": [
+      "Adobe InDesign",
+      "Printing / Prepress"
+    ],
+    "author": "",
+    "notes": ""
+  },
+  {
+    "order": 21,
+    "title": "Install Adobe CreativeCloud",
+    "url": "https://www.iorad.com/player/40228/Install-Adobe-CreativeCloud?helpcenter=4666&roleId=13221",
+    "type": "Software Skill",
+    "equipment": "",
+    "confidence": "Not applicable",
+    "tags": [
+      "Adobe Creative Cloud"
+    ],
+    "author": "",
+    "notes": ""
+  },
+  {
+    "order": 212,
+    "title": "Isolate an image with Photopea.com",
+    "url": "https://www.iorad.com/player/2448505/Isolate-an-image-with-Photopea-com?helpcenter=4666&roleId=13221",
+    "type": "Software Skill",
+    "equipment": "",
+    "confidence": "Not applicable",
+    "tags": [
+      "Photopea"
+    ],
+    "author": "",
+    "notes": ""
+  },
+  {
+    "order": 34,
+    "title": "Joined Paper Hearts 1",
+    "url": "https://www.iorad.com/player/54596/Joined-Paper-Hearts-1?helpcenter=4666&roleId=13221",
+    "type": "Project / General Skill",
+    "equipment": "",
+    "confidence": "Not applicable",
+    "tags": [],
+    "author": "",
+    "notes": ""
+  },
+  {
+    "order": 266,
+    "title": "Kinetic sculpture",
+    "url": "https://www.iorad.com/player/2466961/Kinetic-sculpture#trysteps-1",
+    "type": "Software Skill",
+    "equipment": "ShopBot CNC Router",
+    "confidence": "Not applicable",
+    "tags": [
+      "Kinetic Sculpture"
+    ],
+    "author": "Mya Fountain",
+    "notes": "Verified from iorad cover: 80 steps, about 4 minutes; Nov 2024."
+  },
+  {
+    "order": 53,
+    "title": "Large Format Printing",
+    "url": "https://www.iorad.com/player/91550/Large-Format-Printing?helpcenter=4666&roleId=13221",
+    "type": "Machine / Equipment Workflow",
+    "equipment": "HP Latex Printer",
+    "confidence": "Approved",
+    "tags": [
+      "Printing / Prepress"
+    ],
+    "author": "",
+    "notes": "Approved for TAD Lab Manager in the 77-tutorial review."
+  },
+  {
+    "order": 180,
+    "title": "Laser Cut Masonite with Color Mapping (TAD)",
+    "url": "https://www.iorad.com/player/2181366/Laser-Cut-Masonite-with-Color-Mapping--TAD-?helpcenter=4666&roleId=13221",
+    "type": "Machine / Equipment Workflow",
+    "equipment": "Epilog Laser Cutter",
+    "confidence": "High",
+    "tags": [
+      "Adobe Illustrator"
+    ],
+    "author": "",
+    "notes": ""
+  },
+  {
+    "order": 139,
+    "title": "Laser Cut Paper with Color Mapping (TAD)",
+    "url": "https://www.iorad.com/player/1923870/Laser-Cut-Paper-with-Color-Mapping--TAD-?helpcenter=4666&roleId=13221",
+    "type": "Machine / Equipment Workflow",
+    "equipment": "Epilog Laser Cutter",
+    "confidence": "High",
+    "tags": [
+      "Adobe Illustrator"
+    ],
+    "author": "",
+    "notes": ""
+  },
+  {
+    "order": 119,
+    "title": "Laser Cut String of Lights (TAD)",
+    "url": "https://www.iorad.com/player/1884693/Laser-Cut-String-of-Lights--TAD-?helpcenter=4666&roleId=13221",
+    "type": "Machine / Equipment Workflow",
+    "equipment": "Epilog Laser Cutter",
+    "confidence": "High",
+    "tags": [],
+    "author": "",
+    "notes": ""
+  },
+  {
+    "order": 52,
+    "title": "Laser Cutter Tutorial",
+    "url": "https://www.iorad.com/player/90887/Laser-Cutter-Tutorial?helpcenter=4666&roleId=13221",
+    "type": "Machine / Equipment Workflow",
+    "equipment": "Epilog Laser Cutter",
+    "confidence": "High",
+    "tags": [],
+    "author": "",
+    "notes": ""
+  },
+  {
+    "order": 215,
+    "title": "Light an Object and/or Product with the Lighting Studio Light Box.",
+    "url": "https://www.iorad.com/player/2455074/Light-an-Object-and-or-Product-with-the-Lighting-Studio-Light-Box-?helpcenter=4666&roleId=13221",
+    "type": "Machine / Equipment Workflow",
+    "equipment": "Digital Camera / Audio Kit",
+    "confidence": "Approved",
+    "tags": [],
+    "author": "",
+    "notes": "Approved for TAD Lab Manager in the 77-tutorial review."
+  },
+  {
+    "order": 233,
+    "title": "Make a 3D Parallax Flythrough in After Effects",
+    "url": "https://www.iorad.com/player/2677131/Make-a-3D-Parallax-Flythrough-in-After-Effects?helpcenter=4666&roleId=13221",
+    "type": "Software Skill",
+    "equipment": "",
+    "confidence": "Not applicable",
+    "tags": [
+      "Adobe After Effects"
+    ],
+    "author": "",
+    "notes": ""
+  },
+  {
+    "order": 136,
+    "title": "Make a cameraphone adapter for your tripod and a goniometer (TAD)",
+    "url": "https://www.iorad.com/player/1915969/Make-a-cameraphone-adapter-for-your-tripod-and-a-goniometer--TAD-?helpcenter=4666&roleId=13221",
+    "type": "Project / General Skill",
+    "equipment": "",
+    "confidence": "Not applicable",
+    "tags": [],
+    "author": "",
+    "notes": ""
+  },
+  {
+    "order": 162,
+    "title": "Make a Custom QR Code",
+    "url": "https://www.iorad.com/player/1953084/Make-a-Custom-QR-Code?helpcenter=4666&roleId=13221",
+    "type": "Project / General Skill",
+    "equipment": "",
+    "confidence": "Not applicable",
+    "tags": [],
+    "author": "",
+    "notes": ""
+  },
+  {
+    "order": 228,
+    "title": "Make a Digital Presentation with InDesign",
+    "url": "https://www.iorad.com/player/2607783/Make-a-Digital-Presentation-with-InDesign?helpcenter=4666&roleId=13221",
+    "type": "Software Skill",
+    "equipment": "",
+    "confidence": "Not applicable",
+    "tags": [
+      "Adobe InDesign"
+    ],
+    "author": "",
+    "notes": ""
+  },
+  {
+    "order": 148,
+    "title": "Make a Google Tilt Brush Painting in VR",
+    "url": "https://www.iorad.com/player/1931353/Make-a-Google-Tilt-Brush-Painting-in-VR?helpcenter=4666&roleId=13221",
+    "type": "Project / General Skill",
+    "equipment": "",
+    "confidence": "Not applicable",
+    "tags": [],
+    "author": "",
+    "notes": ""
+  },
+  {
+    "order": 125,
+    "title": "Make a grid (or any layer) white in Photoshop (TAD)",
+    "url": "https://www.iorad.com/player/1888627/Make-a-grid--or-any-layer--white-in-Photoshop--TAD-?helpcenter=4666&roleId=13221",
+    "type": "Software Skill",
+    "equipment": "",
+    "confidence": "Not applicable",
+    "tags": [
+      "Adobe Photoshop"
+    ],
+    "author": "",
+    "notes": ""
+  },
+  {
+    "order": 227,
+    "title": "Make a personalized TAD Graphic Design Poster",
+    "url": "https://www.iorad.com/player/2602591/Make-a-personalized-TAD-Graphic-Design-Poster?helpcenter=4666&roleId=13221",
+    "type": "Project / General Skill",
+    "equipment": "",
+    "confidence": "Not applicable",
+    "tags": [],
+    "author": "",
+    "notes": ""
+  },
+  {
+    "order": 221,
+    "title": "Make a Sign on the Desktop Shopbot (Vcarve)",
+    "url": "https://www.iorad.com/player/2468178/Make-a-Sign-on-the-Desktop-Shopbot--Vcarve-?helpcenter=4666&roleId=13221",
+    "type": "Machine / Equipment Workflow",
+    "equipment": "ShopBot CNC Router",
+    "confidence": "High",
+    "tags": [
+      "VCarve Pro"
+    ],
+    "author": "",
+    "notes": ""
+  },
+  {
+    "order": 217,
+    "title": "Make a Storage Box with MakerCase.com",
+    "url": "https://www.iorad.com/player/2461467/Make-a-Storage-Box-with-MakerCase-com?helpcenter=4666&roleId=13221",
+    "type": "Machine / Equipment Workflow",
+    "equipment": "Epilog Laser Cutter",
+    "confidence": "Approved",
+    "tags": [
+      "MakerCase"
+    ],
+    "author": "",
+    "notes": "Approved for TAD Lab Manager in the 77-tutorial review."
+  },
+  {
+    "order": 232,
+    "title": "Make a Video Mockup",
+    "url": "https://www.iorad.com/player/2645750/Make-a-Video-Mockup?helpcenter=4666&roleId=13221",
+    "type": "Software Skill",
+    "equipment": "",
+    "confidence": "Not applicable",
+    "tags": [
+      "Digital Mockups",
+      "Video Production"
+    ],
+    "author": "",
+    "notes": ""
+  },
+  {
+    "order": 219,
+    "title": "Make an Anatomy of Type Poster",
+    "url": "https://www.iorad.com/player/2467747/Make-an-Anatomy-of-Type-Poster?helpcenter=4666&roleId=13221",
+    "type": "Project / General Skill",
+    "equipment": "",
+    "confidence": "Not applicable",
+    "tags": [],
+    "author": "",
+    "notes": ""
+  },
+  {
+    "order": 194,
+    "title": "Make an iorad Tutorial",
+    "url": "https://www.iorad.com/player/2275907/Make-an-iorad-Tutorial?helpcenter=4666&roleId=13221",
+    "type": "Software Skill",
+    "equipment": "",
+    "confidence": "Not applicable",
+    "tags": [
+      "iorad"
+    ],
+    "author": "",
+    "notes": ""
+  },
+  {
+    "order": 157,
+    "title": "Make Outlined Sticker Cut Paths (TAD)",
+    "url": "https://www.iorad.com/player/1942680/Make-Outlined-Sticker-Cut-Paths--TAD-?helpcenter=4666&roleId=13221",
+    "type": "Machine / Equipment Workflow",
+    "equipment": "Graphtec Vinyl Cutter",
+    "confidence": "High",
+    "tags": [
+      "Adobe Illustrator",
+      "Sticker Production"
+    ],
+    "author": "",
+    "notes": ""
+  },
+  {
+    "order": 128,
+    "title": "Make Shadow Box Silhouettes From Reference Photos (TAD)",
+    "url": "https://www.iorad.com/player/1914613/Make-Shadow-Box-Silhouettes-From-Reference-Photos--TAD-?helpcenter=4666&roleId=13221",
+    "type": "Machine / Equipment Workflow",
+    "equipment": "Epilog Laser Cutter",
+    "confidence": "Approved",
+    "tags": [],
+    "author": "",
+    "notes": "Approved for TAD Lab Manager in the 77-tutorial review."
+  },
+  {
+    "order": 264,
+    "title": "Make Stencil Cut Red Reveal (Outside Card)",
+    "url": "https://www.iorad.com/player/1920575/Make-Stencil-Cut-Red-Reveal--Outside-Card-?helpcenter=4666&roleId=13221",
+    "type": "Machine / Equipment Workflow",
+    "equipment": "Epilog Laser Cutter",
+    "confidence": "Approved",
+    "tags": [
+      "Red Reveal Project"
+    ],
+    "author": "",
+    "notes": "Approved for TAD Lab Manager in the 77-tutorial review."
+  },
+  {
+    "order": 132,
+    "title": "Make your Raster Map a Vector Map for Web. (TAD)",
+    "url": "https://www.iorad.com/player/1915851/Make-your-Raster-Map-a-Vector-Map-for-Web---TAD-?helpcenter=4666&roleId=13221",
+    "type": "Software Skill",
+    "equipment": "",
+    "confidence": "Not applicable",
+    "tags": [
+      "Adobe Illustrator"
+    ],
+    "author": "",
+    "notes": ""
+  },
+  {
+    "order": 13,
+    "title": "Mary's Tutorial for Scrapbooks",
+    "url": "https://www.iorad.com/player/27957/Mary-s-Tutorial-for-Scrapbooks?helpcenter=4666&roleId=13221",
+    "type": "Project / General Skill",
+    "equipment": "",
+    "confidence": "Not applicable",
+    "tags": [],
+    "author": "",
+    "notes": ""
+  },
+  {
+    "order": 50,
+    "title": "Maya: Change your view",
+    "url": "https://www.iorad.com/player/89209/Maya--Change-your-view?helpcenter=4666&roleId=13221",
+    "type": "Software Skill",
+    "equipment": "",
+    "confidence": "Not applicable",
+    "tags": [
+      "Autodesk Maya"
+    ],
+    "author": "",
+    "notes": ""
+  },
+  {
+    "order": 49,
+    "title": "Maya: cutting openings/holes",
+    "url": "https://www.iorad.com/player/89181/Maya--cutting-openings-holes?helpcenter=4666&roleId=13221",
+    "type": "Software Skill",
+    "equipment": "",
+    "confidence": "Not applicable",
+    "tags": [
+      "Autodesk Maya"
+    ],
+    "author": "",
+    "notes": ""
+  },
+  {
+    "order": 218,
+    "title": "Measure and Make Vector Outlines of Everyday Objects to Print to Scale (peg board tools example)",
+    "url": "https://www.iorad.com/player/2461519/Measure-and-Make-Vector-Outlines-of-Everyday-Objects-to-Print-to-Scale--peg-board-tools-example-?helpcenter=4666&roleId=13221",
+    "type": "Software Skill",
+    "equipment": "",
+    "confidence": "Not applicable",
+    "tags": [
+      "Adobe Illustrator",
+      "Printing / Prepress"
+    ],
+    "author": "",
+    "notes": ""
+  },
+  {
+    "order": 35,
+    "title": "Mudbox Head 2: Export OBJ to STL",
+    "url": "https://www.iorad.com/player/55050/Mudbox-Head-2--Export-OBJ-to-STL?helpcenter=4666&roleId=13221",
+    "type": "Software Skill",
+    "equipment": "",
+    "confidence": "Not applicable",
+    "tags": [
+      "Autodesk Mudbox"
+    ],
+    "author": "",
+    "notes": ""
+  },
+  {
+    "order": 36,
+    "title": "Mudbox Head 3: 3D Print it!",
+    "url": "https://www.iorad.com/player/55056/Mudbox-Head-3--3D-Print-it-?helpcenter=4666&roleId=13221",
+    "type": "Machine / Equipment Workflow",
+    "equipment": "3D Printer (General)",
+    "confidence": "Approved",
+    "tags": [
+      "Autodesk Mudbox",
+      "Printing / Prepress"
+    ],
+    "author": "",
+    "notes": "Approved for TAD Lab Manager in the 77-tutorial review."
+  },
+  {
+    "order": 165,
+    "title": "Nameplate & Title Card Cutting on Laser",
+    "url": "https://www.iorad.com/player/2034662/Nameplate---Title-Card-Cutting-on-Laser?helpcenter=4666&roleId=13221",
+    "type": "Machine / Equipment Workflow",
+    "equipment": "Epilog Laser Cutter",
+    "confidence": "High",
+    "tags": [],
+    "author": "",
+    "notes": ""
+  },
+  {
+    "order": 185,
+    "title": "Nest Print Jobs",
+    "url": "https://www.iorad.com/player/2259677/Nest-Print-Jobs?helpcenter=4666&roleId=13221",
+    "type": "Machine / Equipment Workflow",
+    "equipment": "HP Latex Printer",
+    "confidence": "Approved",
+    "tags": [
+      "Printing / Prepress"
+    ],
+    "author": "",
+    "notes": "Approved for TAD Lab Manager in the 77-tutorial review."
+  },
+  {
+    "order": 86,
+    "title": "Open a File",
+    "url": "https://www.iorad.com/player/155361/Open-a-File?helpcenter=4666&roleId=13221",
+    "type": "Project / General Skill",
+    "equipment": "",
+    "confidence": "Not applicable",
+    "tags": [],
+    "author": "",
+    "notes": ""
+  },
+  {
+    "order": 85,
+    "title": "Open File and Convert a Raster to a Vector",
+    "url": "https://www.iorad.com/player/154846/Open-File-and-Convert-a-Raster-to-a-Vector?helpcenter=4666&roleId=13221",
+    "type": "Software Skill",
+    "equipment": "",
+    "confidence": "Not applicable",
+    "tags": [
+      "Adobe Illustrator"
+    ],
+    "author": "",
+    "notes": ""
+  },
+  {
+    "order": 32,
+    "title": "Open Your Art in Photoshop",
+    "url": "https://www.iorad.com/player/51993/Open-Your-Art-in-Photoshop?helpcenter=4666&roleId=13221",
+    "type": "Software Skill",
+    "equipment": "",
+    "confidence": "Not applicable",
+    "tags": [
+      "Adobe Photoshop"
+    ],
+    "author": "",
+    "notes": ""
+  },
+  {
+    "order": 122,
+    "title": "Outline a Cut Path for Artwork on Laser (TAD)",
+    "url": "https://www.iorad.com/player/1888617/Outline-a-Cut-Path-for-Artwork-on-Laser--TAD-?helpcenter=4666&roleId=13221",
+    "type": "Machine / Equipment Workflow",
+    "equipment": "Epilog Laser Cutter",
+    "confidence": "High",
+    "tags": [
+      "Adobe Illustrator"
+    ],
+    "author": "",
+    "notes": ""
+  },
+  {
+    "order": 5,
+    "title": "Pen Tool SHORT tutorial",
+    "url": "https://www.iorad.com/player/18064/Pen-Tool-SHORT-tutorial?helpcenter=4666&roleId=13221",
+    "type": "Software Skill",
+    "equipment": "",
+    "confidence": "Not applicable",
+    "tags": [
+      "Adobe Illustrator"
+    ],
+    "author": "",
+    "notes": ""
+  },
+  {
+    "order": 8,
+    "title": "photo prep for wood- photoshop to illustrator",
+    "url": "https://www.iorad.com/player/27201/photo-prep-for-wood--photoshop-to-illustrator?helpcenter=4666&roleId=13221",
+    "type": "Software Skill",
+    "equipment": "",
+    "confidence": "Not applicable",
+    "tags": [
+      "Adobe Photoshop",
+      "Adobe Illustrator"
+    ],
+    "author": "",
+    "notes": ""
+  },
+  {
+    "order": 164,
+    "title": "Photograph your Artwork in high-res.",
+    "url": "https://www.iorad.com/player/2031628/Photograph-your-Artwork-in-high-res-?helpcenter=4666&roleId=13221",
+    "type": "Software Skill",
+    "equipment": "",
+    "confidence": "Not applicable",
+    "tags": [
+      "Photography / Image Sourcing"
+    ],
+    "author": "",
+    "notes": ""
+  },
+  {
+    "order": 16,
+    "title": "Photoshop a Face",
+    "url": "https://www.iorad.com/player/38848/Photoshop-a-Face?helpcenter=4666&roleId=13221",
+    "type": "Software Skill",
+    "equipment": "",
+    "confidence": "Not applicable",
+    "tags": [
+      "Adobe Photoshop"
+    ],
+    "author": "",
+    "notes": ""
+  },
+  {
+    "order": 26,
+    "title": "Photoshop a Kid Pic!",
+    "url": "https://www.iorad.com/player/41349/Photoshop-a-Kid-Pic-?helpcenter=4666&roleId=13221",
+    "type": "Software Skill",
+    "equipment": "",
+    "confidence": "Not applicable",
+    "tags": [
+      "Adobe Photoshop"
+    ],
+    "author": "",
+    "notes": ""
+  },
+  {
+    "order": 11,
+    "title": "Photoshop image to illustrator and Laser Settings",
+    "url": "https://www.iorad.com/player/27292/Photoshop-image-to-illustrator-and-Laser-Settings?helpcenter=4666&roleId=13221",
+    "type": "Machine / Equipment Workflow",
+    "equipment": "Epilog Laser Cutter",
+    "confidence": "High",
+    "tags": [
+      "Adobe Photoshop",
+      "Adobe Illustrator"
+    ],
+    "author": "",
+    "notes": ""
+  },
+  {
+    "order": 9,
+    "title": "placing photo on box pattern",
+    "url": "https://www.iorad.com/player/27243/placing-photo-on-box-pattern?helpcenter=4666&roleId=13221",
+    "type": "Project / General Skill",
+    "equipment": "",
+    "confidence": "Not applicable",
+    "tags": [],
+    "author": "",
+    "notes": ""
+  },
+  {
+    "order": 6,
+    "title": "Plasma Cutter",
+    "url": "https://www.iorad.com/player/18487/Plasma-Cutter?helpcenter=4666&roleId=13221",
+    "type": "Machine / Equipment Workflow",
+    "equipment": "Plasma Cutter",
+    "confidence": "High",
+    "tags": [],
+    "author": "",
+    "notes": ""
+  },
+  {
+    "order": 141,
+    "title": "Prep a Papercraft Template for Laser Cutting 1 (TAD)",
+    "url": "https://www.iorad.com/player/1926292/Prep-a-Papercraft-Template-for-Laser-Cutting-1--TAD-?helpcenter=4666&roleId=13221",
+    "type": "Machine / Equipment Workflow",
+    "equipment": "Epilog Laser Cutter",
+    "confidence": "High",
+    "tags": [],
+    "author": "",
+    "notes": ""
+  },
+  {
+    "order": 18,
+    "title": "Prep a Photo Stencil",
+    "url": "https://www.iorad.com/player/39426/Prep-a-Photo-Stencil?helpcenter=4666&roleId=13221",
+    "type": "Project / General Skill",
+    "equipment": "",
+    "confidence": "Not applicable",
+    "tags": [],
+    "author": "",
+    "notes": ""
+  },
+  {
+    "order": 100,
+    "title": "Prep Art for Embroidery",
+    "url": "https://www.iorad.com/player/1559515/Prep-Art-for-Embroidery?helpcenter=4666&roleId=13221",
+    "type": "Machine / Equipment Workflow",
+    "equipment": "Embroidery Machine",
+    "confidence": "High",
+    "tags": [
+      "Embroidery Preparation"
+    ],
+    "author": "",
+    "notes": ""
+  },
+  {
+    "order": 3,
+    "title": "Prep Art for Painted Mirror",
+    "url": "https://www.iorad.com/player/16405/Prep-Art-for-Painted-Mirror?helpcenter=4666&roleId=13221",
+    "type": "Machine / Equipment Workflow",
+    "equipment": "Epilog Laser Cutter",
+    "confidence": "Approved",
+    "tags": [],
+    "author": "",
+    "notes": "Approved for TAD Lab Manager in the 77-tutorial review."
+  },
+  {
+    "order": 178,
+    "title": "Prep Hologram Box Designs for Laser",
+    "url": "https://www.iorad.com/player/2181005/Prep-Hologram-Box-Designs-for-Laser?helpcenter=4666&roleId=13221",
+    "type": "Machine / Equipment Workflow",
+    "equipment": "Epilog Laser Cutter",
+    "confidence": "High",
+    "tags": [
+      "Hologram Fabrication"
+    ],
+    "author": "",
+    "notes": ""
+  },
+  {
+    "order": 179,
+    "title": "Prep your Hologram Design for Laser",
+    "url": "https://www.iorad.com/player/2181301/Prep-your-Hologram-Design-for-Laser?helpcenter=4666&roleId=13221",
+    "type": "Machine / Equipment Workflow",
+    "equipment": "Epilog Laser Cutter",
+    "confidence": "High",
+    "tags": [
+      "Hologram Fabrication"
+    ],
+    "author": "",
+    "notes": ""
+  },
+  {
+    "order": 191,
+    "title": "Print a self-portrait reference with a grid",
+    "url": "https://www.iorad.com/player/2263766/Print-a-self-portrait-reference-with-a-grid?helpcenter=4666&roleId=13221",
+    "type": "Software Skill",
+    "equipment": "",
+    "confidence": "Not applicable",
+    "tags": [
+      "Printing / Prepress"
+    ],
+    "author": "",
+    "notes": ""
+  },
+  {
+    "order": 124,
+    "title": "Print an Image (TAD)",
+    "url": "https://www.iorad.com/player/1888626/Print-an-Image--TAD-?helpcenter=4666&roleId=13221",
+    "type": "Software Skill",
+    "equipment": "",
+    "confidence": "Not applicable",
+    "tags": [
+      "Printing / Prepress"
+    ],
+    "author": "",
+    "notes": ""
+  },
+  {
+    "order": 117,
+    "title": "Print and Cut Stickers! (Start to Finish- TAD)",
+    "url": "https://www.iorad.com/player/1883691/Print-and-Cut-Stickers---Start-to-Finish--TAD-?helpcenter=4666&roleId=13221",
+    "type": "Machine / Equipment Workflow",
+    "equipment": "Graphtec Vinyl Cutter",
+    "confidence": "Approved",
+    "tags": [
+      "Printing / Prepress",
+      "Sticker Production"
+    ],
+    "author": "",
+    "notes": "Approved for TAD Lab Manager in the 77-tutorial review.",
+    "secondaryEquipment": "HP Latex Printer"
+  },
+  {
+    "order": 150,
+    "title": "Print artwork for Dye-Sublimation",
+    "url": "https://www.iorad.com/player/1934627/Print-artwork-for-Dye-Sublimation?helpcenter=4666&roleId=13221",
+    "type": "Machine / Equipment Workflow",
+    "equipment": "Dye-Sublimation Printer",
+    "confidence": "High",
+    "tags": [
+      "Printing / Prepress"
+    ],
+    "author": "",
+    "notes": ""
+  },
+  {
+    "order": 137,
+    "title": "Print Red Reveal Art (Inside of Card)",
+    "url": "https://www.iorad.com/player/1920554/Print-Red-Reveal-Art--Inside-of-Card-?helpcenter=4666&roleId=13221",
+    "type": "Machine / Equipment Workflow",
+    "equipment": "Epilog Laser Cutter",
+    "confidence": "Approved",
+    "tags": [
+      "Printing / Prepress",
+      "Red Reveal Project"
+    ],
+    "author": "",
+    "notes": "Approved for TAD Lab Manager in the 77-tutorial review."
+  },
+  {
+    "order": 81,
+    "title": "Print to Laser",
+    "url": "https://www.iorad.com/player/146712/Print-to-Laser?helpcenter=4666&roleId=13221",
+    "type": "Machine / Equipment Workflow",
+    "equipment": "Epilog Laser Cutter",
+    "confidence": "High",
+    "tags": [
+      "Printing / Prepress"
+    ],
+    "author": "",
+    "notes": ""
+  },
+  {
+    "order": 133,
+    "title": "Print Tripod Cut Paths on Laser (TAD)",
+    "url": "https://www.iorad.com/player/1915892/Print-Tripod-Cut-Paths-on-Laser--TAD-?helpcenter=4666&roleId=13221",
+    "type": "Machine / Equipment Workflow",
+    "equipment": "Epilog Laser Cutter",
+    "confidence": "High",
+    "tags": [
+      "Adobe Illustrator",
+      "Printing / Prepress"
+    ],
+    "author": "",
+    "notes": ""
+  },
+  {
+    "order": 145,
+    "title": "Print with the HP Latex Printer (TAD)",
+    "url": "https://www.iorad.com/player/1929506/Print-with-the-HP-Latex-Printer--TAD-?helpcenter=4666&roleId=13221",
+    "type": "Machine / Equipment Workflow",
+    "equipment": "HP Latex Printer",
+    "confidence": "High",
+    "tags": [
+      "Printing / Prepress"
+    ],
+    "author": "",
+    "notes": ""
+  },
+  {
+    "order": 142,
+    "title": "Raster Burn With the Laser (TAD)",
+    "url": "https://www.iorad.com/player/1926795/Raster-Burn-With-the-Laser--TAD-?helpcenter=4666&roleId=13221",
+    "type": "Machine / Equipment Workflow",
+    "equipment": "Epilog Laser Cutter",
+    "confidence": "High",
+    "tags": [],
+    "author": "",
+    "notes": ""
+  },
+  {
+    "order": 23,
+    "title": "Record a video (for AIW)",
+    "url": "https://www.iorad.com/player/40850/Record-a-video--for-AIW-?helpcenter=4666&roleId=13221",
+    "type": "Machine / Equipment Workflow",
+    "equipment": "Digital Camera / Audio Kit",
+    "confidence": "Approved",
+    "tags": [
+      "Video Production"
+    ],
+    "author": "",
+    "notes": "Approved for TAD Lab Manager in the 77-tutorial review."
+  },
+  {
+    "order": 78,
+    "title": "Red Reveal Lenses",
+    "url": "https://www.iorad.com/player/109897/Red-Reveal-Lenses?helpcenter=4666&roleId=13221",
+    "type": "Machine / Equipment Workflow",
+    "equipment": "Epilog Laser Cutter",
+    "confidence": "Approved",
+    "tags": [
+      "Red Reveal Project"
+    ],
+    "author": "",
+    "notes": "Approved for TAD Lab Manager in the 77-tutorial review."
+  },
+  {
+    "order": 71,
+    "title": "Red Reveal: Add Text",
+    "url": "https://www.iorad.com/player/103760/Red-Reveal--Add-Text?helpcenter=4666&roleId=13221",
+    "type": "Machine / Equipment Workflow",
+    "equipment": "Epilog Laser Cutter",
+    "confidence": "Approved",
+    "tags": [
+      "Red Reveal Project"
+    ],
+    "author": "",
+    "notes": "Approved for TAD Lab Manager in the 77-tutorial review."
+  },
+  {
+    "order": 97,
+    "title": "Red Reveal: Adjust Kerf on Glasses Lenses",
+    "url": "https://www.iorad.com/player/171827/Red-Reveal--Adjust-Kerf-on-Glasses-Lenses?helpcenter=4666&roleId=13221",
+    "type": "Machine / Equipment Workflow",
+    "equipment": "Epilog Laser Cutter",
+    "confidence": "Approved",
+    "tags": [
+      "Red Reveal Project"
+    ],
+    "author": "",
+    "notes": "Approved for TAD Lab Manager in the 77-tutorial review."
+  },
+  {
+    "order": 72,
+    "title": "Red Reveal: Line Drawings",
+    "url": "https://www.iorad.com/player/103792/Red-Reveal--Line-Drawings?helpcenter=4666&roleId=13221",
+    "type": "Machine / Equipment Workflow",
+    "equipment": "Epilog Laser Cutter",
+    "confidence": "Approved",
+    "tags": [
+      "Red Reveal Project"
+    ],
+    "author": "",
+    "notes": "Approved for TAD Lab Manager in the 77-tutorial review."
+  },
+  {
+    "order": 98,
+    "title": "Red Reveal: make lens holes",
+    "url": "https://www.iorad.com/player/1550809/Red-Reveal--make-lens-holes?helpcenter=4666&roleId=13221",
+    "type": "Machine / Equipment Workflow",
+    "equipment": "Epilog Laser Cutter",
+    "confidence": "Approved",
+    "tags": [
+      "Red Reveal Project"
+    ],
+    "author": "",
+    "notes": "Approved for TAD Lab Manager in the 77-tutorial review."
+  },
+  {
+    "order": 70,
+    "title": "Red Reveal: Photographs",
+    "url": "https://www.iorad.com/player/103615/Red-Reveal--Photographs?helpcenter=4666&roleId=13221",
+    "type": "Machine / Equipment Workflow",
+    "equipment": "Epilog Laser Cutter",
+    "confidence": "Approved",
+    "tags": [
+      "Photography / Image Sourcing",
+      "Red Reveal Project"
+    ],
+    "author": "",
+    "notes": "Approved for TAD Lab Manager in the 77-tutorial review."
+  },
+  {
+    "order": 90,
+    "title": "Rotate Shapes in Illustrator",
+    "url": "https://www.iorad.com/player/159611/Rotate-Shapes-in-Illustrator?helpcenter=4666&roleId=13221",
+    "type": "Software Skill",
+    "equipment": "",
+    "confidence": "Not applicable",
+    "tags": [
+      "Adobe Illustrator"
+    ],
+    "author": "",
+    "notes": ""
+  },
+  {
+    "order": 195,
+    "title": "Router a 3D Model out of Rigid Foam on the Shopbot",
+    "url": "https://www.iorad.com/player/2289676/Router-a-3D-Model-out-of-Rigid-Foam-on-the-Shopbot?helpcenter=4666&roleId=13221",
+    "type": "Machine / Equipment Workflow",
+    "equipment": "ShopBot CNC Router",
+    "confidence": "High",
+    "tags": [],
+    "author": "",
+    "notes": ""
+  },
+  {
+    "order": 226,
+    "title": "Scan Artwork in TAD",
+    "url": "https://www.iorad.com/player/2546410/Scan-Artwork-in-TAD?helpcenter=4666&roleId=13221",
+    "type": "Machine / Equipment Workflow",
+    "equipment": "Flatbed Scanner",
+    "confidence": "Approved",
+    "tags": [],
+    "author": "",
+    "notes": "Approved for TAD Lab Manager in the 77-tutorial review."
+  },
+  {
+    "order": 4,
+    "title": "Scan Inked Artwork",
+    "url": "https://www.iorad.com/player/16408/Scan-Inked-Artwork?helpcenter=4666&roleId=13221",
+    "type": "Machine / Equipment Workflow",
+    "equipment": "Flatbed Scanner",
+    "confidence": "Approved",
+    "tags": [],
+    "author": "",
+    "notes": "Approved for TAD Lab Manager in the 77-tutorial review."
+  },
+  {
+    "order": 216,
+    "title": "Scan with Epson Scanner in BN218",
+    "url": "https://www.iorad.com/player/2460925/Scan-with-Epson-Scanner-in-BN218?helpcenter=4666&roleId=13221",
+    "type": "Machine / Equipment Workflow",
+    "equipment": "Epson Flatbed Scanner",
+    "confidence": "High",
+    "tags": [],
+    "author": "",
+    "notes": ""
+  },
+  {
+    "order": 171,
+    "title": "Scientific X-ray Drawing",
+    "url": "https://www.iorad.com/player/2143096/Scientific-X-ray-Drawing?helpcenter=4666&roleId=13221",
+    "type": "Project / General Skill",
+    "equipment": "",
+    "confidence": "Not applicable",
+    "tags": [],
+    "author": "",
+    "notes": ""
+  },
+  {
+    "order": 109,
+    "title": "Send artwork to Laser (TAD)",
+    "url": "https://www.iorad.com/player/1875253/Send-artwork-to-Laser--TAD-?helpcenter=4666&roleId=13221",
+    "type": "Machine / Equipment Workflow",
+    "equipment": "Epilog Laser Cutter",
+    "confidence": "High",
+    "tags": [],
+    "author": "",
+    "notes": ""
+  },
+  {
+    "order": 244,
+    "title": "Separate CMYK in Adobe Illustrator.",
+    "url": "https://www.iorad.com/player/2706561/Separate-CMYK-in-Adobe-Illustrator-?helpcenter=4666&roleId=13221",
+    "type": "Software Skill",
+    "equipment": "",
+    "confidence": "Not applicable",
+    "tags": [
+      "Adobe Illustrator"
+    ],
+    "author": "",
+    "notes": ""
+  },
+  {
+    "order": 57,
+    "title": "Shirt Design: Virtual Reality Thread Studio",
+    "url": "https://www.iorad.com/player/98007/Shirt-Design--Virtual-Reality-Thread-Studio?helpcenter=4666&roleId=13221",
+    "type": "Project / General Skill",
+    "equipment": "",
+    "confidence": "Not applicable",
+    "tags": [],
+    "author": "",
+    "notes": ""
+  },
+  {
+    "order": 155,
+    "title": "ShopBot Zeroing Tutorial (TAD)",
+    "url": "https://www.iorad.com/player/1942540/ShopBot-Zeroing-Tutorial--TAD-?helpcenter=4666&roleId=13221",
+    "type": "Machine / Equipment Workflow",
+    "equipment": "ShopBot CNC Router",
+    "confidence": "High",
+    "tags": [],
+    "author": "",
+    "notes": ""
+  },
+  {
+    "order": 77,
+    "title": "Skanect: Scan a 3D Object (finished)",
+    "url": "https://www.iorad.com/player/108037/Skanect--Scan-a-3D-Object--finished-?helpcenter=4666&roleId=13221",
+    "type": "Machine / Equipment Workflow",
+    "equipment": "3D Scanner",
+    "confidence": "Approved",
+    "tags": [
+      "Skanect"
+    ],
+    "author": "",
+    "notes": "Approved for TAD Lab Manager in the 77-tutorial review."
+  },
+  {
+    "order": 94,
+    "title": "SolidWorks Basic Tool Use Part 1",
+    "url": "https://www.iorad.com/player/166718/SolidWorks-Basic-Tool-Use-Part-1?helpcenter=4666&roleId=13221",
+    "type": "Software Skill",
+    "equipment": "",
+    "confidence": "Not applicable",
+    "tags": [
+      "SolidWorks"
+    ],
+    "author": "",
+    "notes": ""
+  },
+  {
+    "order": 84,
+    "title": "Stained Glass and Acrylic Mosaic 1",
+    "url": "https://www.iorad.com/player/154597/Stained-Glass-and-Acrylic-Mosaic-1?helpcenter=4666&roleId=13221",
+    "type": "Machine / Equipment Workflow",
+    "equipment": "Epilog Laser Cutter",
+    "confidence": "Approved",
+    "tags": [],
+    "author": "",
+    "notes": "Approved for TAD Lab Manager in the 77-tutorial review."
+  },
+  {
+    "order": 147,
+    "title": "Stickers 1: Make cut paths and prep stickers for printing (TAD)",
+    "url": "https://www.iorad.com/player/1929515/Stickers-1--Make-cut-paths-and-prep-stickers-for-printing--TAD-?helpcenter=4666&roleId=13221",
+    "type": "Machine / Equipment Workflow",
+    "equipment": "Graphtec Vinyl Cutter",
+    "confidence": "Approved",
+    "tags": [
+      "Adobe Illustrator",
+      "Printing / Prepress",
+      "Sticker Production"
+    ],
+    "author": "",
+    "notes": "Approved for TAD Lab Manager in the 77-tutorial review.",
+    "secondaryEquipment": "HP Latex Printer"
+  },
+  {
+    "order": 151,
+    "title": "Stickers 2: Add Crop Marks & Save PDF (TAD)",
+    "url": "https://www.iorad.com/player/1935996/Stickers-2--Add-Crop-Marks---Save-PDF--TAD-?helpcenter=4666&roleId=13221",
+    "type": "Machine / Equipment Workflow",
+    "equipment": "Graphtec Vinyl Cutter",
+    "confidence": "Approved",
+    "tags": [
+      "Adobe Illustrator",
+      "Printing / Prepress",
+      "Sticker Production"
+    ],
+    "author": "",
+    "notes": "Approved for TAD Lab Manager in the 77-tutorial review.",
+    "secondaryEquipment": "HP Latex Printer"
+  },
+  {
+    "order": 149,
+    "title": "Stickers 2a: Make registration marks and print (TAD)",
+    "url": "https://www.iorad.com/player/1934295/Stickers-2a--Make-registration-marks-and-print--TAD-?helpcenter=4666&roleId=13221",
+    "type": "Machine / Equipment Workflow",
+    "equipment": "Graphtec Vinyl Cutter",
+    "confidence": "Approved",
+    "tags": [
+      "Adobe Illustrator",
+      "Printing / Prepress",
+      "Sticker Production"
+    ],
+    "author": "",
+    "notes": "Approved for TAD Lab Manager in the 77-tutorial review.",
+    "secondaryEquipment": "HP Latex Printer"
+  },
+  {
+    "order": 146,
+    "title": "Stickers 4: Cut with the Graphtec Vinyl Cutter (TAD)",
+    "url": "https://www.iorad.com/player/1929509/Stickers-4--Cut-with-the-Graphtec-Vinyl-Cutter--TAD-?helpcenter=4666&roleId=13221",
+    "type": "Machine / Equipment Workflow",
+    "equipment": "Graphtec Vinyl Cutter",
+    "confidence": "High",
+    "tags": [
+      "Sticker Production"
+    ],
+    "author": "",
+    "notes": ""
+  },
+  {
+    "order": 158,
+    "title": "Stratasys F370 3D Print Tutorial (TAD)",
+    "url": "https://www.iorad.com/player/1943081/Stratasys-F370-3D-Print-Tutorial--TAD-?helpcenter=4666&roleId=13221",
+    "type": "Machine / Equipment Workflow",
+    "equipment": "Stratasys F370 3D Printer",
+    "confidence": "High",
+    "tags": [
+      "Printing / Prepress"
+    ],
+    "author": "",
+    "notes": ""
+  },
+  {
+    "order": 105,
+    "title": "Text to Vinyl Sticker",
+    "url": "https://www.iorad.com/player/1662731/Text-to-Vinyl-Sticker?helpcenter=4666&roleId=13221",
+    "type": "Machine / Equipment Workflow",
+    "equipment": "Graphtec Vinyl Cutter",
+    "confidence": "Approved",
+    "tags": [
+      "Sticker Production"
+    ],
+    "author": "",
+    "notes": "Approved for TAD Lab Manager in the 77-tutorial review."
+  },
+  {
+    "order": 240,
+    "title": "Texture in Adobe Illustrator: Custom Brushes, Grain & Symbols",
+    "url": "https://www.iorad.com/player/2702289/Texture-in-Adobe-Illustrator--Custom-Brushes--Grain---Symbols?helpcenter=4666&roleId=13221",
+    "type": "Software Skill",
+    "equipment": "",
+    "confidence": "Not applicable",
+    "tags": [
+      "Adobe Illustrator"
+    ],
+    "author": "",
+    "notes": ""
+  },
+  {
+    "order": 242,
+    "title": "Texture in Adobe Illustrator: Opacity Masks, Art & Pattern Brushes, and Halftone Effects",
+    "url": "https://www.iorad.com/player/2703832/Texture-in-Adobe-Illustrator--Opacity-Masks--Art---Pattern-Brushes--and-Halftone-Effects?helpcenter=4666&roleId=13221",
+    "type": "Software Skill",
+    "equipment": "",
+    "confidence": "Not applicable",
+    "tags": [
+      "Adobe Illustrator"
+    ],
+    "author": "",
+    "notes": ""
+  },
+  {
+    "order": 48,
+    "title": "Texturing 3D Objects in Unity",
+    "url": "https://www.iorad.com/player/88937/Texturing--3D-Objects--in-Unity?helpcenter=4666&roleId=13221",
+    "type": "Software Skill",
+    "equipment": "",
+    "confidence": "Not applicable",
+    "tags": [
+      "Unity 3D"
+    ],
+    "author": "",
+    "notes": ""
+  },
+  {
+    "order": 7,
+    "title": "Trace a Face (Raster to Vector)",
+    "url": "https://www.iorad.com/player/18602/Trace-a-Face--Raster-to-Vector-?helpcenter=4666&roleId=13221",
+    "type": "Software Skill",
+    "equipment": "",
+    "confidence": "Not applicable",
+    "tags": [
+      "Adobe Illustrator"
+    ],
+    "author": "",
+    "notes": ""
+  },
+  {
+    "order": 42,
+    "title": "Unity 3D #2: Characters",
+    "url": "https://www.iorad.com/player/88132/Unity-3D--2--Characters?helpcenter=4666&roleId=13221",
+    "type": "Software Skill",
+    "equipment": "",
+    "confidence": "Not applicable",
+    "tags": [
+      "Unity 3D"
+    ],
+    "author": "",
+    "notes": ""
+  },
+  {
+    "order": 43,
+    "title": "Unity 3D #3: Add Water Table",
+    "url": "https://www.iorad.com/player/88464/Unity-3D--3--Add-Water-Table?helpcenter=4666&roleId=13221",
+    "type": "Software Skill",
+    "equipment": "",
+    "confidence": "Not applicable",
+    "tags": [
+      "Unity 3D"
+    ],
+    "author": "",
+    "notes": ""
+  },
+  {
+    "order": 44,
+    "title": "Unity 3D Add Steam VR",
+    "url": "https://www.iorad.com/player/88492/Unity-3D-Add-Steam-VR?helpcenter=4666&roleId=13221",
+    "type": "Software Skill",
+    "equipment": "",
+    "confidence": "Not applicable",
+    "tags": [
+      "Unity 3D"
+    ],
+    "author": "",
+    "notes": ""
+  },
+  {
+    "order": 41,
+    "title": "Unity 3D: 1. Terrain",
+    "url": "https://www.iorad.com/player/88121/Unity-3D--1--Terrain?helpcenter=4666&roleId=13221",
+    "type": "Software Skill",
+    "equipment": "",
+    "confidence": "Not applicable",
+    "tags": [
+      "Unity 3D"
+    ],
+    "author": "",
+    "notes": ""
+  },
+  {
+    "order": 45,
+    "title": "Unity 3D: Throw an Object (script)",
+    "url": "https://www.iorad.com/player/88682/Unity-3D--Throw-an-Object--script-?helpcenter=4666&roleId=13221",
+    "type": "Software Skill",
+    "equipment": "",
+    "confidence": "Not applicable",
+    "tags": [
+      "Unity 3D"
+    ],
+    "author": "",
+    "notes": ""
+  },
+  {
+    "order": 22,
+    "title": "Upload an AIW Video",
+    "url": "https://www.iorad.com/player/40848/Upload-an-AIW-Video?helpcenter=4666&roleId=13221",
+    "type": "Software Skill",
+    "equipment": "",
+    "confidence": "Not applicable",
+    "tags": [
+      "Video Production"
+    ],
+    "author": "",
+    "notes": ""
+  },
+  {
+    "order": 92,
+    "title": "Upload an AIW Video -- Check it",
+    "url": "https://www.iorad.com/player/162589/Upload-an-AIW-Video----Check-it?helpcenter=4666&roleId=13221",
+    "type": "Software Skill",
+    "equipment": "",
+    "confidence": "Not applicable",
+    "tags": [
+      "Video Production"
+    ],
+    "author": "",
+    "notes": ""
+  },
+  {
+    "order": 206,
+    "title": "Use a Mockup Template",
+    "url": "https://www.iorad.com/player/2428157/Use-a-Mockup-Template?helpcenter=4666&roleId=13221",
+    "type": "Software Skill",
+    "equipment": "",
+    "confidence": "Not applicable",
+    "tags": [
+      "Digital Mockups"
+    ],
+    "author": "",
+    "notes": ""
+  },
+  {
+    "order": 198,
+    "title": "Use SketchFab for reference images!",
+    "url": "https://www.iorad.com/player/2300775/Use-SketchFab-for-reference-images-?helpcenter=4666&roleId=13221",
+    "type": "Software Skill",
+    "equipment": "",
+    "confidence": "Not applicable",
+    "tags": [
+      "Sketchfab"
+    ],
+    "author": "",
+    "notes": ""
+  },
+  {
+    "order": 200,
+    "title": "Use the correct dimensions for printing Comic Book pages in the TAD School",
+    "url": "https://www.iorad.com/player/2364977/Use-the-correct-dimensions-for-printing-Comic-Book-pages-in-the-TAD-School?helpcenter=4666&roleId=13221",
+    "type": "Software Skill",
+    "equipment": "",
+    "confidence": "Not applicable",
+    "tags": [
+      "Printing / Prepress"
+    ],
+    "author": "",
+    "notes": ""
+  },
+  {
+    "order": 205,
+    "title": "Use the Digital Corps Camera to Conduct an Interview",
+    "url": "https://www.iorad.com/player/2365987/Use-the-Digital-Corps-Camera-to-Conduct-an-Interview?helpcenter=4666&roleId=13221",
+    "type": "Machine / Equipment Workflow",
+    "equipment": "Digital Camera / Audio Kit",
+    "confidence": "Approved",
+    "tags": [
+      "Video Production"
+    ],
+    "author": "",
+    "notes": "Approved for TAD Lab Manager in the 77-tutorial review."
+  },
+  {
+    "order": 230,
+    "title": "Use the Wireless Lapel Mic with the Digital Corps Camera",
+    "url": "https://www.iorad.com/player/2620488/Use-the-Wireless-Lapel-Mic-with-the-Digital-Corps-Camera?helpcenter=4666&roleId=13221",
+    "type": "Machine / Equipment Workflow",
+    "equipment": "Digital Camera / Audio Kit",
+    "confidence": "Approved",
+    "tags": [],
+    "author": "",
+    "notes": "Approved for TAD Lab Manager in the 77-tutorial review."
+  },
+  {
+    "order": 161,
+    "title": "Using the nail/staple gun",
+    "url": "https://www.iorad.com/player/1950656/Using-the-nail-staple-gun?helpcenter=4666&roleId=13221",
+    "type": "Machine / Equipment Workflow",
+    "equipment": "Nail / Staple Gun",
+    "confidence": "High",
+    "tags": [],
+    "author": "",
+    "notes": ""
+  },
+  {
+    "order": 156,
+    "title": "V-Carve to ShopBot Tutorial (TAD)",
+    "url": "https://www.iorad.com/player/1942547/V-Carve-to-ShopBot-Tutorial--TAD-?helpcenter=4666&roleId=13221",
+    "type": "Machine / Equipment Workflow",
+    "equipment": "ShopBot CNC Router",
+    "confidence": "High",
+    "tags": [
+      "VCarve Pro"
+    ],
+    "author": "",
+    "notes": ""
+  },
+  {
+    "order": 175,
+    "title": "Vehicle Grid Method with Photopea",
+    "url": "https://www.iorad.com/player/2146700/Vehicle-Grid-Method-with-Photopea?helpcenter=4666&roleId=13221",
+    "type": "Software Skill",
+    "equipment": "",
+    "confidence": "Not applicable",
+    "tags": [
+      "Photopea"
+    ],
+    "author": "",
+    "notes": ""
+  },
+  {
+    "order": 190,
+    "title": "Vehicle Grid Method with Photoshop",
+    "url": "https://www.iorad.com/player/2263736/Vehicle-Grid-Method-with-Photoshop?helpcenter=4666&roleId=13221",
+    "type": "Software Skill",
+    "equipment": "",
+    "confidence": "Not applicable",
+    "tags": [
+      "Adobe Photoshop"
+    ],
+    "author": "",
+    "notes": ""
+  },
+  {
+    "order": 47,
+    "title": "View Your T-Shirt Design on a VR Mannequin",
+    "url": "https://www.iorad.com/player/88895/View-Your-T-Shirt-Design-on-a-VR-Mannequin?helpcenter=4666&roleId=13221",
+    "type": "Project / General Skill",
+    "equipment": "",
+    "confidence": "Not applicable",
+    "tags": [],
+    "author": "",
+    "notes": ""
+  },
+  {
+    "order": 37,
+    "title": "Vinyl Cutter Operation",
+    "url": "https://www.iorad.com/player/64597/Vinyl-Cutter-Operation?helpcenter=4666&roleId=13221",
+    "type": "Machine / Equipment Workflow",
+    "equipment": "Graphtec Vinyl Cutter",
+    "confidence": "High",
+    "tags": [],
+    "author": "",
+    "notes": ""
+  },
+  {
+    "order": 62,
+    "title": "Vinyl Printer Setup",
+    "url": "https://www.iorad.com/player/98953/Vinyl-Printer-Setup?helpcenter=4666&roleId=13221",
+    "type": "Machine / Equipment Workflow",
+    "equipment": "HP Latex Printer",
+    "confidence": "High",
+    "tags": [
+      "Printing / Prepress"
+    ],
+    "author": "",
+    "notes": ""
+  },
+  {
+    "order": 64,
+    "title": "Vinyl Shirt 1: Draw Your Design",
+    "url": "https://www.iorad.com/player/99793/Vinyl-Shirt-1--Draw-Your-Design?helpcenter=4666&roleId=13221",
+    "type": "Machine / Equipment Workflow",
+    "equipment": "Graphtec Vinyl Cutter",
+    "confidence": "Approved",
+    "tags": [],
+    "author": "",
+    "notes": "Approved for TAD Lab Manager in the 77-tutorial review.",
+    "secondaryEquipment": "Flat Heat Press"
+  },
+  {
+    "order": 19,
+    "title": "Vinyl Shirt 2: Prep Art From Scans",
+    "url": "https://www.iorad.com/player/39606/Vinyl-Shirt-2--Prep-Art-From-Scans?helpcenter=4666&roleId=13221",
+    "type": "Machine / Equipment Workflow",
+    "equipment": "Graphtec Vinyl Cutter",
+    "confidence": "Approved",
+    "tags": [],
+    "author": "",
+    "notes": "Approved for TAD Lab Manager in the 77-tutorial review.",
+    "secondaryEquipment": "Flat Heat Press"
+  },
+  {
+    "order": 58,
+    "title": "Vinyl Shirt 3 & 4: Prep Art With Text",
+    "url": "https://www.iorad.com/player/98356/Vinyl-Shirt-3---4--Prep-Art-With-Text?helpcenter=4666&roleId=13221",
+    "type": "Machine / Equipment Workflow",
+    "equipment": "Graphtec Vinyl Cutter",
+    "confidence": "Approved",
+    "tags": [],
+    "author": "",
+    "notes": "Approved for TAD Lab Manager in the 77-tutorial review.",
+    "secondaryEquipment": "Flat Heat Press"
+  },
+  {
+    "order": 66,
+    "title": "Vinyl Shirt 3: Prep Art With Text",
+    "url": "https://www.iorad.com/player/99798/Vinyl-Shirt-3--Prep-Art-With-Text?helpcenter=4666&roleId=13221",
+    "type": "Machine / Equipment Workflow",
+    "equipment": "Graphtec Vinyl Cutter",
+    "confidence": "Approved",
+    "tags": [],
+    "author": "",
+    "notes": "Approved for TAD Lab Manager in the 77-tutorial review.",
+    "secondaryEquipment": "Flat Heat Press"
+  },
+  {
+    "order": 65,
+    "title": "Vinyl Shirt 4: Cut Vinyl",
+    "url": "https://www.iorad.com/player/99795/Vinyl-Shirt-4--Cut-Vinyl?helpcenter=4666&roleId=13221",
+    "type": "Machine / Equipment Workflow",
+    "equipment": "Graphtec Vinyl Cutter",
+    "confidence": "Approved",
+    "tags": [],
+    "author": "",
+    "notes": "Approved for TAD Lab Manager in the 77-tutorial review.",
+    "secondaryEquipment": "Flat Heat Press"
+  },
+  {
+    "order": 83,
+    "title": "Vinyl Sticker (3+ Colors raster to vector)",
+    "url": "https://www.iorad.com/player/152118/Vinyl-Sticker--3--Colors-raster-to-vector-?helpcenter=4666&roleId=13221",
+    "type": "Machine / Equipment Workflow",
+    "equipment": "Graphtec Vinyl Cutter",
+    "confidence": "Approved",
+    "tags": [
+      "Adobe Illustrator",
+      "Sticker Production"
+    ],
+    "author": "",
+    "notes": "Approved for TAD Lab Manager in the 77-tutorial review."
+  },
+  {
+    "order": 103,
+    "title": "Vinyl Sticker: Prep Art With Text",
+    "url": "https://www.iorad.com/player/1570867/Vinyl-Sticker--Prep-Art-With-Text?helpcenter=4666&roleId=13221",
+    "type": "Machine / Equipment Workflow",
+    "equipment": "Graphtec Vinyl Cutter",
+    "confidence": "Approved",
+    "tags": [
+      "Sticker Production"
+    ],
+    "author": "",
+    "notes": "Approved for TAD Lab Manager in the 77-tutorial review."
+  },
+  {
+    "order": 106,
+    "title": "Vinyl Sticker: Prep Art With Text Simple",
+    "url": "https://www.iorad.com/player/1662735/Vinyl-Sticker--Prep-Art-With-Text--Simple?helpcenter=4666&roleId=13221",
+    "type": "Machine / Equipment Workflow",
+    "equipment": "Graphtec Vinyl Cutter",
+    "confidence": "Approved",
+    "tags": [
+      "Sticker Production"
+    ],
+    "author": "",
+    "notes": "Approved for TAD Lab Manager in the 77-tutorial review."
+  },
+  {
+    "order": 15,
+    "title": "Welcome Sign Prep",
+    "url": "https://www.iorad.com/player/38687/Welcome-Sign-Prep?helpcenter=4666&roleId=13221",
+    "type": "Project / General Skill",
+    "equipment": "",
+    "confidence": "Not applicable",
+    "tags": [],
+    "author": "",
+    "notes": ""
+  },
+  {
+    "order": 40,
+    "title": "Woodburn Mudbox Nameplate",
+    "url": "https://www.iorad.com/player/88070/Woodburn-Mudbox-Nameplate?helpcenter=4666&roleId=13221",
+    "type": "Machine / Equipment Workflow",
+    "equipment": "Epilog Laser Cutter",
+    "confidence": "Approved",
+    "tags": [
+      "Autodesk Mudbox"
+    ],
+    "author": "",
+    "notes": "Approved for TAD Lab Manager in the 77-tutorial review."
+  },
+  {
+    "order": 187,
+    "title": "Wrap Text Around an Isolated image in InDesign",
+    "url": "https://www.iorad.com/player/2261505/Wrap-Text-Around-an-Isolated-image-in-InDesign?helpcenter=4666&roleId=13221",
+    "type": "Software Skill",
+    "equipment": "",
+    "confidence": "Not applicable",
+    "tags": [
+      "Adobe InDesign"
+    ],
+    "author": "",
+    "notes": ""
+  }
+]

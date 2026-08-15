@@ -1,58 +1,67 @@
-# TAD Lab Manager — First Generation Prototype
+# TAD Lab Manager
 
-A GitHub Pages-ready prototype inspired by the existing **3d Print Lab TD** Power Automate flow.
+TAD Lab Manager is a browser-based lab operations system for machine tutorials, student problem reporting, maintenance history, repair costs, downtime, schedules, and spreadsheet exports.
 
-## What works now
+## This release
 
-- Student-facing machine problem report form
-- Machine-specific links for QR codes: `?machine=machine-id#report`
-- Power Automate fields preserved: urgency, issue, machine, fixes attempted, preferred contact, resource
-- Photo input available for workflow testing, but photos are **not stored**
-- Per-machine stakeholder routing and notification preview
-- Persistent browser-based test records using `localStorage`
-- Issue dashboard and report status workflow
-- Machine inventory
-- Repair, parts/service cost, labor, and downtime records
-- CSV exports for Reports, Machines, and Repairs
-- Full JSON backup/restore
-- Responsive layout for phones/tablets/desktops
+This release is designed to run on the **Firebase Spark (no-cost) plan** without a billing account, Cloud Functions, Firebase Storage, or permanent photo storage.
 
-## Important prototype limitation
+Included:
 
-This version intentionally does **not** use a backend. Data is stored only in the current browser/device. It is ideal for workflow/UI testing, but not yet appropriate for live institutional use.
+- Cloud Firestore shared data for machines, reports, repairs, costs, and downtime
+- anonymous student reporting
+- BSU Microsoft 365 staff authentication
+- Firebase App Check integration using reCAPTCHA Enterprise (site key setup required before public launch)
+- stricter Firestore Security Rules and field-size validation
+- machine-specific maintenance URLs for existing Linktrees / QR codes
+- direct tutorial library with **235 approved tutorials**
+- dual-machine tutorial mapping where appropriate
+- ShopBot mapping for the Kinetic Sculpture tutorial
+- Lab Corps Worker Schedule
+- Digital Corps Worker Schedule
+- issue dashboard and status workflow
+- repair / parts / service cost / labor / downtime records
+- CSV downloads for Excel
+- JSON backup
 
-## Next production phase
+## Notifications
 
-1. Replace `localStorage` with Firebase Firestore.
-2. Add staff/admin authentication and Firestore security rules.
-3. Add secure backend notification delivery (email).
-4. Decide how temporary problem photos should be transmitted and discarded.
-5. Add true XLSX workbook export if desired.
-6. Generate/print QR codes for all machines.
-7. Apply final TAD / Bemidji State branding.
+Reports are stored immediately in the shared Firestore database and appear on the staff dashboard.
 
-## Test locally
+**Automatic email notification is intentionally not enabled in this Spark-plan release.** It can be added later using an institution-owned server-side service (for example, an IT-approved Microsoft/Azure or Firebase backend) without changing the core reporting database.
 
-You can open `index.html` directly, but running a simple local server is more reliable:
+## Tutorial migration
 
-```bash
-python3 -m http.server 8000
-```
+The app now contains:
 
-Then visit `http://localhost:8000`.
+- 175 tutorials previously approved for direct inclusion
+- 60 additional tutorials approved in `TAD_Tutorial_77_Review_Queue(1).xlsx`
+- **235 tutorials total**
 
-## GitHub Pages
+The review decisions leave out 16 tutorials and hold 1 unfinished tutorial for later revision. See `TUTORIAL-MIGRATION-SUMMARY.md`.
 
-Upload the contents of this folder to a GitHub repository and enable Pages from the repository's main branch/root. No build process is required.
+## Firebase activation
 
-## QR-link example
+The site cannot use shared records until its Firebase Web App configuration is supplied.
 
-If the site becomes:
+1. Create/register the Firebase Web App.
+2. Paste its configuration into `firebase-config.js`.
+3. Create Firestore.
+4. Enable Anonymous and Microsoft Authentication.
+5. Deploy/paste `firestore.rules`.
+6. Configure Firebase App Check before public launch.
+7. Seed the starter machines from Settings.
 
-`https://example.github.io/tad-lab-manager/`
+See `FIREBASE-SETUP.md`.
 
-then a machine QR can point to:
+## Main files
 
-`https://example.github.io/tad-lab-manager/?machine=laser-epilog-fusion-01#report`
-
-That link opens the report page with the machine already selected.
+- `index.html` — app shell and pages
+- `styles.css` — interface styles
+- `app.js` — application logic, Firestore, Authentication, and App Check integration
+- `firebase-config.js` — Firebase Web App + App Check site-key placeholders
+- `firestore.rules` — access control and report validation
+- `data/tutorials.json` — 235 approved direct tutorials
+- `LINKTREE-MAINTENANCE-LINKS.csv` — starter machine-specific link patterns
+- `FIREBASE-SETUP.md` — deployment instructions
+- `TUTORIAL-MIGRATION-SUMMARY.md` — tutorial review/migration record

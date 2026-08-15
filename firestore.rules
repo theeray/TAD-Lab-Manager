@@ -1,0 +1,61 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function staff() {
+      return signedIn()
+        && request.auth.token.email != null
+        && request.auth.token.firebase.sign_in_provider == 'microsoft.com'
+        && request.auth.token.email.matches('.*@bemidjistate\.edu$');
+    }
+
+    match /machines/{machineId} {
+      allow read: if signedIn();
+      allow create, update, delete: if staff();
+    }
+
+    match /reports/{reportId} {
+      allow create: if signedIn()
+        && request.resource.data.keys().hasOnly([
+          'machineId','createdAt','urgency','usable','issue','attempted','contact',
+          'resource','status','machineNameSnapshot','roomSnapshot',
+          'submittedByUid','submittedByEmail'
+        ])
+        && request.resource.data.submittedByUid == request.auth.uid
+        && request.resource.data.createdAt == request.time
+        && request.resource.data.machineId is string
+        && exists(/databases/$(database)/documents/machines/$(request.resource.data.machineId))
+        && request.resource.data.urgency in ['Low','Medium','High','Critical']
+        && request.resource.data.usable in ['Yes','Partially','No']
+        && request.resource.data.issue is string
+        && request.resource.data.issue.size() > 0
+        && request.resource.data.issue.size() <= 3000
+        && request.resource.data.attempted is string
+        && request.resource.data.attempted.size() <= 2000
+        && request.resource.data.contact is string
+        && request.resource.data.contact.size() <= 250
+        && request.resource.data.resource is string
+        && request.resource.data.resource.size() <= 1000
+        && request.resource.data.status == 'Open'
+        && request.resource.data.machineNameSnapshot is string
+        && request.resource.data.machineNameSnapshot.size() <= 250
+        && request.resource.data.roomSnapshot is string
+        && request.resource.data.roomSnapshot.size() <= 250
+        && request.resource.data.submittedByEmail is string
+        && request.resource.data.submittedByEmail.size() <= 320;
+
+      allow read, update, delete: if staff();
+    }
+
+    match /repairs/{repairId} {
+      allow read, create, update, delete: if staff();
+    }
+
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
