@@ -1,0 +1,167 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta name="theme-color" content="#36B8B2" />
+  <title>TAD Lab Manager — Machines & Maintenance</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+<div id="setupBanner" class="setup-banner hidden"></div>
+<a href="../index.html" class="home-float">← TAD Lab Manager Home</a>
+<div class="app-shell">
+  <aside class="sidebar">
+    <div class="brand">
+      <img src="../assets/tad-t-logo.png" alt="TAD T logo" class="sidebar-logo">
+      <div><strong>TAD Lab Manager</strong><span>Machines &amp; Maintenance</span></div>
+    </div>
+    <nav id="nav">
+      <button data-view="dashboard" class="active">Dashboard</button>
+      <button data-view="report">Report a Problem</button>
+      <button data-view="tutorials">Tutorials</button>
+      <button data-view="reports" class="staff-only">Reports</button>
+      <button data-view="machines" class="staff-only">Machines</button>
+      <button data-view="costs" class="staff-only">Costs &amp; Repairs</button>
+      <button data-view="export" class="staff-only">Export / Backup</button>
+      <button data-view="settings">Settings</button>
+    </nav>
+    <div class="sidebar-footer">
+      <div id="connectionStatus" class="status-pill">Connecting…</div>
+      <small id="authStatus">Student reporting access</small>
+    </div>
+  </aside>
+
+  <main>
+    <header class="topbar">
+      <button class="mobile-menu" id="mobileMenu">☰</button>
+      <div>
+        <h1 id="pageTitle">Dashboard</h1>
+        <p id="pageSubtitle">Lab equipment status, resources, issues, repairs, and costs.</p>
+      </div>
+      <div class="top-actions">
+        <button class="btn secondary" id="quickReport">+ New Report</button>
+        <button class="btn secondary" id="staffLogin">Staff sign in</button>
+      </div>
+    </header>
+
+    <section id="view-dashboard" class="view active">
+      <div class="hero">
+        <div>
+          <span class="eyebrow">TAD LAB OPERATIONS</span>
+          <h2>Know what is broken, what it costs, and what needs attention.</h2>
+          <p>Machine resources, student issue reporting, repair records, schedules, and long-term equipment costs in one place.</p>
+        </div>
+        <button class="btn primary" data-go="report">Report an issue</button>
+      </div>
+
+      <div class="resource-strip">
+        <a class="resource-card resource-blue" target="_blank" rel="noopener" href="https://outlook.office365.com/owa/calendar/fb07a66b8b2646a6a2faf90d59e50033@bemidjistate.edu/dab05c9ffd3c4166b318a052dfe2a1fc1871600647165756157/calendar.html"><strong>Lab Corps Worker Schedule</strong><span>Open calendar ↗</span></a>
+        <a class="resource-card resource-yellow" target="_blank" rel="noopener" href="https://outlook.office365.com/owa/calendar/fb07a66b8b2646a6a2faf90d59e50033@bemidjistate.edu/9ea156b921fa4957803681e0a32795805782064272524246779/calendar.html"><strong>Digital Corps Worker Schedule</strong><span>Open calendar ↗</span></a>
+        <button class="resource-card resource-red" data-go="tutorials"><strong>TAD Tutorials</strong><span>Browse 235 direct tutorials →</span></button>
+      </div>
+
+      <div id="statsGrid" class="stats-grid staff-only"></div>
+      <div class="two-col staff-only">
+        <article class="card">
+          <div class="card-head"><div><h3>Open issues</h3><p>Newest and highest urgency first.</p></div><button class="text-btn" data-go="reports">View all</button></div>
+          <div id="openIssues"></div>
+        </article>
+        <article class="card">
+          <div class="card-head"><div><h3>Machines needing attention</h3><p>Based on unresolved reports.</p></div></div>
+          <div id="machineAttention"></div>
+        </article>
+      </div>
+
+      <article class="card public-machine-card">
+        <div class="card-head"><div><h3>Machine &amp; equipment resources</h3><p>Choose equipment to open its tutorials or report a problem.</p></div></div>
+        <div id="publicMachines" class="machine-grid compact"></div>
+      </article>
+    </section>
+
+    <section id="view-report" class="view">
+      <div class="content-grid form-layout">
+        <article class="card">
+          <div class="card-head"><div><h3>Report a machine problem</h3><p>Machine-specific Linktree maintenance buttons can select the equipment automatically.</p></div></div>
+          <form id="reportForm" class="form-grid">
+            <label class="full">Machine
+              <select id="reportMachine" required></select>
+              <small id="qrHint">Machine-specific link format: <code>?machine=MACHINE-ID#report</code></small>
+            </label>
+            <label>Urgency
+              <select id="urgency" required><option>Low</option><option selected>Medium</option><option>High</option><option>Critical</option></select>
+            </label>
+            <label>Is the machine usable?
+              <select id="usable"><option>Yes</option><option>Partially</option><option>No</option></select>
+            </label>
+            <label class="full">What's the issue?
+              <textarea id="issue" rows="5" required placeholder="Describe what happened, what you saw or heard, and what you were trying to do."></textarea>
+            </label>
+            <label class="full">What fixes have you tried?
+              <textarea id="attempted" rows="3" placeholder="Example: restarted machine, reloaded material, checked emergency stop…"></textarea>
+            </label>
+            <label>Preferred contact<input id="contact" placeholder="Name or email (optional)"></label>
+            <label>Helpful resource or link<input id="resource" placeholder="Optional URL"></label>
+            <div class="form-actions full"><button type="reset" class="btn secondary">Clear</button><button class="btn primary" type="submit">Submit report</button></div>
+          </form>
+          <div class="notice"><strong>Shared maintenance record:</strong> reports are stored in Firestore and become visible to authorized staff. Automatic email notifications are intentionally not enabled in this Spark/no-billing release.</div>
+        </article>
+        <aside class="card sticky-card">
+          <h3>Machine resources</h3>
+          <div id="machineResourcePanel"></div>
+        </aside>
+      </div>
+    </section>
+
+    <section id="view-tutorials" class="view">
+      <article class="card">
+        <div class="card-head wrap">
+          <div><h3>Direct tutorials</h3><p>Curated iorad, video, and web tutorials linked directly from TAD Lab Manager.</p></div>
+          <div class="filters"><select id="tutorialType"><option value="All">All types</option></select><select id="tutorialEquipment"><option value="All">All equipment</option></select><input id="tutorialSearch" placeholder="Search tutorials…"></div>
+        </div>
+        <div id="tutorialCount" class="count-line"></div>
+        <div id="tutorialGrid" class="tutorial-grid"></div>
+      </article>
+    </section>
+
+    <section id="view-reports" class="view staff-only">
+      <article class="card">
+        <div class="card-head wrap"><div><h3>Issue reports</h3><p>Structured equipment problem history.</p></div><div class="filters"><select id="reportStatusFilter"><option>All</option><option>Open</option><option>Diagnosing</option><option>Waiting for Part</option><option>Resolved</option></select><input id="reportSearch" placeholder="Search reports…"></div></div>
+        <div id="reportsTable"></div>
+      </article>
+    </section>
+
+    <section id="view-machines" class="view staff-only">
+      <div class="section-actions"><p>Each physical machine has a stable ID. Existing QR stickers can keep opening their Linktrees while the Linktree maintenance button points to the machine-specific URL here.</p><button class="btn primary" id="addMachine">+ Add Machine</button></div>
+      <div id="machineCards" class="machine-grid"></div>
+    </section>
+
+    <section id="view-costs" class="view staff-only">
+      <div id="costStats" class="stats-grid"></div>
+      <article class="card">
+        <div class="card-head"><div><h3>Repair &amp; expense history</h3><p>Parts, external service, labor, and downtime by machine.</p></div><button class="btn primary small" id="addRepair">+ Add repair / cost</button></div>
+        <div id="repairsTable"></div>
+      </article>
+    </section>
+
+    <section id="view-export" class="view staff-only">
+      <div class="two-col">
+        <article class="card export-card"><div class="big-icon">⇩</div><h3>Spreadsheet downloads</h3><p>Export live Firestore records as CSV files for Excel.</p><div class="stack"><button class="btn primary" data-export="reports">Download Reports CSV</button><button class="btn secondary" data-export="machines">Download Machines CSV</button><button class="btn secondary" data-export="repairs">Download Repairs CSV</button></div></article>
+        <article class="card export-card"><div class="big-icon">⟲</div><h3>Full data backup</h3><p>Download machines, reports, and repairs as JSON.</p><button class="btn primary" id="backupJson">Download Full Backup</button></article>
+      </div>
+    </section>
+
+    <section id="view-settings" class="view">
+      <div class="two-col">
+        <article class="card"><h3>System connection</h3><div id="firebaseInfo"></div></article>
+        <article class="card"><h3>Staff access</h3><p>Students can submit reports. Staff sign in with Microsoft 365 to see issue history, repair costs, exports, and machine administration.</p><div class="stack"><button class="btn primary" id="settingsLogin">Sign in with Microsoft 365</button><button class="btn secondary hidden" id="signOut">Sign out</button></div></article>
+      </div>
+      <article class="card"><h3>Abuse protection</h3><p>This release is designed for Firebase Spark with no billing account. Before public launch, configure Firebase App Check and enforce it for Firestore after testing legitimate submissions.</p></article>
+    </section>
+  </main>
+</div>
+<dialog id="modal"><form method="dialog" class="modal-card"><button class="modal-close" value="cancel">×</button><div id="modalBody"></div></form></dialog>
+<div id="toast" class="toast"></div>
+<script type="module" src="app.js"></script>
+</body>
+</html>
