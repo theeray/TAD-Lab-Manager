@@ -1,67 +1,67 @@
-# TAD Lab Manager
+# TAD Lab Manager — Spark v1.2
 
-TAD Lab Manager is a browser-based lab operations system for machine tutorials, student problem reporting, maintenance history, repair costs, downtime, schedules, and spreadsheet exports.
+TAD Lab Manager is the shared web hub for the School of Technology, Art & Design labs at Bemidji State University.
 
-## This release
+## Main modules
 
-This release is designed to run on the **Firebase Spark (no-cost) plan** without a billing account, Cloud Functions, Firebase Storage, or permanent photo storage.
+- **Cost Estimator** — `projects/index.html`
+  - Student-facing project budgeting and pricing simulation.
+  - Estimates remain private to the student's browser in this release.
+- **Machines & Maintenance** — `maintenance/index.html`
+  - Firebase/Firestore-backed machine issue reporting, staff dashboard, machine records, repair costs, downtime, and exports.
+- **Tutorials & Safety** — `tutorials.html`
+  - 235 directly linked iorad/video/web tutorials with machine/category mappings.
+- **Permanent machine pages** — `machine.html?id=<stable-id>`
+  - Stable machine pages for tutorials, manufacturer information, manuals, maintenance reporting, and Linktree/QR workflows.
 
-Included:
+## Visual design
 
-- Cloud Firestore shared data for machines, reports, repairs, costs, and downtime
-- anonymous student reporting
-- BSU Microsoft 365 staff authentication
-- Firebase App Check integration using reCAPTCHA Enterprise (site key setup required before public launch)
-- stricter Firestore Security Rules and field-size validation
-- machine-specific maintenance URLs for existing Linktrees / QR codes
-- direct tutorial library with **235 approved tutorials**
-- dual-machine tutorial mapping where appropriate
-- ShopBot mapping for the Kinetic Sculpture tutorial
-- Lab Corps Worker Schedule
-- Digital Corps Worker Schedule
-- issue dashboard and status workflow
-- repair / parts / service cost / labor / downtime records
-- CSV downloads for Excel
-- JSON backup
+This build restores the approved TAD Lab Manager visual baseline:
+- supplied square T logo for navigation
+- supplied horizontal TAD logo on the home hero
+- Century Gothic / Futura-family typography
+- yellow Cost Estimator, blue Machines & Maintenance, and red Tutorials modules
+- six-color TAD stripe
+- lab-location color badges
+- mobile-friendly layouts
 
-## Notifications
+## Firebase / no-billing architecture
 
-Reports are stored immediately in the shared Firestore database and appear on the staff dashboard.
+The maintenance system is designed to launch on Firebase **Spark**:
+- Cloud Firestore for machines, reports, repairs, costs, and downtime
+- Anonymous Authentication for student reporting
+- Microsoft Authentication for authorized `@bemidjistate.edu` staff
+- Firebase App Check preparation for abuse protection
+- strict Firestore Security Rules
 
-**Automatic email notification is intentionally not enabled in this Spark-plan release.** It can be added later using an institution-owned server-side service (for example, an IT-approved Microsoft/Azure or Firebase backend) without changing the core reporting database.
+This release intentionally does **not** include Cloud Functions, Trigger Email, Firebase Storage, or automatic stakeholder email. Those can be evaluated later under an institution-owned service if desired.
 
-## Tutorial migration
+## Tutorials
 
-The app now contains:
+`data/tutorials.json` contains **235 approved tutorials**:
+- 175 from the initial migration
+- 60 additionally approved from the 77-item review queue
+- 16 left out
+- 1 held until revised (`Finger Joint Box Tutorial (unfinished)`)
 
-- 175 tutorials previously approved for direct inclusion
-- 60 additional tutorials approved in `TAD_Tutorial_77_Review_Queue(1).xlsx`
-- **235 tutorials total**
+`Kinetic sculpture` is mapped to **ShopBot CNC Router**.
 
-The review decisions leave out 16 tutorials and hold 1 unfinished tutorial for later revision. See `TUTORIAL-MIGRATION-SUMMARY.md`.
+## Machines
 
-## Firebase activation
+`data/machines.json` contains the 40-machine inventory used by the branded home page and the Firebase seed function. Stable machine IDs are used for maintenance links.
 
-The site cannot use shared records until its Firebase Web App configuration is supplied.
+A maintenance URL has this form:
 
-1. Create/register the Firebase Web App.
-2. Paste its configuration into `firebase-config.js`.
-3. Create Firestore.
-4. Enable Anonymous and Microsoft Authentication.
-5. Deploy/paste `firestore.rules`.
-6. Configure Firebase App Check before public launch.
-7. Seed the starter machines from Settings.
+`https://YOUR-GITHUB-PAGES-URL/maintenance/index.html?machine=MACHINE-ID#report`
 
-See `FIREBASE-SETUP.md`.
+Existing physical QR codes can remain on the machines if they already open Linktrees. Update the **Report a Problem** Linktree button to the machine-specific URL above.
 
-## Main files
+## Hosting
 
-- `index.html` — app shell and pages
-- `styles.css` — interface styles
-- `app.js` — application logic, Firestore, Authentication, and App Check integration
-- `firebase-config.js` — Firebase Web App + App Check site-key placeholders
-- `firestore.rules` — access control and report validation
-- `data/tutorials.json` — 235 approved direct tutorials
-- `LINKTREE-MAINTENANCE-LINKS.csv` — starter machine-specific link patterns
-- `FIREBASE-SETUP.md` — deployment instructions
-- `TUTORIAL-MIGRATION-SUMMARY.md` — tutorial review/migration record
+Upload the contents of this folder to the root of the GitHub Pages repository. Keep:
+- `data/tutorials.json`
+- `data/machines.json`
+
+inside the `data` folder.
+
+See `FIREBASE-SETUP.md` before public launch.
