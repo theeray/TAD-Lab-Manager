@@ -1,0 +1,187 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>TAD Project Cost Estimator</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+<a href="../index.html" style="position:fixed;right:14px;bottom:14px;z-index:9999;background:#111;color:#D9D94D;padding:10px 13px;border-radius:9px;text-decoration:none;font:700 13px "Century Gothic",Arial,sans-serif;box-shadow:0 5px 18px #0002">← TAD Lab Manager Home</a>
+  <header class="app-header">
+    <div style="display:flex;align-items:center;gap:15px"><img src="../assets/tad-t-logo.png" alt="TAD T logo" style="width:62px;height:62px;object-fit:contain;flex:0 0 62px"><div>
+      <p class="eyebrow">PROJECT COST ESTIMATOR</p>
+      <h1>TAD Project Cost Estimator</h1>
+      <p class="subtitle">Student project budgeting and real-world cost simulation.</p>
+    </div></div>
+    <div class="header-actions">
+      <button id="newRequestBtn" class="secondary">+ New estimate</button>
+      <button id="saveBtn" class="primary">Save estimate</button>
+    </div>
+  </header>
+
+  <div class="banner info"><strong>Student budgeting tool:</strong> use this estimator to plan project costs and practice real-world pricing considerations. This is not a public project-ordering system. Internal exception workflows can be handled separately by authorized TAD staff.</div>
+
+  <div id="demoBanner" class="banner warning">
+    <strong>Demo pricing:</strong> the original workbook imports its master price table from another Google Sheet, so the rates in this version are test values. Update them under <strong>Pricing</strong> before using totals operationally.
+  </div>
+
+  <nav class="tabs" aria-label="App sections">
+    <button class="tab active" data-tab="request">New Estimate</button>
+    <button class="tab" data-tab="dashboard">Dashboard</button>
+    <button class="tab" data-tab="pricing">Pricing & Materials</button>
+  </nav>
+
+  <div class="project-access-note"><strong>Student estimates are private to this browser.</strong> Shared pricing and machine data are read-only for students; shared administrative data is protected separately through Firebase.</div>
+<main>
+    <section id="requestTab" class="tab-panel active">
+      <div class="layout">
+        <div class="main-column">
+          <section class="card">
+            <div class="section-heading">
+              <div><span class="step">1</span><h2>About the project</h2></div>
+              <p>Basic project and budgeting information.</p>
+            </div>
+            <div class="form-grid two">
+              <label>Student / estimator name<input id="requesterName" type="text" placeholder="Name" /></label>
+              <label>Email<input id="requesterEmail" type="email" placeholder="name@bemidjistate.edu" /></label>
+              <label>Affiliation<select id="affiliation"></select></label>
+              <label>Project name<input id="projectName" type="text" placeholder="e.g. Biology hallway wall covering" /></label>
+              <label>What is the project for?<select id="projectFor"></select></label>
+              <label id="departmentWrap">Department / school / office<input id="department" type="text" placeholder="e.g. Biology" /></label>
+              <label class="span-2">Who is the project for?<input id="projectRecipient" type="text" placeholder="Person, class, department, organization, etc." /></label>
+            </div>
+          </section>
+
+          <section class="card">
+            <div class="section-heading">
+              <div><span class="step">2</span><h2>Payment & support</h2></div>
+              <p>Questions appear only when relevant.</p>
+            </div>
+            <div class="form-grid two">
+              <label>Payment method<select id="paymentMethod"></select></label>
+              <label id="approvalWrap">Stakeholder approval<select id="approval"></select></label>
+              <label>Apply a simulated discount?<select id="discountRequested"><option>No</option><option>Yes</option></select></label>
+              <label id="discountReasonWrap" class="hidden">Reason for discount<input id="discountReason" type="text" placeholder="Scrap material, student doing work, etc." /></label>
+              <label>Does TAD need to make/design the work?<select id="tadHelp"></select></label>
+              <label>Student helper<input id="studentHelper" type="text" placeholder="Optional" /></label>
+              <label>First draft / review date<input id="draftDate" type="date" /></label>
+              <label>Final delivery date<input id="deliveryDate" type="date" /></label>
+            </div>
+          </section>
+
+          <section class="card">
+            <div class="section-heading parts-heading">
+              <div><span class="step">3</span><h2>Project parts</h2></div>
+              <button id="addPartBtn" class="secondary">+ Add part</button>
+            </div>
+            <p class="hint">Add as many parts as needed. Area, gram, and per-item pricing are calculated differently.</p>
+            <div id="partsContainer"></div>
+          </section>
+
+          <section class="card">
+            <div class="section-heading">
+              <div><span class="step">4</span><h2>Other details</h2></div>
+            </div>
+            <label><textarea id="otherDetails" rows="5" placeholder="Anything else TAD should know about the project..."></textarea></label>
+          </section>
+        </div>
+
+        <aside class="summary-column">
+          <section class="card sticky summary-card">
+            <p class="eyebrow">LIVE ESTIMATE</p>
+            <h2 id="summaryProjectName">Untitled project</h2>
+            <div id="summaryParts" class="summary-parts"></div>
+            <div class="cost-lines">
+              <div><span>Materials & finishes</span><strong id="materialsTotal">$0.00</strong></div>
+              <div><span>TAD design/making</span><strong id="designTotal">$0.00</strong></div>
+              <div><span>Discount</span><strong id="discountTotal">−$0.00</strong></div>
+              <div class="grand-total"><span>Estimated total</span><strong id="grandTotal">$0.00</strong></div>
+            </div>
+            <label class="compact">Admin discount ($)<input id="discountAmount" type="number" min="0" step="0.01" value="0" /></label>
+            <div class="summary-actions">
+              <button id="printBtn" class="secondary full">Print / Save PDF</button>
+              <button id="duplicateBtn" class="ghost full">Duplicate estimate</button>
+            </div>
+            <p class="tiny">Spreadsheet parity: when TAD makes/designs the project, the workbook adds a design cost equal to material cost. This version preserves that rule.</p>
+          </section>
+        </aside>
+      </div>
+    </section>
+
+    <section id="dashboardTab" class="tab-panel">
+      <section class="card">
+        <div class="section-heading dashboard-heading">
+          <div><h2>Project dashboard</h2><p>Saved estimates are stored in this browser.</p></div>
+          <div class="button-row">
+            <button id="exportCsvBtn" class="secondary">Export CSV</button>
+            <button id="exportJsonBtn" class="secondary">Backup JSON</button>
+            <label class="file-button secondary">Restore JSON<input id="importJsonInput" type="file" accept="application/json" /></label>
+          </div>
+        </div>
+        <div class="kpis">
+          <div><span>Estimates</span><strong id="kpiRequests">0</strong></div>
+          <div><span>Open</span><strong id="kpiOpen">0</strong></div>
+          <div><span>Estimated value</span><strong id="kpiValue">$0</strong></div>
+          <div><span>Finalized</span><strong id="kpiCompleted">0</strong></div>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Project</th><th>Estimator</th><th>Department</th><th>Status</th><th>Delivery</th><th>Total</th><th></th></tr></thead>
+            <tbody id="projectsTable"></tbody>
+          </table>
+        </div>
+      </section>
+    </section>
+
+    <section id="pricingTab" class="tab-panel">
+      <section class="card">
+        <div class="section-heading dashboard-heading">
+          <div><h2>Pricing & materials</h2><p>Rates are separated from app code so future price changes do not require rebuilding the calculator.</p></div>
+          <div class="button-row">
+            <button id="addMaterialBtn" class="secondary">+ Add material</button>
+            <button id="resetPricingBtn" class="ghost">Reset demo pricing</button>
+          </div>
+        </div>
+        <div class="banner info"><strong>Pricing methods:</strong> square inch for sheet/print materials, gram for 3D printing, each for unit items, and sheet-metal tiers for the workbook's special tier logic.</div>
+        <div class="table-wrap">
+          <table class="pricing-table admin-authoritative">
+            <thead><tr><th>Material / service</th><th>Method</th><th>Rate</th><th>Finish group</th><th>Active</th><th></th></tr></thead>
+            <tbody id="pricingTable"></tbody>
+          </table>
+        </div>
+      </section>
+      <section class="card">
+        <h2>Sheet metal tiers</h2>
+        <p class="hint">The original workbook uses fixed total prices for area bands, then switches to a per-square-inch calculation above the largest tier.</p>
+        <div id="tierEditor" class="tiers"></div>
+      </section>
+    </section>
+  </main>
+
+  <template id="partTemplate">
+    <article class="part-card">
+      <div class="part-topline">
+        <div><span class="part-number"></span><input class="part-name" type="text" placeholder="Describe this part (top, cover, sign, panel...)" /></div>
+        <button class="remove-part ghost" title="Remove part">Remove</button>
+      </div>
+      <div class="form-grid part-grid">
+        <label>Quantity<input class="part-qty" type="number" min="0" step="1" value="1" /></label>
+        <label>Units<select class="part-unit"></select></label>
+        <label class="dim width-field">Width<input class="part-width" type="number" min="0" step="any" /></label>
+        <label class="dim length-field">Length<input class="part-length" type="number" min="0" step="any" /></label>
+        <label class="amount-field hidden">Amount<input class="part-amount" type="number" min="0" step="any" /></label>
+        <label class="span-2">Material<select class="part-material"></select></label>
+        <label>Finish<select class="part-finish"></select></label>
+        <label>Yield<input class="part-yield" type="number" min="0.01" step="0.01" value="1" /></label>
+      </div>
+      <div class="part-foot">
+        <span class="calculation-note">Enter dimensions and select a material.</span>
+        <strong class="part-cost">$0.00</strong>
+      </div>
+    </article>
+  </template>
+
+  <script src="app.js"></script>
+</body>
+</html>
