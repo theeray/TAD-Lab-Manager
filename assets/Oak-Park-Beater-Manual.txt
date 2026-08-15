@@ -1,0 +1,433 @@
+The
+Oak Park Beater
+Manual
+
+Single and Double Wide Models
+
+Lee S. McDonald 
+P.O. Box 264
+Charlestown, MA 02129
+(617) 242-2505
+©1986
+
+Manual written by
+Lee McDonald
+
+TABLE OF CONTENTS
+
+I.  Introduction
+	
+	1.1-What a beater does	
+	
+	1.2-Oak Park Beater features
+
+2.  Safety and set-up information
+	
+	2.1-Safety instructions
+	
+	2.2-Electrical requirements and electrical safety
+	
+	2.3-Handy supplies and equipment
+
+	2.4 -Readying the beater for use
+
+3.  How to use the Oak Park Beater
+	
+	3.1-Preparing fibers for beating	
+	
+	3.2 -Loading and operating the beater
+
+	        3.21-Simple test  to monitor progress of beating	
+	
+	3.3-Troubleshooting problems
+
+4.  Beating guidelines for various fibers
+	
+	4.1-Cotton linters, 1st and 2nd cut
+	
+	4.2-Abaca pulps, bleached, unbleached and semi-bleached
+	
+	4.3-Cotton or other natural fiber rags
+	
+	4.4-Raw flax
+	
+	4.5-Other raw fibers
+
+5.  How to keep beating records
+
+6.  Papermaking reference sources
+
+7.  Maintenance
+
+8.  Parts list
+
+1  Introduction
+
+This manual is designed to help you use your Oak Park beater to its full advantage. We recommend that you read this manual before setting up your beater, as important safety and maintenance information, as well as helpful suggestions for set-up are included.
+
+1.1  WHAT A BEATER DOES
+
+Beating paper pulp or raw fiber has three main effects
+
+1.  Shortening of fibers--
+Fibers break as they are forced between the roll and bedplate, usually breaking at their weakest points.
+
+2. External splitting of fibers--
+Bruising of fibers in the beating process results in the removal of the primary fiber wall and the raising of fibrils, a process known as "fibrillation".
+
+3. Internal splitting of fibers--
+As the fibers are mashed between the roll and bedplate, the interior of the fiber is split into fibrils.
+
+The shortening of fibers accomplished through beating enables the fibers to "felt" together to form a uniform sheet of paper.  External and internal fibrillation increases the strength of a sheet by increasing the surface area available for bonding.  Fibrillation also softens the fibers and  makes them more receptive to dyes and filling agents. 
+
+Uses for beaters:
+
+ With a beater you can:
+
+×take any cellulose-containing plant material and  turn those fibers into pulp for papermaking (after proper preparation).    
+
+×rehydrate dried pulp, and through further beating change its characteristics to suit whatever technique you choose for working with paper.
+
+1.2 FEATURES OF THE OAK PARK BEATERS
+
+Capacity-- 
+
+the Single width Beater  will rehydrate 3/4 lb. of prepared pulp, and beat 1/2 lb of raw fiber
+
+the Double width Beater will rehydrate 1-1/2 lb. of prepared pulp, and beat 1 lb of raw fiber
+
+Umpherston style--
+
+The flow of the water and fiber in the Oak Park beater is over/under, in a circular vertical flow.  This is different from the horizontal flow of a Hollander beater, and requires a somewhat different preparation and operating procedures. 
+
+Construction details--
+
+PVC welded tub
+Aluminum roll and bedplate
+Fully enclosed electric motor
+Liquid-tight electrical fittings
+Fasteners of stainless steel or brass
+Electrical safety interlock-
+prevents exposure of moving roll
+Aluminum roll and pivot arm swing up for easy cleaning
+Easy dumping of load into bucket below beater
+
+2.  Safety and setup information             
+
+2.1       Safety precautions
+
+1.  The Oak Park Beater contains rotating parts which can cause personal injury.  Do not attempt to operate the machine without the lid in place.  Do not insert hands or fingers under lid while the machine is operating. Disconnect power before cleaning or moving this machine.
+
+2. The Manufacturer disclaims any and all responsibility unless this unit is operated in compliance with all federal and local regulations.  The guards and safety interlock switches  must be in place and in good operating order. Removal of any parts or accessories from this machine is in violation of current federal and local safety and health laws.   By acceptance of this merchandise the purchaser and the user assume complete responsibility for the safe operation of this equipment. 
+
+3.  UNPLUG THIS MACHINE BEFORE CLEANING.  DO NOT SPRAY THE MOTOR OR ANY OTHER ELECTRICAL PARTS WITH WATER! USE A SPONGE TO WIPE OFF THE SURFACES OF ELECTRICAL PARTS.	
+
+4.  This machine contains plastic parts. Do not expose plastic parts to solvents or boiling water. Do not leave in a overheated enclosed room. 
+
+5.  It is important not to add any chemicals to the pulp being beaten.  Any chemicals which adhere to the sides of the tub will damage it,  because the plastic tub cannot be scrubbed without scratching it.   Use only unpigmented pulp in the beater.  Do not mix pigment, dye, or sizing into the pulp while it is in the beater.  Do not beat pigmented or dyed pulp in the beater.  Paper which has been sized may be rehydrated in the beater. 
+
+ 2.2.  ELECTRICAL REQUIREMENTS.  
+
+The Oak Park Beaters are wired for 110 volts A.C. (60 Hz.)  The 1-1/2 lb.    capacity Double Wide Beater can also be wired for 220 volts A.C.. To wire the Double Wide Beater for 220 volts, follow the instructions on the motor for wiring to 220 volt or "high" voltage, exchanging the plug supplied for the proper 220 volt plug (waterproof).
+
+Because of the wet environment common in a paper studio, you should replace your current receptacle with a ground fault circuit interrrupter (GFCI) receptacle for use with the beater and any other electrical equipment you use in the studio.  A GFCI provides protection from electric shock hazards caused by ground faults, preventing you from being the path of least resistance for the electric current back to ground, should the grounding fail in the electrical device you are using .  Ground Fault Circuit Interrrupter receptacles can be purchased at electrical and building supply stores. If you are adding a separate circuit to supply the Beater, follow local and state electric codes.  Place any new receptacles high on the walls, away from possible splashing.  Avoid using extension cords because of the hazards of electric shocks.
+
+2.3  HANDY EQUIPMENT AND SUPPLIES
+
+1. A means of protecting the floor from water damage.(No matter how it is done, papermaking is a wet process.) Listed in order of effectiveness the options are:
+
+a. Waterproof floor with floor drain,
+
+b. A shower stall base, plumbed with a drain  
+
+c.  A sheet of heavy polyethylene plastic for temporary protection.
+
+2. Buckets. 
+
+5 gallon bucket for the Single Width beater -- A 5 gallon plastic bucket fits underneath the 3/4 Lb. Beater.It will hold a full load of pulp when you empty the machine.  5 gallon buckets are commonly used in the food industry (try your local Donut Shop for a used one).  
+
+20 gallon  bucket for the Double Width beater--
+A 20 gallon plastic garbage can fits underneath the 1 1/2 Lb. Beater to drain the finished pulp into.  A small wheeled dolly to set the container on can be useful in moving the pulp around the papermaking studio 
+
+ You  will find it useful to have several buckets for your machine.
+
+3.  A hose and nozzle for filling and cleaning Beater. If you don't have a hose, a plastic squeeze detergent bottle is good for cleaning the Beater after use.(not a spray trigger bottle)
+
+4.  Sponges
+
+2.4  READYING THE BEATER FOR USE
+
+1.  Remove any packing material found under roll or adjusting screw.
+
+2.  Follow procedure below (loading and operating the beater (3.2 , steps 1-7) for starting and pre-cleaning the beater, to be sure any debris inside the beater is flushed out.
+
+After properly unpacking and preparing your Oak Park Beater you are ready to beat any plant materials into paper pulp.
+
+3. How to use the Oak Park beater
+ 
+3.1  PREPARING FIBERS FOR BEATING
+
+1. Measure  out fiber equivalent to a full beater load.
+
+Single Width Beater-- 
+3/4 lbs. of pulp  ( about 1 1/2 sheets cotton linters), or about 1/2 lb. of cotton rag or other raw fibers 
+
+Double Width Beater-- 
+1 1/2 Lbs of pulp  ( about 3 sheets of cotton linters) or about 1lb of cotton rag or other raw fiber 
+
+To avoid clogging the beater, fabric should be cut into squares, 1 inch or smaller in size.  Cut raw fiber, such as flax, to a length of 1 to 2 inches (or smaller) . 
+
+2.  Pre-soak all materials. Since the Oak Park Beater is of an over/under design, the fibers must be waterlogged so that they sink and follow the flow. This is accomplished by soaking the fibers beforehand.  Fabric or raw fibers should be soaked overnight. When soaking, make sure all of the fibers are underwater by placing a weighted board on top of the fibers.  Pulps should be soaked in a bucket prior to tearing into small pieces.  Soaking also makes pulps easier to tear into small pieces. An alternative to tearing the pulp into small pieces is to quickly break down the pulp with a mixer or hydropulper ( not a blender) and then add it to the beater in a slurry form. There is less chance of the pulp clogging this way, and you save some labor by not tearing the pulp into such small pieces.  Add the pulp directly to the beater (without adding water first) if you premix the pulp.
+
+3.2  LOADING AND OPERATING THE BEATER
+
+1.  Pre-Cleaning the Beater--When you start up for the day's beating, fill the Beater with a load of water and run it for 5 minutes (see steps 2-7).  This will clean out any fiber that may have been lodged in the Beater.  Empty the beater and refill with water before adding fiber. 
+
+2.  Reach under the Beater, place the drain plug into position and tighten it. 
+
+3.  Spin the roll with your hand to make sure the roll is not in contact with the bed plate.  If the roll and bedplate are contacting each other, raise the roll by means of the adjusting screw so that it is just touching the bedplate, then raise the roll six full turns of the adjusting knob to provide clearance.
+
+4.  On the Double Width model check that the Main Power Switch is off.  
+
+5.  Place lid back into position, sliding it under the motor mount plate until it hits the back stop.  Lock the lid into place by engaging the two lid latches into the sides of the tub. 
+
+6.  For the Single Width model, turn machine on by sliding the bolt (labeled Power Switch) to the On position.  For the Double Width model, slide the bolt (labeled Safety Switch) to the On position, then turn on the machine by flipping the power lever (located on the switch box at the end of the pivoting arm) to the On position. 
+
+7.  If you are going to use pulp that has been broken down to a slurry with a mixer, you need not add water to the beater first.  Add the mixed pulp to the beater directly.
+
+8.  Add water to the Beater with a bucket or hose (this is always done with the machine running).  Fill the Beater with water until the water starts to circulate over the back fall.  There should be a steady flow of water. This means adding 2 1/2 gallons of water for the Single Width or 5 gallons for the Double Width.
+
+9.  Add fiber or pulp.  It is important to start with small pieces of presoaked material to ensure that the beater will not clog.  Tear pulp to 1" pieces.  Fabric should be cut into squares no more than 1" in size. Look in the opening for returning material.  Once the material starts to circulate, larger pieces can be added. Be aware that usually nothing will start to return until about 1/2 of the material is added. If nothing is returning after 3/4  of the material is added, then you have a clog. 
+
+¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡
+The Beater will clog when you are loading  the material if:
+
+1.  the material is not properly prepared ; 
+
+2.  the pieces being loaded are too large;
+
+3.  the pieces are loaded too quickly.
+
+ To unclog the Beater ;
+	
+1.  Turn the machine off, remove the lid and lift the roll.  The clog will be seen at 	the top of the backfall, underneath the motor mount plate.
+
+2.  Remove the excess and place it in a bucket, temporarily.  Lower the roll, replace the lid and turn the machine back on. Wait until the pulp is flowing again. It may be necessary to add more water.
+
+3.  Slowly add the material from the bucket, (in small pieces) until it is all in the machine.                 
+
+10.  To adjust the machine once the pulp is flowing around ;
+
+Leave the roll in the raised position ( 6 turns of the adjusting knob above the point where roll and bedplate touch) for 5 minutes or so. This evens out the pulp flow, and reduces clumps which would clog the machine if the roll were lowered immediately.  At this stage you might notice the whole arm jumping up and down. This is perfectly normal; the machine is designed so that it can move to avoid damage from large clumps. 
+
+After the clumps have evened themselves out ,lower the roll until the machine starts to make a loud grinding noise.  The motor will sound louder as it works harder. 
+
+In general, Beaters make a lot of noise when they are working, so you shouldn't be too  concerned about the racket.  If you overwork the motor, its internal thermal protector should shut the motor off before the motor sustains damage.   Still, tripping the motor reset is not desirable, as it delays your beating.  If you do manage to trip either the motor reset button or the circuit breaker, let the motor cool off for a while until the motor protection will reset.  You may  have to add a little water to get the pulp flowing again.  If the thermal protector trips often, there is a problem with the motor.  
+
+Adjusting the roll position to achieve the desired  degree of beating action is a lot like driving a manual shift car without a tachometer.  You can judge how hard you are beating the fiber by the amount of noise the beater makes.  In addition, the noise level lessens at a given roll setting as the fibers become beaten.  Initially, you need to get a sense of how hard you can work the beater.   For hard beating, use this procedure:  move the adjusting screw down until the beater is very loud and the motor seems to be straining, then move it back up a little bit .   The noise will quiet down as the pulp is beaten.  Tighten the wing nut (on the adjusting bolt) to hold the roll in the desired position.
+
+In order to achieve easily reproducible results, you need to make a record of beating times and roll positions, thus it is a good idea to keep track of how many turns of the adjusting knob the roll is above the bedplate. 
+
+When the pulp has evened itself out you can adjust the roll downward once again, to beat the material further. Cloth breaks up slowly,and takes careful watching until it is broken up. Other materials (e.g. already beaten pulps) are easily broken up and require less watching . 
+
+3.21.  A SIMPLE METHOD FOR MONITORING THE PROGRESS OF BEATING;
+
+The best way to monitor the progress of the beating is to scoop a finger- full of the pulp from the feed opening, put this into a clear jar, add water and shake the jar.  This can be done without stopping the beater.  By looking at the pulp while you hold the jar to the light you can monitor the progress of the beating.  Among the characteristics you can observe are; the presence or absence of clumps which need  further beating, the length of the fibers, and whether knots are present (clearing the pulp will remove most of the knots).  Based on  your observations, you  can either decide to continue beating or end beating and dump the load if the pulp is beaten to your satisfaction.  
+
+11.  Clearing-  After beating, the roll is  raised  further above the bedplate, so that the fibers are  brushed. This is called clearing the beater. Clearing gets rid of many of the knots which form when the pulp is being beaten.  Usually a load should be cleared for 5 minutes or more if you are concerned about knots. If the knots are not a concern, then the load can be dumped immediately after beating.
+
+12.  Dumping-  The load  should be removed from the machine with the machine running, to ensure that all of the pulp is moved out of the roll area. 
+Place a bucket under the drain. Reach under the front of the machine, loosen (unscrew) the drain plug, remove it, and let the pulp slide into the bucket. If you are ending your beating session or changing the material to be beaten, turn the machine off, take off the lid and  remove all the left-over pulp  (you can wash the pulp out with a hose or just push it out the drain).  If you are going to beat a different pulp, you should rinse the beater out by running it with a load of water for a few minutes, then dumping the water.   If you are going to beat another load of the same material it is not necessary to get all of the pulp out.  Replace the drain plug before filling the beater again.
+
+13.  Cleaning
+
+Do not use solvents, boiling water, or cleansers containing abrasives (such as scouring powder) to clean the tub or any other plastic parts.  Any of these cleaners will damage the tub surfaces.  
+
+DO NOT SPRAY THE MOTOR OR ANY OTHER ELECTRICAL PARTS WITH WATER! USE A SPONGE TO CLEAN THESE SURFACES.	
+
+It is important that the Beater be cleaned well at the end of a day's beating.  Pulp that is allowed to dry is much more difficult to remove. Fill the Beater with as much water as the Beater will hold and let it run to flush itself out, as in the precleaning procedure.  Drain the Beater, turn it off, and remove the lid. The whole roll arm pivots up and out of the way for cleaning by grasping the handle and pulling the arm up.  Hold tightly as the assembly weighs  about 50 lbs. When the roll is safely in the upright position use a hose or a plastic squeeze detergent bottle (not a spray bottle) to flush out the pulp that is left in the roll.  Be sure to clean out the pulp that is in between the bars. Clean the outside surfaces of the Beater thoroughly. 
+
+3.4   TROUBLESHOOTING
+ 
+1.  BEATER DOES NOT RUN WHEN SWITCH IS TURNED ON 
+
+1.  Check to make sure that the safety interlock switch on the side of the beater clicks when the bolt on the lid is thrown.  If it doesn't, then the switch has been pushed out of adjustment.  To readjust, loosen the bolts holding the switch box to the tub side, move the switch box toward the actuating bolt until you can hear the switch click, and retighten the bolts.
+
+2.  If the motor has stopped while beating and the interlock switch is operating properly, then either the motor's thermal protection has been tripped, or there has been some other disruption in the power supplied to the beater.  If the thermal protector has tripped, you have to wait until the motor cools down enough to allow the protector to reset.  The motor on the Double Width Beater resets automatically, while the motor on the Single Width Beater has a manual reset button.  Otherwise, check the circuit breaker in the wall (and the GFCI if installed), next check to see if any wiring has been pulled out. 
+
+3.  If the roll is in contact with the bedplate when starting the beater, the motor will make noise but will not turn.
+
+2.  BEATER CLOGS WHEN MATERIAL IS LOADED
+
+The Beater will clog when you are loading  the material if:
+Éthe material is not properly prepared ; 
+
+ Éthe pieces being loaded are too large;
+
+Éthe  pieces are loaded too quickly.
+
+To unclog the Beater;  
+
+Turn the machine off, remove the lid and lift the roll.  The clog will be seen at the top of the backfall, underneath the motor mount plate.  Remove the excess and place it in a bucket, temporarily.  Lower the roll, replace the lid and turn the machine back on. Wait until the pulp is flowing again. It may be necessary to add more water. Slowly add the material from the bucket, (in small pieces) until it is all in the machine.
+
+3.  BEATER CLOGS DURING BEATING
+
+If the material has been circulating properly and the flow stops, the consistency of the pulp is too high. Consistency is the ratio the dry weight of fiber to the weight of the water it is mixed with.  To reduce the consistency, it will be necessary to add more water or reduce the amount of fiber in the machine. Usually adding very little water (about a quart) will cause the flow to resume.  If the Beater is full, or you cannot add enough water to make the Beater flow properly, remove some pulp.
+
+The consistency of pulp that can be beaten varies with the nature of the material being beaten For example, the consistency ratio can be higher when beating prepared pulps (e.g. cotton linters) than with raw fibers (e.g. cotton rag). 
+
+4.  Beating guidelines for various fibers
+
+The following sheets are designed to help in proper fiber preparation and beating when using the the Oak Park Beater. The beating times listed are approximate and given as quidelines only. They will give you a point of departure when making  your own papers.
+
+4.1 Cotton linters, 1st and 2nd cut
+
+Preparation;
+
+Prepare the linters by soaking them in water prior to beating. 2nd cut linters will usually break right up within 5 minutes, 1st cut will take a little longer. After soaking, tear the sheets into 1 inch squares to start loading the Beater, then you can feed in larger pieces as the Beater begins to return the pulp to you.
+
+Beating
+
+Start with the roll in the raised position until lumps are gone (see loading and operating instructions, step 10)  Beat at a medium heavy setting for 15  minutes, or at a lighter setting for up to 60 minutes.
+Clearing
+
+Cotton linters should be  cleared for5 minutes.
+
+Notes
+
+Cotton linters are one of the most widely used pulps.  They can be used for some sculptural work by simply rehydrating the pulp, which takes about 5 minutes (to break the sheet of linters apart).  By beating the cotton linters for a longer period, the strength characteristics of the paper made with them can be improved greatly.  Since cotton linters tend to have short fibers, experiment with softer beating in order not to shorten them too much.
+
+4.2   Abaca pulps, Bleached, unbleached, Semi bleached.
+
+Preparation 
+
+Presoak for 15 minutes to overnight. Tear into small pieces, larger pieces may be added when the pulp begins to circulate.
+
+Beating
+
+Beat abaca pulps with the roll in a raised position for 5 minutes. Lower the roll and beat the abaca hard for a short time  (15 minutes), or beat the abaca longer at a lighter setting (1 to 3 hours)
+
+Clearing
+
+ Clear the abaca fiber for 5 minutes.
+
+Notes
+
+Abaca pulp can be used to make paper of widely varying characteristics, from thin tissues to thick heavy papers.  This is true both because it can be beaten in many ways, and because it is composed of long fibers.  Abaca pulp mixed with cotton will increase the strength of the mixture. Longer beating times for abaca pulp will result in very translucent papers, though they shrink a  lot and thus tend to be hard to dry. 
+
+4.3 Rags, composed of cotton or other natural fibers.
+
+Preparation
+
+ Rags must be cut into small pieces before being placed into the Beater. The size should be about 1" x 1", though larger pieces may be used ifyou are careful about feeding them into the machine. Make sure the rags are clean, without metal zippers or other foreign matter.  Synthetic blends will not beat properly.  They will leave threads and tend to form strings in the beater.  All rags should be rinsed well to remove soaps and detergent or they will foam when beaten.
+
+Beating
+
+Set the roll in its raised position to establish pulp flow, then lower the roll to a position where  the roll assembly starts to bounce a bit, but the motor doesn't stall. If the motor does stall, lift up on the handle to free the roll.  If this doesn't work, turn the machine off and take care of the clog. Once the Beater settles down and is not jumping too much, lower the roll some more . Continue this process  as many times as necessary until you have broken up the rags After the rags have been broken up you can settle into a beating cycle and the load will not need to be watched as carefully.  Depending upon the toughness of the fiber, beating time may run from 1/2 hour to several hours.
+
+Clearing
+
+Run the beater in the raised clearing position for 5 minutes.
+
+Notes
+
+In order to soften the rag fibers and make them easier to beat,sometimes rag fibers are cooked before beating.  This is usually done with a caustic solution such as soda ash.  The machine will bounce while it starts to break up the rag.  The Beater can handle 1/3 less weight of rags per load than cotton linters (see capacity specification near the beginning of the manual).  Watch the pulp flow when the rags begin to break down and increase the viscosity of the pulp.  The viscosity may get high enough to stop the pulp flow.  At that point you will need to add more water to get the pulp flowing again..
+
+4.4 Raw flax
+
+Preparation
+
+ Flax should be soaked for at least 1 hour, though it is best to soak the fibers overnight.  After soaking, the flax fibers should be rinsed in running water.  The cleaning should help to reduce foaming during beating.  The flax fibers may be cooked in a caustic solution prior to beating, as with the cotton rag.. Make sure the fiber is well rinsed as it will foam badly if it is not.  The fibers should be cut into 1" pieces before loading them into the beater
+
+Beating
+
+Set the roll in a raised position and add the fibers a little at a time. Lower the roll and wait until pulp flow evens out.  Lower the roll again so that you are getting a medium to hard beating action.  Beating time -1 hour to 10 hours.
+
+Clearing
+Run the beater in the raised clearing position for 5 minutes.
+
+Notes
+The longer the fibers are beaten, the more translucent the paper made with them will be.  When beating flax for a long period of time, use a lighter beater setting.
+
+4.5  Other raw fibers.
+
+Preparation 
+Raw natural fibers need to be cleaned and cut into small 1 inch long pieces. Longer pieces may work, but there is a danger of clogging.  For best results, cooking in a caustic solution before beating is usually required.Soak the fibers over night if possible to make sure that they are sufficiently waterlogged to sink and go through the machine.  Some varieties of fiber ( cattails, for example)  will almost always float.  This makes these fibers almost impossible to beat by machine.   You should be able to beat these fibers either by hand or with a stamper. 
+
+Beating
+Beating procedure for raw fibers varies widely, depending on the fiber used.  Some fibers will require little or no beating and can be made into pulp with the roll in a raised position during the whole cycle. Others will require very heavy beating to break them down.
+
+Clearing
+Run the beater in the raised clearing position for 5 minutes.
+
+Notes	
+A good reference source for preparing raw fibers for beating is Lillian Bell's book, Plant Fibers for Papermaking,
+available through Lee McDonald Inc.. 
+
+5.  Beating records
+
+In order to obtain reproducible beating results, you may find it useful to keep a record of the beating time for various fibers.  As a guideline, we have provided a sample beater record sheet on the next page.
+
+6.  Papermaking reference sources
+Few books deal with the process of beating in great detail.  Here is a short list of books that may be useful:
+
+American Paper and Pulp Association.  The Dictionary of Paper, Including Pulp,
+Paperboard, Paper Properties and Related Terms.  3rd ed.  New York City, 1965
+
+Bell, Lillian .Plant Fibers For Papermaking
+McMinnville Oregon: Liliaceae Press, 1981
+
+Clark, James d'A.  Pulp Technology and Treatment for Paper.
+San Francisco: Miller Freeman Press, 1978
+
+Parham, R.A., Kaustinen,. Papermaking Materials, An Atlas of Electron Micrographs.
+  Appleton, Wisconsin: Institute of Paper Chemistry, 1974 
+
+In addition, this is the list of papermaking books we carry at Lee S. McDonald, with current prices. (Spring 1986, subject to change without notice)
+
+Barrettt, Timothy  Japanese Papermaking, Tradition, Tools and Techniques.
+New York, Weatherhill Press, 1983
+($ 32.50)
+
+Bell. Lillian.  Papyrus, Tapa, Amate, and Rice Paper
+McMinnville Oregon, Liliaceae Press
+($22.00)
+
+Bell, Lillian .Plant Fibers For Papermaking
+McMinnville Oregon: Liliaceae Press, 1981
+($ 19.00)
+
+Cunning, Sheril.  Handmade Paper, A Practical Guide to Oriental and Western Papermaking
+Escondido, Ca.:  Hatrack Press, 1982
+($21.00)
+
+Grummer, Arnold E. Paper By Kids
+Minneapolis, Minn., Dillon Press, 1980
+($10.95)
+
+Koretsky, Elaine.  Color for the Hand Papermaker
+Brookline, Mass..  Carriage House Press and Paperworks, 1982
+($35.00)
+
+Toale, Bernard  The Art of Papermaking
+Worcester, Mass.  Davis Publications,1983
+($16.95)
+
+7.  Maintenance
+Because.the wet environment and constant vibration during use is hard on some components of the beater, some preventive maintenance is necessary to keep your Oak Park Beater in the best operating condition.
+
+1.  Clean the Beater after every use.
+
+2.  Lubricate the roll bearings with a frequency of from once a week with light use, to daily with heavy use.. Use a #2 consistency Lithium-base grease formulated from a high quality mineral oil with rust and oxidation inhibitors.  Use a grease gun with standard fittings to lubricate the bearings. The grease nipples on the bearings are accessible from underneath the arms, when the roll assembly is swung into the upright position.  Use enough grease so that you can see a little grease coming out of the bearing housing.  Clean up any excess so that it doesn't get into the beater.
+
+3.  Check Belt tension and alignment periodically.  If belts are loose, the power transferred from the motor to the roll will be reduced. To tighten the belts, first remove the belt guard.  Next, loosen the motor mount bolts and slide the motor towards the handle so that when you press down on the belt there is only 1/2 inch of deflection.  Retighten the bolts to hold the motor in position and replace the belt guard.
+
+4.  Check all the nuts and bolts for tightness periodically, and retighten them as neccessary.
+
+5.  Check all electrical connections for tightness and leaks. Tighten or replace them as neccessary.
+
+6. Check the alignment of the power or safety switch to make sure the switch activates smoothly. To realign the switch, loosen the bolts which attach the switch to the side of the tub, move the switch  into the desired location and retighten the bolts.
+
+8.  Parts list
+
+If you have an assembled beater, you will find attached a list of all the component parts of the beater, along with a set of explanatory drawings, to help you in case you have any problems in the future.  If you have purchased an unassembled beater, the parts list and drawings are included in the assembly manual.
