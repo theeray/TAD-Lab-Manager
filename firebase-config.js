@@ -11,5 +11,5 @@ export const firebaseConfig = {
 // We will configure App Check next.
 // Leave this placeholder for now.
 export const appCheckConfig = {
-  recaptchaEnterpriseSiteKey: "PASTE_RECAPTCHA_ENTERPRISE_SITE_KEY"
+recaptchaEnterpriseSiteKey: "6LfP54ctAAAAAMO8Azj94fAfNkxrtpNUz93hDWQa"
 };
