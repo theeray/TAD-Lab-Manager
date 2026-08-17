@@ -27,18 +27,16 @@ No `mail`, `routing`, photo-storage, or Cloud Functions collection/service is re
 
 Enable **Anonymous** sign-in for student maintenance submissions. Enable anonymous-account auto-cleanup if available.
 
-Microsoft staff authentication requires a MinnState Microsoft Entra app registration. The approved staff list in both the web app and Firestore rules is currently:
+Also enable Firebase Authentication **Email/Password** for staff accounts. Staff authentication is local to TAD Lab Manager and does not use Microsoft 365 / Entra SSO, so no institutional app registration is required for this release.
 
-- `ij8878si@minnstate.edu`
-- `chase.cornell@minnstate.edu`
-- `andrew.graham@minnstate.edu`
-- `nick.lowery@minnstate.edu`
+The approved staff list in both the web app and Firestore rules is currently:
 
-The Entra/Firebase Microsoft provider should be configured as single-tenant when MinnState IT provides the Application (client) ID, Directory (tenant) ID, and client secret. The Firebase redirect URI is:
+- `eric.carlson.2@bemidjistate.edu`
+- `chase.cornell@bemidjistate.edu`
+- `andrew.graham@bemidjistate.edu`
+- `nick.lowery@bemidjistate.edu`
 
-`https://tad-lab-manager.firebaseapp.com/__/auth/handler`
-
-Do not store a Microsoft client secret in GitHub.
+Each approved staff member creates their own TAD Lab Manager password from the app's **Staff sign in** dialog. This password is separate from the person's campus Microsoft password. New staff accounts must verify the email address before staff tools unlock.
 
 ## 4. Publish the Firestore rules
 
@@ -49,7 +47,7 @@ Use the included root file:
 The rules allow:
 - authenticated users to read machine records
 - anonymous/authenticated students to create tightly validated reports
-- only the four explicitly approved Microsoft-authenticated staff accounts to read or change maintenance reports
+- only the four explicitly approved, email-verified Firebase password accounts to read or change maintenance reports
 - only those approved staff accounts to manage machine and repair records
 
 The repository copy of `firestore.rules` is the source-of-truth version; after changes, publish the matching rules in Firebase Console.
@@ -75,14 +73,17 @@ Before enabling Firestore enforcement:
 
 The diagnostic intentionally reports only success/error information; it does not display or log the App Check token itself.
 
-## 6. Seed the machine inventory
+## 6. Create a staff account and seed the machine inventory
 
-After Microsoft staff authentication is available:
+After Email/Password authentication is enabled:
 
 1. Open `/maintenance/index.html`.
-2. Sign in with one of the explicitly approved Microsoft 365 staff accounts.
-3. Open **Settings**.
-4. Click **Add starter machine records**.
+2. Click **Staff sign in**.
+3. Enter one of the approved `@bemidjistate.edu` addresses and choose **Create account**.
+4. Check that mailbox and complete the Firebase email-verification link.
+5. Return to the app and sign in with the password created for TAD Lab Manager.
+6. Open **Settings**.
+7. Click **Add starter machine records**.
 
 The seed source is `/data/machines.json`, the same 40-machine inventory used by the branded home page. Until Firestore contains machine documents, the interface can display the local machine list, but student report creation will still be rejected by Firestore rules because a submitted machine ID must exist in the Firestore `machines` collection.
 
