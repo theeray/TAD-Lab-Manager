@@ -1,80 +1,701 @@
 import { firebaseConfig, appCheckConfig } from '../firebase-config.js';
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.17.1/firebase-app.js';
-import { getAuth, onAuthStateChanged, signInAnonymously, OAuthProvider, signInWithPopup, signOut as firebaseSignOut } from 'https://www.gstatic.com/firebasejs/12.17.1/firebase-auth.js';
-import { getFirestore, collection, doc, addDoc, setDoc, updateDoc, getDocs, onSnapshot, query, orderBy, serverTimestamp, writeBatch } from 'https://www.gstatic.com/firebasejs/12.17.1/firebase-firestore.js';
-import { initializeAppCheck, ReCaptchaEnterpriseProvider } from 'https://www.gstatic.com/firebasejs/12.17.1/firebase-app-check.js';
+import {
+  getAuth,
+  onAuthStateChanged,
+  signInAnonymously,
+  OAuthProvider,
+  signInWithPopup,
+  signOut as firebaseSignOut
+} from 'https://www.gstatic.com/firebasejs/12.17.1/firebase-auth.js';
+import {
+  getFirestore,
+  collection,
+  doc,
+  addDoc,
+  setDoc,
+  updateDoc,
+  getDocs,
+  onSnapshot,
+  query,
+  orderBy,
+  serverTimestamp,
+  writeBatch
+} from 'https://www.gstatic.com/firebasejs/12.17.1/firebase-firestore.js';
+import {
+  initializeAppCheck,
+  ReCaptchaEnterpriseProvider,
+  getToken as getAppCheckToken
+} from 'https://www.gstatic.com/firebasejs/12.17.1/firebase-app-check.js';
 
-const STAFF_DOMAIN='@bemidjistate.edu';
-const configured=!!firebaseConfig.projectId && !String(firebaseConfig.projectId).includes('PASTE_');
-let app=null, auth=null, fs=null, currentUser=null, staff=false, appCheckEnabled=false;
-let machines=[], reports=[], repairs=[], tutorials=[];
+const STAFF_EMAILS = new Set([
+  'ij8878si@minnstate.edu',
+  'chase.cornell@minnstate.edu',
+  'andrew.graham@minnstate.edu',
+  'nick.lowery@minnstate.edu'
+]);
 
-const starterMachines=[{"id":"3dp-ultimaker-s5-01","name":"Ultimaker S5 #1","category":"3D Printing","room":"BN128","manufacturer":"Ultimaker","model":"S5","serial":"","purchaseDate":"","purchaseCost":0,"status":"Operational","tutorialEquipment":"3D Printer (General)","lab":"Plastics Lab","labKey":"light","official":"https://ultimaker.com/3d-printers/s-series/ultimaker-s5/","manual":"https://support.ultimaker.com/","safety":""},{"id":"3dp-bambu-x1c-01","name":"Bambu Lab X1 Carbon #1 + AMS","category":"3D Printing","room":"BN128","manufacturer":"Bambu Lab","model":"X1 Carbon","serial":"","purchaseDate":"","purchaseCost":0,"status":"Operational","tutorialEquipment":"3D Printer (General)","lab":"Plastics Lab","labKey":"light","official":"https://bambulab.com/en-us/x1","manual":"https://wiki.bambulab.com/en/x1/manual","safety":""},{"id":"3dp-bambu-h2d-01","name":"Bambu Lab H2D","category":"3D Printing","room":"BN128","manufacturer":"Bambu Lab","model":"H2D","serial":"","purchaseDate":"","purchaseCost":0,"status":"Operational","tutorialEquipment":"3D Printer (General)","lab":"Plastics Lab","labKey":"light","official":"https://bambulab.com/","manual":"https://wiki.bambulab.com/","safety":""},{"id":"3dp-stratasys-f370-01","name":"Stratasys F370","category":"3D Printing","room":"BN128","manufacturer":"Stratasys","model":"F370","serial":"","purchaseDate":"","purchaseCost":0,"status":"Operational","tutorialEquipment":"Stratasys F370 3D Printer","lab":"Plastics Lab","labKey":"light","official":"https://www.stratasys.com/","manual":"https://support.stratasys.com/","safety":""},{"id":"laser-epilog-fusion-pro-01","name":"Epilog Fusion Pro Laser","category":"Laser","room":"BN105","manufacturer":"Epilog Laser","model":"Fusion Pro — wattage TBD","serial":"","purchaseDate":"","purchaseCost":0,"status":"Operational","tutorialEquipment":"Epilog Laser Cutter","lab":"Large Format Lab","labKey":"blue","official":"https://www.epiloglaser.com/laser-machines/fusion-pro-laser-series/","manual":"https://support.epiloglaser.com/laser-machine/fusion-pro/","safety":"https://www.osha.gov/laser-hazards"},{"id":"laser-epilog-m2-60","name":"Epilog Fusion M2 — 60W CO₂","category":"Laser","room":"BN105","manufacturer":"Epilog Laser","model":"Fusion M2 60W CO₂","serial":"","purchaseDate":"","purchaseCost":0,"status":"Operational","tutorialEquipment":"Epilog Laser Cutter","lab":"Large Format Lab","labKey":"blue","official":"https://www.epiloglaser.com/","manual":"https://support.epiloglaser.com/laser-machine/fusion-m2/","safety":"https://www.osha.gov/laser-hazards"},{"id":"laser-epilog-m2-75","name":"Epilog Fusion M2 — 75W CO₂","category":"Laser","room":"BN105","manufacturer":"Epilog Laser","model":"Fusion M2 75W CO₂","serial":"","purchaseDate":"","purchaseCost":0,"status":"Operational","tutorialEquipment":"Epilog Laser Cutter","lab":"Large Format Lab","labKey":"blue","official":"https://www.epiloglaser.com/","manual":"https://support.epiloglaser.com/laser-machine/fusion-m2/","safety":"https://www.osha.gov/laser-hazards"},{"id":"laser-glowforge-01","name":"Glowforge Laser","category":"Laser","room":"BN105","manufacturer":"Glowforge","model":"Model TBD","serial":"","purchaseDate":"","purchaseCost":0,"status":"Operational","tutorialEquipment":"","lab":"Large Format Lab","labKey":"blue","official":"https://glowforge.com/","manual":"https://support.glowforge.com/","safety":"https://www.osha.gov/laser-hazards"},{"id":"cnc-shopbot-full-01","name":"ShopBot Full-Size CNC Router","category":"CNC / Digital Fabrication","room":"BN126","manufacturer":"ShopBot Tools","model":"Full-size gantry model TBD","serial":"","purchaseDate":"","purchaseCost":0,"status":"Operational","tutorialEquipment":"ShopBot CNC Router","lab":"Woods Lab","labKey":"green","official":"https://shopbottools.com/","manual":"https://shopbottools.com/support-resources/documentation/","safety":"https://www.osha.gov/etools/woodworking"},{"id":"cnc-shopbot-d2418-02","name":"ShopBot Desktop D2418 #2","category":"CNC / Digital Fabrication","room":"BN126","manufacturer":"ShopBot Tools","model":"Desktop D2418","serial":"","purchaseDate":"","purchaseCost":0,"status":"Operational","tutorialEquipment":"ShopBot CNC Router","lab":"Woods Lab","labKey":"green","official":"https://shopbottools.com/","manual":"https://shopbottools.com/support-resources/documentation/desktop/","safety":"https://www.osha.gov/etools/woodworking"},{"id":"cnc-shopbot-d2418-03","name":"ShopBot Desktop D2418 #3","category":"CNC / Digital Fabrication","room":"BN126","manufacturer":"ShopBot Tools","model":"Desktop D2418","serial":"","purchaseDate":"","purchaseCost":0,"status":"Operational","tutorialEquipment":"ShopBot CNC Router","lab":"Woods Lab","labKey":"green","official":"https://shopbottools.com/","manual":"https://shopbottools.com/support-resources/documentation/desktop/","safety":"https://www.osha.gov/etools/woodworking"},{"id":"cnc-carvey-01","name":"Inventables Carvey","category":"CNC / Digital Fabrication","room":"BN128","manufacturer":"Inventables","model":"Carvey","serial":"429-1353008","purchaseDate":"","purchaseCost":0,"status":"Operational","tutorialEquipment":"","lab":"Plastics Lab","labKey":"light","official":"https://www.inventables.com/","manual":"https://support.inventables.com/","safety":""},{"id":"waterjet-wazer-01","name":"WAZER Desktop Waterjet","category":"CNC / Digital Fabrication","room":"TAD Lab","manufacturer":"WAZER","model":"WAZER Desktop","serial":"","purchaseDate":"","purchaseCost":0,"status":"Operational","tutorialEquipment":"","lab":"TAD Lab","labKey":"neutral","official":"https://wazer.com/","manual":"https://support.wazer.com/desktop","safety":"https://support.wazer.com/resources/maintenance/safety"},{"id":"cnc-plasma-koike-01","name":"Koike Aronson ShopPro 4×8 CNC Plasma Table","category":"CNC / Metals","room":"BN136","manufacturer":"Koike Aronson Ransome","model":"SHOP-PRO, 4×8","serial":"387873-1-1","purchaseDate":"","purchaseCost":0,"status":"Operational","tutorialEquipment":"Plasma Cutter","lab":"Welding Lab — CNC Plasma","labKey":"red","official":"https://www.koike.com/shoppro/","manual":"https://www.koike.com/","safety":"https://www.osha.gov/welding-cutting-brazing"},{"id":"cut-kongsberg-v-01","name":"Kongsberg V / ESKO Digital Cutting Table","category":"Digital Cutting","room":"BN105","manufacturer":"Kongsberg Precision Cutting Systems / Esko","model":"Kongsberg V","serial":"","purchaseDate":"","purchaseCost":0,"status":"Operational","tutorialEquipment":"Kongsberg Cutter","lab":"Large Format Lab","labKey":"blue","official":"https://www.kongsbergsystems.com/en/cutting-systems","manual":"https://www.kongsbergsystems.com/en/resources","safety":"https://www.osha.gov/machine-guarding"},{"id":"forming-formech-fm660","name":"Formech FM 660 Vacuum Former","category":"Forming / Finishing","room":"BN128","manufacturer":"Formech","model":"FM 660","serial":"829","purchaseDate":"","purchaseCost":0,"status":"Operational","tutorialEquipment":"","lab":"Plastics Lab","labKey":"light","official":"https://formech.com/","manual":"https://formech.com/","safety":"https://www.osha.gov/machine-guarding"},{"id":"laminator-agl-compadre","name":"AGL Compadre Wide-Format Laminator","category":"Printing / Finishing","room":"BN105","manufacturer":"AGL Inc.","model":"Compadre","serial":"1976","purchaseDate":"","purchaseCost":0,"status":"Operational","tutorialEquipment":"Laminator","lab":"Large Format Lab","labKey":"blue","official":"https://www.aglinc.com/products/wide-format-graphics-laminators/5-compadre/","manual":"https://www.aglinc.com/products/wide-format-graphics-laminators/5-compadre/","safety":""},{"id":"plotter-graphtec-ce6000-40","name":"Graphtec CE6000-40 Cutting Plotter","category":"Digital Cutting","room":"BN105","manufacturer":"Graphtec","model":"CE6000-40","serial":"","purchaseDate":"","purchaseCost":0,"status":"Operational","tutorialEquipment":"Graphtec Vinyl Cutter","lab":"Large Format Lab","labKey":"blue","official":"https://www.graphtecamerica.com/","manual":"https://www.graphtecamerica.com/software/","safety":""},{"id":"plotter-graphtec-fc8600-130","name":"Graphtec FC8600-130 Cutting Plotter","category":"Digital Cutting","room":"BN105","manufacturer":"Graphtec","model":"FC8600-130","serial":"","purchaseDate":"","purchaseCost":0,"status":"Operational","tutorialEquipment":"Graphtec Vinyl Cutter","lab":"Large Format Lab","labKey":"blue","official":"https://www.graphtecamerica.com/","manual":"https://www.graphtecamerica.com/software/","safety":""},{"id":"embroidery-smartstitch-s1501b","name":"Smartstitch S-1501B Embroidery Machine","category":"Textiles","room":"TAD Lab","manufacturer":"Smartstitch","model":"S-1501B","serial":"SS20241029145","purchaseDate":"","purchaseCost":0,"status":"Operational","tutorialEquipment":"Embroidery Machine","lab":"TAD Lab","labKey":"neutral","official":"https://smartstitch-official.com/","manual":"https://smartstitch-official.com/","safety":""},{"id":"print-hp-latex-330","name":"HP Latex 330","category":"Large Format Printing","room":"BN105","manufacturer":"HP","model":"Latex 330","serial":"","purchaseDate":"","purchaseCost":0,"status":"Operational","tutorialEquipment":"HP Latex Printer","lab":"Large Format Lab","labKey":"blue","official":"https://support.hp.com/us-en/product/setup-user-guides/hp-latex-330-printer/6838367","manual":"https://support.hp.com/us-en/product/setup-user-guides/hp-latex-330-printer/model/6838367","safety":""},{"id":"print-hp-latex-335","name":"HP Latex 335","category":"Large Format Printing","room":"BN105","manufacturer":"HP","model":"Latex 335","serial":"","purchaseDate":"","purchaseCost":0,"status":"Operational","tutorialEquipment":"HP Latex Printer","lab":"Large Format Lab","labKey":"blue","official":"https://support.hp.com/us-en/product/setup-user-guides/hp-latex-335-printer/12703055","manual":"https://support.hp.com/us-en/product/setup-user-guides/hp-latex-335-printer/model/12703055","safety":""},{"id":"print-sawgrass-sg1000","name":"Sawgrass SG1000 Dye Sublimation Printer","category":"Dye Sublimation","room":"BN105","manufacturer":"Sawgrass","model":"SG1000","serial":"","purchaseDate":"","purchaseCost":0,"status":"Operational","tutorialEquipment":"Dye-Sublimation Printer","lab":"Large Format Lab","labKey":"blue","official":"https://www.sawgrassink.com/products/printers/sg1000/","manual":"https://care.sawgrassink.com/hc/en-us/articles/16600604961051-Resources-SDS-User-Guides-Agreements","safety":""},{"id":"press-heat-01","name":"Heat Press","category":"Dye Sublimation","room":"BN105","manufacturer":"Model TBD","model":"Model TBD","serial":"","purchaseDate":"","purchaseCost":0,"status":"Operational","tutorialEquipment":"Flat Heat Press","lab":"Large Format Lab","labKey":"blue","official":"","manual":"","safety":"https://www.osha.gov/machine-guarding"},{"id":"weld-miller-212","name":"Miller Millermatic 212 Auto-Set MIG Welder","category":"Welding / Metals","room":"BN131","manufacturer":"Miller Electric","model":"Millermatic 212 Auto-Set","serial":"","purchaseDate":"","purchaseCost":0,"status":"Operational","tutorialEquipment":"","lab":"Welding Lab","labKey":"red","official":"https://www.millerwelds.com/","manual":"https://www.millerwelds.com/support/manuals-and-parts","safety":"https://www.osha.gov/welding-cutting-brazing"},{"id":"weld-tig-01","name":"TIG Welder","category":"Welding / Metals","room":"BN131","manufacturer":"Model TBD","model":"Model TBD","serial":"","purchaseDate":"","purchaseCost":0,"status":"Operational","tutorialEquipment":"","lab":"Welding Lab","labKey":"red","official":"","manual":"","safety":"https://www.osha.gov/welding-cutting-brazing"},{"id":"blast-cyclone-01","name":"Cyclone Abrasive Blast Cabinet","category":"Welding / Metals","room":"BN131","manufacturer":"Cyclone Manufacturing","model":"Exact model TBD","serial":"","purchaseDate":"","purchaseCost":0,"status":"Operational","tutorialEquipment":"","lab":"Welding Lab","labKey":"red","official":"https://www.cycloneblasters.com/","manual":"https://www.cycloneblasters.com/","safety":"https://www.osha.gov/machine-guarding"},{"id":"machine-mill-01","name":"Vertical Milling Machine","category":"Machining","room":"BN127","manufacturer":"Model TBD","model":"Model TBD","serial":"","purchaseDate":"","purchaseCost":0,"status":"Operational","tutorialEquipment":"","lab":"Machining Lab","labKey":"yellow","official":"","manual":"","safety":"https://www.osha.gov/machine-guarding"},{"id":"machine-lathe-01","name":"Metal Lathe","category":"Machining","room":"BN127","manufacturer":"Model TBD","model":"Model TBD","serial":"","purchaseDate":"","purchaseCost":0,"status":"Operational","tutorialEquipment":"","lab":"Machining Lab","labKey":"yellow","official":"","manual":"","safety":"https://www.osha.gov/machine-guarding"},{"id":"machine-drillpress-01","name":"Drill Press — Machine Shop","category":"Machining","room":"BN127","manufacturer":"Model TBD","model":"Model TBD","serial":"","purchaseDate":"","purchaseCost":0,"status":"Operational","tutorialEquipment":"","lab":"Machining Lab","labKey":"yellow","official":"","manual":"","safety":"https://www.osha.gov/machine-guarding"},{"id":"wood-sawstop-ics","name":"SawStop 10″ Industrial Cabinet Saw","category":"Traditional Woods","room":"BN126","manufacturer":"SawStop","model":"ICS Series — exact configuration TBD","serial":"","purchaseDate":"","purchaseCost":0,"status":"Operational","tutorialEquipment":"Woodshop Power Tools","lab":"Woods Lab","labKey":"green","official":"https://www.sawstop.com/","manual":"https://www.sawstop.com/support/","safety":"https://www.osha.gov/etools/woodworking"},{"id":"wood-powermatic-wb37","name":"Powermatic WB-37 Wide Belt Sander","category":"Traditional Woods","room":"BN126","manufacturer":"Powermatic","model":"WB-37","serial":"1909WB37002","purchaseDate":"","purchaseCost":0,"status":"Operational","tutorialEquipment":"Woodshop Power Tools","lab":"Woods Lab","labKey":"green","official":"https://powermatic.com/","manual":"https://powermatic.com/support","safety":"https://www.osha.gov/etools/woodworking"},{"id":"wood-bandsaw-01","name":"Band Saw","category":"Traditional Woods","room":"BN126","manufacturer":"Model TBD","model":"Model TBD","serial":"","purchaseDate":"","purchaseCost":0,"status":"Operational","tutorialEquipment":"Woodshop Power Tools","lab":"Woods Lab","labKey":"green","official":"","manual":"","safety":"https://www.osha.gov/etools/woodworking"},{"id":"wood-mitersaw-01","name":"Miter Saw","category":"Traditional Woods","room":"BN126","manufacturer":"Model TBD","model":"Model TBD","serial":"","purchaseDate":"","purchaseCost":0,"status":"Operational","tutorialEquipment":"Woodshop Power Tools","lab":"Woods Lab","labKey":"green","official":"","manual":"","safety":"https://www.osha.gov/etools/woodworking"},{"id":"wood-jointer-01","name":"Jointer","category":"Traditional Woods","room":"BN126","manufacturer":"Model TBD","model":"Model TBD","serial":"","purchaseDate":"","purchaseCost":0,"status":"Operational","tutorialEquipment":"Woodshop Power Tools","lab":"Woods Lab","labKey":"green","official":"","manual":"","safety":"https://www.osha.gov/etools/woodworking"},{"id":"wood-planer-01","name":"Thickness Planer","category":"Traditional Woods","room":"BN126","manufacturer":"Model TBD","model":"Model TBD","serial":"","purchaseDate":"","purchaseCost":0,"status":"Operational","tutorialEquipment":"Woodshop Power Tools","lab":"Woods Lab","labKey":"green","official":"","manual":"","safety":"https://www.osha.gov/etools/woodworking"},{"id":"wood-lathe-01","name":"Wood Lathe","category":"Traditional Woods","room":"BN126","manufacturer":"Model TBD","model":"Model TBD","serial":"","purchaseDate":"","purchaseCost":0,"status":"Operational","tutorialEquipment":"Woodshop Power Tools","lab":"Woods Lab","labKey":"green","official":"","manual":"","safety":"https://www.osha.gov/etools/woodworking"},{"id":"wood-sander-01","name":"Stationary Sander","category":"Traditional Woods","room":"BN126","manufacturer":"Model TBD","model":"Model TBD","serial":"","purchaseDate":"","purchaseCost":0,"status":"Operational","tutorialEquipment":"Woodshop Power Tools","lab":"Woods Lab","labKey":"green","official":"","manual":"","safety":"https://www.osha.gov/etools/woodworking"},{"id":"wood-drillpress-01","name":"Drill Press — Wood Shop","category":"Traditional Woods","room":"BN126","manufacturer":"Model TBD","model":"Model TBD","serial":"","purchaseDate":"","purchaseCost":0,"status":"Operational","tutorialEquipment":"Woodshop Power Tools","lab":"Woods Lab","labKey":"green","official":"","manual":"","safety":"https://www.osha.gov/etools/woodworking"},{"id":"finishing-oak-park-beater-01","name":"Oak Park Beater — Early Lee S. McDonald Model","category":"Papermaking / Finishing","room":"BN129","manufacturer":"Lee S. McDonald — Fine Hand Papermaking Equipment","model":"Oak Park Beater — very early model; exact single/double-width configuration TBD","serial":"","purchaseDate":"","purchaseCost":0,"status":"Operational","tutorialEquipment":"","lab":"Finishing Lab","labKey":"green","official":"","manual":"assets/manuals/Oak-Park-Beater-Manual.txt","safety":""}];
+const configured = !!firebaseConfig.projectId && !String(firebaseConfig.projectId).includes('PASTE_');
+let app = null;
+let appCheck = null;
+let auth = null;
+let fs = null;
+let currentUser = null;
+let staff = false;
+let appCheckEnabled = false;
+let appCheckDiagnostic = { status: 'not-run', message: 'Not tested yet', checkedAt: null };
+let machines = [];
+let starterMachines = [];
+let reports = [];
+let repairs = [];
+let tutorials = [];
+let subscribed = false;
+let staffSubscribed = false;
 
-const $=s=>document.querySelector(s); const $$=s=>[...document.querySelectorAll(s)];
-const esc=(s='')=>String(s).replace(/[&<>\"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
-const money=n=>new Intl.NumberFormat('en-US',{style:'currency',currency:'USD'}).format(Number(n||0));
-const toDate=v=>v?.toDate?v.toDate():v instanceof Date?v:new Date(v||Date.now());
-const date=v=>toDate(v).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
-const totalRepair=r=>Number(r.partsCost||0)+Number(r.serviceCost||0);
-const machine=id=>machines.find(m=>m.id===id)||{id,name:'Unknown Machine',room:'',tutorialEquipment:''};
-const badge=v=>`<span class="badge ${String(v).toLowerCase().replaceAll(' ','')}">${esc(v)}</span>`;
-function toast(msg){const t=$('#toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2300)}
-function slug(s){return String(s||'').toLowerCase().trim().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'')}
+const $ = s => document.querySelector(s);
+const $$ = s => [...document.querySelectorAll(s)];
+const esc = (s = '') => String(s).replace(/[&<>\"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const money = n => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(Number(n || 0));
+const toDate = v => v?.toDate ? v.toDate() : v instanceof Date ? v : new Date(v || Date.now());
+const date = v => toDate(v).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+const totalRepair = r => Number(r.partsCost || 0) + Number(r.serviceCost || 0);
+const machine = id => machines.find(m => m.id === id) || starterMachines.find(m => m.id === id) || { id, name: 'Unknown Machine', room: '', tutorialEquipment: '' };
+const badge = v => `<span class="badge ${String(v).toLowerCase().replaceAll(' ', '')}">${esc(v)}</span>`;
+const slug = s => String(s || '').toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
 
-const titles={dashboard:['Dashboard','Lab equipment status, resources, issues, repairs, and costs.'],report:['Report a Problem','Submit a machine issue from a Linktree maintenance button or the app.'],tutorials:['Tutorials','Direct TAD tutorials for machines, software, and lab workflows.'],reports:['Reports','Review and manage issue history.'],machines:['Machines','Equipment inventory, maintenance links, and tutorials.'],costs:['Costs & Repairs','Track repair history and lifetime equipment costs.'],export:['Export / Backup','Download live records for Excel and archival.'],settings:['Settings','Firebase connection, staff access, and abuse protection.']};
-function showView(v){if(!titles[v])v='dashboard';if(['reports','machines','costs','export'].includes(v)&&!staff){toast('Staff sign-in required');v='dashboard'}$$('.view').forEach(x=>x.classList.remove('active'));$(`#view-${v}`)?.classList.add('active');$$('#nav button').forEach(x=>x.classList.toggle('active',x.dataset.view===v));$('#pageTitle').textContent=titles[v][0];$('#pageSubtitle').textContent=titles[v][1];$('.sidebar').classList.remove('open');if(v==='report'&&new URLSearchParams(location.search).has('machine'))history.replaceState(null,'',location.pathname+location.search+'#report');else history.replaceState(null,'',location.pathname+(location.search||'')+'#'+v)}
-$$('[data-view]').forEach(b=>b.onclick=()=>showView(b.dataset.view));$$('[data-go]').forEach(b=>b.onclick=()=>showView(b.dataset.go));$('#quickReport').onclick=()=>showView('report');$('#mobileMenu').onclick=()=>$('.sidebar').classList.toggle('open');
+function toast(msg) {
+  const t = $('#toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2300);
+}
 
-async function loadTutorials(){tutorials=await fetch('../data/tutorials.json').then(r=>r.json());renderTutorialFilters();renderTutorials();renderPublicMachines();renderMachineResourcePanel()}
-const tutorialEquipments=t=>[t.equipment,t.secondaryEquipment].filter(Boolean).flatMap(x=>String(x).split(';').map(v=>v.trim()).filter(Boolean));
-function renderTutorialFilters(){const types=[...new Set(tutorials.map(t=>t.type))].sort(), eq=[...new Set(tutorials.flatMap(t=>tutorialEquipments(t)))].sort();$('#tutorialType').innerHTML='<option value="All">All types</option>'+types.map(x=>`<option>${esc(x)}</option>`).join('');$('#tutorialEquipment').innerHTML='<option value="All">All equipment</option>'+eq.map(x=>`<option>${esc(x)}</option>`).join('')}
-function renderTutorials(){const q=($('#tutorialSearch').value||'').toLowerCase(),type=$('#tutorialType').value||'All',eq=$('#tutorialEquipment').value||'All';const list=tutorials.filter(t=>(type==='All'||t.type===type)&&(eq==='All'||tutorialEquipments(t).includes(eq))&&(!q||[t.title,t.type,...tutorialEquipments(t),...t.tags].join(' ').toLowerCase().includes(q))).sort((a,b)=>a.title.localeCompare(b.title));$('#tutorialCount').textContent=`${list.length} tutorial${list.length===1?'':'s'} shown`;$('#tutorialGrid').innerHTML=list.map(t=>`<article class="tutorial-card"><div class="tutorial-meta">${esc(tutorialEquipments(t).join(' + ')||t.type)}${t.author?' · '+esc(t.author):''}</div><h4>${esc(t.title)}</h4><p>${esc(t.tags.join(' · ')||t.type)}</p><a class="btn primary small" href="${esc(t.url)}" target="_blank" rel="noopener">Open tutorial ↗</a></article>`).join('')||'<div class="empty">No tutorials match these filters.</div>'}
-['tutorialSearch','tutorialType','tutorialEquipment'].forEach(id=>$(`#${id}`).addEventListener(id==='tutorialSearch'?'input':'change',renderTutorials));
-function tutorialsForMachine(m){return tutorials.filter(t=>m.tutorialEquipment&&tutorialEquipments(t).includes(m.tutorialEquipment)).sort((a,b)=>a.title.localeCompare(b.title))}
-function renderMachineResourcePanel(){const id=$('#reportMachine').value||new URLSearchParams(location.search).get('machine');const m=machine(id);if(!m.id){$('#machineResourcePanel').innerHTML='<p>Select a machine to see its direct tutorials.</p>';return}const ts=tutorialsForMachine(m);$('#machineResourcePanel').innerHTML=`<p><strong>${esc(m.name)}</strong><br>${esc(m.room||'Location not set')}</p><div class="tutorial-list">${ts.slice(0,12).map(t=>`<a class="tutorial-link" target="_blank" rel="noopener" href="${esc(t.url)}">${esc(t.title)} ↗</a>`).join('')||'<span class="row-meta">No equipment-specific tutorial mapped yet.</span>'}</div>${ts.length>12?`<p class="row-meta">${ts.length-12} more available on the Tutorials page.</p>`:''}`}
+function isApprovedStaffUser(user) {
+  if (!user?.email) return false;
+  const email = user.email.toLowerCase();
+  const microsoftProvider = user.providerData?.some(p => p.providerId === 'microsoft.com');
+  return microsoftProvider && STAFF_EMAILS.has(email);
+}
 
-function renderStaffVisibility(){$$('.staff-only').forEach(el=>el.classList.toggle('hidden',!staff));$('#staffLogin').textContent=staff?(currentUser?.email||'Staff signed in'):'Staff sign in';$('#settingsLogin').classList.toggle('hidden',staff);$('#signOut').classList.toggle('hidden',!staff);$('#authStatus').textContent=staff?`Staff: ${currentUser.email}`:'Student reporting access'}
-function renderConnection(){const b=$('#setupBanner');if(!configured){b.classList.remove('hidden');b.innerHTML='<strong>Firebase setup required:</strong> add this project’s Web App configuration to <code>firebase-config.js</code>, enable Firestore + Authentication, and deploy the included rules. This release is designed for the no-cost Spark plan; no billing account or Cloud Functions are required.';$('#connectionStatus').textContent='Firebase setup required';$('#firebaseInfo').innerHTML='<p>This release uses Firestore and Firebase Authentication on the <strong>Spark/no-cost plan</strong>. Complete <strong>FIREBASE-SETUP.md</strong>, then add App Check before public launch.</p>';return}if(!appCheckEnabled){b.classList.remove('hidden');b.innerHTML='<strong>Abuse protection not active yet:</strong> Firebase is connected, but App Check is not configured. Add your reCAPTCHA Enterprise site key in <code>firebase-config.js</code> and test App Check before enabling enforcement.'}else{b.classList.add('hidden')}$('#connectionStatus').textContent=appCheckEnabled?'● Firebase + App Check':'● Firebase connected';$('#firebaseInfo').innerHTML=`<p><strong>Project:</strong> ${esc(firebaseConfig.projectId)}</p><p>Live machine, report, repair, and cost records are stored in Cloud Firestore.</p><p><strong>Plan:</strong> Spark / no billing required for this release.</p><p><strong>App Check:</strong> ${appCheckEnabled?'configured in the web app':'site key still needed before public launch'}</p>`}
+const titles = {
+  dashboard: ['Dashboard', 'Lab equipment status, resources, issues, repairs, and costs.'],
+  report: ['Report a Problem', 'Submit a machine issue from a Linktree maintenance button or the app.'],
+  tutorials: ['Tutorials', 'Direct TAD tutorials for machines, software, and lab workflows.'],
+  reports: ['Reports', 'Review and manage issue history.'],
+  machines: ['Machines', 'Equipment inventory, maintenance links, and tutorials.'],
+  costs: ['Costs & Repairs', 'Track repair history and lifetime equipment costs.'],
+  export: ['Export / Backup', 'Download live records for Excel and archival.'],
+  settings: ['Settings', 'Firebase connection, staff access, and abuse protection.']
+};
 
-async function initFirebase(){if(!configured){renderConnection();machines=starterMachines;renderAll();return}app=initializeApp(firebaseConfig);const siteKey=appCheckConfig?.recaptchaEnterpriseSiteKey||'';if(siteKey&&!siteKey.includes('PASTE_')){initializeAppCheck(app,{provider:new ReCaptchaEnterpriseProvider(siteKey),isTokenAutoRefreshEnabled:true});appCheckEnabled=true}renderConnection();auth=getAuth(app);fs=getFirestore(app);onAuthStateChanged(auth,async user=>{currentUser=user;staff=!!(user?.email&&user.email.toLowerCase().endsWith(STAFF_DOMAIN)&&user.emailVerified);renderStaffVisibility();if(!user){try{await signInAnonymously(auth)}catch(e){console.error(e);toast('Student reporting sign-in could not start')}}subscribeData()})}
-let subscribed=false;function subscribeData(){if(!fs||subscribed)return;subscribed=true;onSnapshot(collection(fs,'machines'),snap=>{machines=snap.docs.map(d=>({id:d.id,...d.data()}));renderAll()});if(staff){subscribeStaffCollections()}else{reports=[];repairs=[];renderAll()}}
-let staffSubscribed=false;function subscribeStaffCollections(){if(staffSubscribed||!fs)return;staffSubscribed=true;onSnapshot(query(collection(fs,'reports'),orderBy('createdAt','desc')),snap=>{reports=snap.docs.map(d=>({id:d.id,...d.data()}));renderAll()});onSnapshot(query(collection(fs,'repairs'),orderBy('date','desc')),snap=>{repairs=snap.docs.map(d=>({id:d.id,...d.data()}));renderAll()})}
-async function staffLogin(){if(!configured)return toast('Configure Firebase first');try{const result=await signInWithPopup(auth,new OAuthProvider('microsoft.com'));if(!result.user.email?.toLowerCase().endsWith(STAFF_DOMAIN)){await firebaseSignOut(auth);toast('Use a Bemidji State account for staff access')}else{staffSubscribed=false;subscribeStaffCollections();toast('Staff access enabled')}}catch(e){console.error(e);toast('Sign-in was not completed')}}
-$('#staffLogin').onclick=staffLogin;$('#settingsLogin').onclick=staffLogin;$('#signOut').onclick=async()=>{await firebaseSignOut(auth);staffSubscribed=false;subscribed=false;reports=[];repairs=[];await signInAnonymously(auth);toast('Signed out')};
+function showView(v) {
+  if (!titles[v]) v = 'dashboard';
+  if (['reports', 'machines', 'costs', 'export'].includes(v) && !staff) {
+    toast('Staff sign-in required');
+    v = 'dashboard';
+  }
+  $$('.view').forEach(x => x.classList.remove('active'));
+  $(`#view-${v}`)?.classList.add('active');
+  $$('#nav button').forEach(x => x.classList.toggle('active', x.dataset.view === v));
+  $('#pageTitle').textContent = titles[v][0];
+  $('#pageSubtitle').textContent = titles[v][1];
+  $('.sidebar').classList.remove('open');
+  if (v === 'report' && new URLSearchParams(location.search).has('machine')) {
+    history.replaceState(null, '', location.pathname + location.search + '#report');
+  } else {
+    history.replaceState(null, '', location.pathname + (location.search || '') + '#' + v);
+  }
+}
 
-function renderReportForm(){const sel=$('#reportMachine'), current=sel.value, q=new URLSearchParams(location.search).get('machine');sel.innerHTML=machines.length?machines.slice().sort((a,b)=>a.name.localeCompare(b.name)).map(m=>`<option value="${esc(m.id)}">${esc(m.name)}${m.room?' — '+esc(m.room):''}</option>`).join(''):'<option value="">No machines configured</option>';sel.value=q&&machines.some(m=>m.id===q)?q:(machines.some(m=>m.id===current)?current:(machines[0]?.id||''));renderMachineResourcePanel()}
-$('#reportMachine').addEventListener('change',renderMachineResourcePanel);
-$('#reportForm').onsubmit=async e=>{e.preventDefault();if(!configured||!fs)return toast('Firebase must be configured before reports can be submitted');if(!currentUser)return toast('Connecting to reporting service…');const machineId=$('#reportMachine').value;if(!machineId)return toast('Please choose a machine');const m=machine(machineId);const payload={machineId,createdAt:serverTimestamp(),urgency:$('#urgency').value,usable:$('#usable').value,issue:$('#issue').value.trim(),attempted:$('#attempted').value.trim(),contact:$('#contact').value.trim(),resource:$('#resource').value.trim(),status:'Open',machineNameSnapshot:m.name,roomSnapshot:m.room||'',submittedByUid:currentUser.uid,submittedByEmail:currentUser.email||''};try{const ref=await addDoc(collection(fs,'reports'),payload);e.target.reset();renderReportForm();toast(`Report ${ref.id.slice(0,8)} submitted`);showView('dashboard')}catch(err){console.error(err);toast('Report could not be submitted. Check Firebase rules/App Check configuration.')}};
+$$('[data-view]').forEach(b => b.onclick = () => showView(b.dataset.view));
+$$('[data-go]').forEach(b => b.onclick = () => showView(b.dataset.go));
+$('#quickReport').onclick = () => showView('report');
+$('#mobileMenu').onclick = () => $('.sidebar').classList.toggle('open');
 
-function renderStats(){if(!staff)return;const open=reports.filter(r=>r.status!=='Resolved').length,down=new Set(reports.filter(r=>r.status!=='Resolved'&&r.usable==='No').map(r=>r.machineId)).size,year=new Date().getFullYear(),cost=repairs.filter(r=>toDate(r.date).getFullYear()===year).reduce((a,r)=>a+totalRepair(r),0),all=repairs.reduce((a,r)=>a+totalRepair(r),0);$('#statsGrid').innerHTML=[['Open reports',open,'Needs review or repair'],['Machines down',down,'Currently unusable'],[`${year} repair cost`,money(cost),'Parts + external service'],['Lifetime recorded',money(all),`${repairs.length} repair records`]].map(x=>`<div class="stat"><div class="value">${x[1]}</div><div class="label">${x[0]}</div><div class="sub">${x[2]}</div></div>`).join('')}
-function renderDashboard(){if(!staff)return;const rank={Critical:4,High:3,Medium:2,Low:1},open=reports.filter(r=>r.status!=='Resolved').sort((a,b)=>(rank[b.urgency]-rank[a.urgency])||(toDate(b.createdAt)-toDate(a.createdAt))).slice(0,6);$('#openIssues').innerHTML=open.length?open.map(r=>`<div class="issue-row"><div><div class="row-title">${esc(machine(r.machineId).name)}</div><div class="row-meta">${date(r.createdAt)} · ${esc(r.issue)}</div></div>${badge(r.urgency)}</div>`).join(''):'<div class="empty">No open issues.</div>';const ids=[...new Set(reports.filter(r=>r.status!=='Resolved').map(r=>r.machineId))];$('#machineAttention').innerHTML=ids.length?ids.map(id=>{const m=machine(id),rs=reports.filter(r=>r.machineId===id&&r.status!=='Resolved');return `<div class="attention-row"><div><div class="row-title">${esc(m.name)}</div><div class="row-meta">${esc(m.room||'')} · ${rs.length} open report${rs.length===1?'':'s'}</div></div>${badge(rs.some(r=>r.usable==='No')?'Down':'Attention')}</div>`}).join(''):'<div class="empty">All machines clear.</div>'}
-function renderPublicMachines(){const list=machines.length?machines:starterMachines;$('#publicMachines').innerHTML=list.slice().sort((a,b)=>a.name.localeCompare(b.name)).map(m=>`<article class="machine-card"><h3>${esc(m.name)}</h3><div class="machine-id">${esc(m.id)}</div><div class="machine-meta"><div><span>Location:</span> ${esc(m.room||'—')}</div><div><span>Direct tutorials:</span> ${tutorialsForMachine(m).length}</div></div><div class="machine-actions"><button class="btn primary small" onclick="window.reportMachine('${esc(m.id)}')">Report problem</button><button class="btn secondary small" onclick="window.showMachineTutorials('${esc(m.tutorialEquipment||'')}')">Tutorials</button></div></article>`).join('')||'<div class="empty">No machines configured.</div>'}
-window.reportMachine=id=>{const url=new URL(location.href);url.searchParams.set('machine',id);url.hash='report';location.href=url.toString()};window.showMachineTutorials=eq=>{showView('tutorials');$('#tutorialEquipment').value=[...$('#tutorialEquipment').options].some(o=>o.value===eq)?eq:'All';renderTutorials()};
+async function loadStaticData() {
+  [tutorials, starterMachines] = await Promise.all([
+    fetch('../data/tutorials.json').then(r => r.json()),
+    fetch('../data/machines.json').then(r => r.json())
+  ]);
+  if (!machines.length) machines = starterMachines;
+  renderTutorialFilters();
+}
 
-function reportTable(){if(!staff)return;const status=$('#reportStatusFilter').value,q=($('#reportSearch').value||'').toLowerCase();const list=reports.filter(r=>(status==='All'||r.status===status)&&(!q||[r.id,machine(r.machineId).name,r.issue,r.contact].join(' ').toLowerCase().includes(q)));$('#reportsTable').innerHTML=`<div class="table-wrap"><table><thead><tr><th>Date</th><th>Machine</th><th>Urgency</th><th>Issue</th><th>Status</th><th></th></tr></thead><tbody>${list.map(r=>`<tr><td>${date(r.createdAt)}</td><td>${esc(machine(r.machineId).name)}</td><td>${badge(r.urgency)}</td><td>${esc(r.issue)}</td><td>${badge(r.status)}</td><td><button class="text-btn" onclick="window.manageReport('${esc(r.id)}')">Manage</button></td></tr>`).join('')}</tbody></table></div>`;if(!list.length)$('#reportsTable').innerHTML='<div class="empty">No matching reports.</div>'}
-$('#reportStatusFilter').onchange=reportTable;$('#reportSearch').oninput=reportTable;
-window.manageReport=id=>{const r=reports.find(x=>x.id===id);if(!r)return;$('#modalBody').innerHTML=`<h2>${esc(machine(r.machineId).name)}</h2><p>${badge(r.urgency)} ${badge(r.status)}</p><p><strong>Issue</strong><br>${esc(r.issue)}</p><p><strong>Fixes tried</strong><br>${esc(r.attempted||'None entered')}</p><p><strong>Contact</strong><br>${esc(r.contact||'Not provided')}</p><div class="form-grid"><label>Status<select id="manageStatus"><option>Open</option><option>Diagnosing</option><option>Waiting for Part</option><option>Resolved</option></select></label><div class="form-actions"><button type="button" class="btn secondary" onclick="window.addRepairFor('${esc(r.id)}')">Add repair/cost</button><button type="button" class="btn primary" onclick="window.saveReportStatus('${esc(r.id)}')">Save status</button></div></div>`;$('#manageStatus').value=r.status;$('#modal').showModal()};
-window.saveReportStatus=async id=>{await updateDoc(doc(fs,'reports',id),{status:$('#manageStatus').value,updatedAt:serverTimestamp()});$('#modal').close();toast('Report status updated')};
+const tutorialEquipments = t => [t.equipment, t.secondaryEquipment]
+  .filter(Boolean)
+  .flatMap(x => String(x).split(';').map(v => v.trim()).filter(Boolean));
 
-function renderMachines(){if(!staff)return;$('#machineCards').innerHTML=machines.map(m=>{const rs=reports.filter(r=>r.machineId===m.id),cost=repairs.filter(r=>r.machineId===m.id).reduce((a,r)=>a+totalRepair(r),0),ts=tutorialsForMachine(m);return `<article class="machine-card"><div class="machine-top"><div><h3>${esc(m.name)}</h3><div class="machine-id">${esc(m.id)}</div></div>${badge(m.status||'Operational')}</div><div class="machine-meta"><div><span>Type:</span> ${esc(m.category||'—')}</div><div><span>Location:</span> ${esc(m.room||'—')}</div><div><span>Tutorial set:</span> ${esc(m.tutorialEquipment||'—')} (${ts.length})</div><div><span>Reports:</span> ${rs.length}</div><div><span>Recorded repair cost:</span> ${money(cost)}</div></div><div class="machine-actions"><button class="btn secondary small" onclick="window.copyMaintenanceLink('${esc(m.id)}')">Copy Maintenance Link</button><button class="btn secondary small" onclick="window.editMachine('${esc(m.id)}')">Edit</button></div></article>`}).join('')||'<div class="empty">No machines configured. Use “Add Machine” or seed starter records from Settings.</div>'}
-window.copyMaintenanceLink=id=>{const url=new URL(location.href);url.search='';url.searchParams.set('machine',id);url.hash='report';navigator.clipboard?.writeText(url.toString());toast('Maintenance link copied for Linktree')};
-function machineModal(existing){const m=existing||{id:'',name:'',category:'',room:'',manufacturer:'',model:'',serial:'',purchaseDate:'',purchaseCost:0,status:'Operational',tutorialEquipment:''};const eq=[...new Set(tutorials.flatMap(t=>tutorialEquipments(t)))].sort();$('#modalBody').innerHTML=`<h2>${existing?'Edit':'Add'} machine</h2><div class="form-grid"><label>Stable ID<input id="mId" value="${esc(m.id)}" ${existing?'disabled':''}></label><label>Name<input id="mName" value="${esc(m.name)}"></label><label>Category<input id="mCategory" value="${esc(m.category||'')}"></label><label>Room<input id="mRoom" value="${esc(m.room||'')}"></label><label>Manufacturer<input id="mManufacturer" value="${esc(m.manufacturer||'')}"></label><label>Model<input id="mModel" value="${esc(m.model||'')}"></label><label>Serial<input id="mSerial" value="${esc(m.serial||'')}"></label><label>Purchase cost<input id="mCost" type="number" step="0.01" value="${Number(m.purchaseCost||0)}"></label><label class="full">Tutorial / equipment set<select id="mTutorial"><option value="">None</option>${eq.map(x=>`<option ${x===m.tutorialEquipment?'selected':''}>${esc(x)}</option>`).join('')}</select></label><div class="form-actions full"><button type="button" class="btn primary" onclick="window.saveMachine('${existing?esc(m.id):''}')">Save machine</button></div></div>`;$('#modal').showModal()}
-$('#addMachine').onclick=()=>machineModal();window.editMachine=id=>machineModal(machines.find(m=>m.id===id));window.saveMachine=async original=>{if(!staff)return;const id=original||slug($('#mId').value);const name=$('#mName').value.trim();if(!id||!name)return toast('Machine ID and name are required');const obj={name,category:$('#mCategory').value.trim(),room:$('#mRoom').value.trim(),manufacturer:$('#mManufacturer').value.trim(),model:$('#mModel').value.trim(),serial:$('#mSerial').value.trim(),purchaseCost:Number($('#mCost').value||0),status:original?(machine(original).status||'Operational'):'Operational',tutorialEquipment:$('#mTutorial').value,updatedAt:serverTimestamp()};await setDoc(doc(fs,'machines',id),obj,{merge:true});$('#modal').close();toast('Machine saved')};
+function renderTutorialFilters() {
+  const types = [...new Set(tutorials.map(t => t.type))].sort();
+  const eq = [...new Set(tutorials.flatMap(t => tutorialEquipments(t)))].sort();
+  $('#tutorialType').innerHTML = '<option value="All">All types</option>' + types.map(x => `<option>${esc(x)}</option>`).join('');
+  $('#tutorialEquipment').innerHTML = '<option value="All">All equipment</option>' + eq.map(x => `<option>${esc(x)}</option>`).join('');
+}
 
-function renderCosts(){if(!staff)return;const year=new Date().getFullYear(),thisYear=repairs.filter(r=>toDate(r.date).getFullYear()===year).reduce((a,r)=>a+totalRepair(r),0),all=repairs.reduce((a,r)=>a+totalRepair(r),0),days=repairs.reduce((a,r)=>a+Number(r.downtimeDays||0),0);$('#costStats').innerHTML=[['This year',money(thisYear),'Recorded repair spend'],['All recorded',money(all),'Parts + service'],['Downtime',`${days} days`,'Across repair records'],['Repair events',repairs.length,'Maintenance records']].map(x=>`<div class="stat"><div class="value">${x[1]}</div><div class="label">${x[0]}</div><div class="sub">${x[2]}</div></div>`).join('');$('#repairsTable').innerHTML=`<div class="table-wrap"><table><thead><tr><th>Date</th><th>Machine</th><th>Repair / resolution</th><th>Part</th><th>Technician</th><th>Downtime</th><th>Cost</th></tr></thead><tbody>${repairs.map(r=>`<tr><td>${date(r.date)}</td><td>${esc(machine(r.machineId).name)}</td><td>${esc(r.resolution)}</td><td>${esc(r.part||'—')}</td><td>${esc(r.technician||'—')}</td><td>${Number(r.downtimeDays||0)} d</td><td><strong>${money(totalRepair(r))}</strong></td></tr>`).join('')}</tbody></table></div>`}
-function repairModal(reportId=''){const r=reports.find(x=>x.id===reportId);$('#modalBody').innerHTML=`<h2>Add repair / cost</h2><div class="form-grid"><label class="full">Machine<select id="rMachine">${machines.map(m=>`<option value="${esc(m.id)}">${esc(m.name)}</option>`).join('')}</select></label><label>Related report<select id="rReport"><option value="">None</option>${reports.map(x=>`<option value="${esc(x.id)}">${esc(x.id.slice(0,8))} — ${esc(x.issue.slice(0,45))}</option>`).join('')}</select></label><label>Technician<input id="rTech" placeholder="Name or team"></label><label class="full">Resolution / work performed<textarea id="rResolution" rows="3"></textarea></label><label>Part / item<input id="rPart"></label><label>Parts cost<input id="rParts" type="number" step="0.01" value="0"></label><label>External service cost<input id="rService" type="number" step="0.01" value="0"></label><label>Labor hours<input id="rHours" type="number" step="0.25" value="0"></label><label>Downtime days<input id="rDown" type="number" step="0.5" value="0"></label><div class="form-actions full"><button type="button" class="btn primary" onclick="window.saveRepair()">Save repair</button></div></div>`;if(r){$('#rMachine').value=r.machineId;$('#rReport').value=r.id}$('#modal').showModal()}
-$('#addRepair').onclick=()=>repairModal();window.addRepairFor=id=>repairModal(id);window.saveRepair=async()=>{const reportId=$('#rReport').value,machineId=$('#rMachine').value,resolution=$('#rResolution').value.trim();if(!resolution)return toast('Please enter the work performed');await addDoc(collection(fs,'repairs'),{reportId,machineId,date:serverTimestamp(),technician:$('#rTech').value.trim(),resolution,part:$('#rPart').value.trim(),partsCost:Number($('#rParts').value||0),serviceCost:Number($('#rService').value||0),laborHours:Number($('#rHours').value||0),downtimeDays:Number($('#rDown').value||0)});if(reportId)await updateDoc(doc(fs,'reports',reportId),{status:'Resolved',updatedAt:serverTimestamp()});$('#modal').close();toast('Repair record saved')};
+function renderTutorials() {
+  const q = ($('#tutorialSearch').value || '').toLowerCase();
+  const type = $('#tutorialType').value || 'All';
+  const eq = $('#tutorialEquipment').value || 'All';
+  const list = tutorials.filter(t =>
+    (type === 'All' || t.type === type) &&
+    (eq === 'All' || tutorialEquipments(t).includes(eq)) &&
+    (!q || [t.title, t.type, ...tutorialEquipments(t), ...(t.tags || [])].join(' ').toLowerCase().includes(q))
+  ).sort((a, b) => a.title.localeCompare(b.title));
 
-function csvCell(v){const s=v?.toDate?v.toDate().toISOString():String(v??'');return `"${s.replaceAll('"','""')}"`}
-function download(name,text,type='text/csv'){const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([text],{type}));a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),1000)}
-function exportCsv(type){let headers,rows;if(type==='reports'){headers=['Report ID','Date','Machine ID','Machine','Room','Urgency','Usable','Issue','Fixes Tried','Preferred Contact','Resource','Status'];rows=reports.map(r=>[r.id,r.createdAt,r.machineId,machine(r.machineId).name,machine(r.machineId).room,r.urgency,r.usable,r.issue,r.attempted,r.contact,r.resource,r.status])}if(type==='machines'){headers=['Machine ID','Name','Category','Room','Manufacturer','Model','Serial','Purchase Cost','Status','Tutorial Equipment'];rows=machines.map(m=>[m.id,m.name,m.category,m.room,m.manufacturer,m.model,m.serial,m.purchaseCost,m.status,m.tutorialEquipment])}if(type==='repairs'){headers=['Repair ID','Date','Report ID','Machine ID','Machine','Technician','Resolution','Part','Parts Cost','Service Cost','Total Cost','Labor Hours','Downtime Days'];rows=repairs.map(r=>[r.id,r.date,r.reportId,r.machineId,machine(r.machineId).name,r.technician,r.resolution,r.part,r.partsCost,r.serviceCost,totalRepair(r),r.laborHours,r.downtimeDays])}download(`TAD-Lab-${type}-${new Date().toISOString().slice(0,10)}.csv`,[headers,...rows].map(row=>row.map(csvCell).join(',')).join('\n'))}
-$$('[data-export]').forEach(b=>b.onclick=()=>exportCsv(b.dataset.export));$('#backupJson').onclick=()=>download(`TAD-Lab-Full-Backup-${new Date().toISOString().slice(0,10)}.json`,JSON.stringify({machines,reports,repairs},(k,v)=>v?.toDate?v.toDate().toISOString():v,2),'application/json');
+  $('#tutorialCount').textContent = `${list.length} tutorial${list.length === 1 ? '' : 's'} shown`;
+  $('#tutorialGrid').innerHTML = list.map(t => `
+    <article class="tutorial-card">
+      <div class="tutorial-meta">${esc(tutorialEquipments(t).join(' + ') || t.type)}${t.author ? ' · ' + esc(t.author) : ''}</div>
+      <h4>${esc(t.title)}</h4>
+      <p>${esc((t.tags || []).join(' · ') || t.type)}</p>
+      <a class="btn primary small" href="${esc(t.url)}" target="_blank" rel="noopener">Open tutorial ↗</a>
+    </article>`).join('') || '<div class="empty">No tutorials match these filters.</div>';
+}
 
-async function seedMachines(){if(!staff||!fs)return;const snap=await getDocs(collection(fs,'machines'));if(!snap.empty&&!confirm('Machines already exist. Add/update the starter machine records anyway?'))return;const batch=writeBatch(fs);starterMachines.forEach(m=>{const {id,...data}=m;batch.set(doc(fs,'machines',id),{...data,createdAt:serverTimestamp()},{merge:true})});await batch.commit();toast('Starter machine records added')}
-function renderSettingsExtras(){if(!staff||!configured)return;const info=$('#firebaseInfo');if(!$('#seedMachinesBtn'))info.insertAdjacentHTML('beforeend','<button id="seedMachinesBtn" class="btn secondary">Add starter machine records</button>');$('#seedMachinesBtn')?.addEventListener('click',seedMachines,{once:true})}
+['tutorialSearch', 'tutorialType', 'tutorialEquipment'].forEach(id =>
+  $(`#${id}`).addEventListener(id === 'tutorialSearch' ? 'input' : 'change', renderTutorials)
+);
 
-function renderAll(){renderStaffVisibility();renderConnection();renderReportForm();renderTutorials();renderPublicMachines();renderMachineResourcePanel();if(staff){renderStats();renderDashboard();reportTable();renderMachines();renderCosts();renderSettingsExtras()}}
+function tutorialsForMachine(m) {
+  return tutorials.filter(t => m.tutorialEquipment && tutorialEquipments(t).includes(m.tutorialEquipment))
+    .sort((a, b) => a.title.localeCompare(b.title));
+}
 
-await loadTutorials();await initFirebase();renderAll();
-const initial=new URLSearchParams(location.search).has('machine')?'report':(location.hash.replace('#','')||'dashboard');showView(initial);
+function renderMachineResourcePanel() {
+  const id = $('#reportMachine').value || new URLSearchParams(location.search).get('machine');
+  const m = machine(id);
+  if (!m.id) {
+    $('#machineResourcePanel').innerHTML = '<p>Select a machine to see its direct tutorials.</p>';
+    return;
+  }
+  const ts = tutorialsForMachine(m);
+  $('#machineResourcePanel').innerHTML = `
+    <p><strong>${esc(m.name)}</strong><br>${esc(m.room || 'Location not set')}</p>
+    <div class="tutorial-list">
+      ${ts.slice(0, 12).map(t => `<a class="tutorial-link" target="_blank" rel="noopener" href="${esc(t.url)}">${esc(t.title)} ↗</a>`).join('') || '<span class="row-meta">No equipment-specific tutorial mapped yet.</span>'}
+    </div>
+    ${ts.length > 12 ? `<p class="row-meta">${ts.length - 12} more available on the Tutorials page.</p>` : ''}`;
+}
+
+function renderStaffVisibility() {
+  $$('.staff-only').forEach(el => el.classList.toggle('hidden', !staff));
+  $('#staffLogin').textContent = staff ? (currentUser?.email || 'Staff signed in') : 'Staff sign in';
+  $('#settingsLogin').classList.toggle('hidden', staff);
+  $('#signOut').classList.toggle('hidden', !staff);
+  $('#authStatus').textContent = staff ? `Staff: ${currentUser.email}` : 'Student reporting access';
+}
+
+function appCheckStatusHtml() {
+  const d = appCheckDiagnostic;
+  const stamp = d.checkedAt ? new Date(d.checkedAt).toLocaleString() : 'Not yet checked';
+  return `
+    <p><strong>App Check client:</strong> ${appCheckEnabled ? 'Initialized with reCAPTCHA Enterprise' : 'Not initialized'}</p>
+    <p><strong>Token diagnostic:</strong> ${esc(d.status)} — ${esc(d.message)}</p>
+    <p><strong>Last check:</strong> ${esc(stamp)}</p>
+    <p><strong>Host:</strong> ${esc(location.hostname)}</p>
+    <button id="runAppCheckDiagnostic" class="btn secondary small" type="button">Run App Check diagnostic</button>`;
+}
+
+function renderConnection() {
+  const b = $('#setupBanner');
+  if (!configured) {
+    b.classList.remove('hidden');
+    b.innerHTML = '<strong>Firebase setup required:</strong> add this project’s Web App configuration to <code>firebase-config.js</code>, enable Firestore + Authentication, and deploy the included rules.';
+    $('#connectionStatus').textContent = 'Firebase setup required';
+    $('#firebaseInfo').innerHTML = '<p>This release uses Firestore and Firebase Authentication on the <strong>Spark/no-cost plan</strong>.</p>';
+    return;
+  }
+
+  if (!appCheckEnabled) {
+    b.classList.remove('hidden');
+    b.innerHTML = '<strong>Abuse protection not active yet:</strong> Firebase is connected, but App Check is not configured.';
+  } else if (appCheckDiagnostic.status === 'error') {
+    b.classList.remove('hidden');
+    b.innerHTML = `<strong>App Check diagnostic failed:</strong> ${esc(appCheckDiagnostic.message)}. Leave Firestore enforcement in Monitoring until this reports success.`;
+  } else {
+    b.classList.add('hidden');
+  }
+
+  $('#connectionStatus').textContent = appCheckDiagnostic.status === 'success'
+    ? '● Firebase + App Check verified'
+    : appCheckEnabled ? '● Firebase + App Check' : '● Firebase connected';
+
+  $('#firebaseInfo').innerHTML = `
+    <p><strong>Project:</strong> ${esc(firebaseConfig.projectId)}</p>
+    <p>Live machine, report, repair, and cost records are stored in Cloud Firestore.</p>
+    <p><strong>Plan:</strong> Spark / no billing required for this release.</p>
+    ${appCheckStatusHtml()}`;
+
+  $('#runAppCheckDiagnostic')?.addEventListener('click', () => runAppCheckDiagnostic(true));
+}
+
+async function runAppCheckDiagnostic(forceRefresh = true) {
+  if (!appCheck) {
+    appCheckDiagnostic = { status: 'error', message: 'App Check is not initialized.', checkedAt: Date.now() };
+    renderConnection();
+    return false;
+  }
+
+  appCheckDiagnostic = { status: 'checking', message: 'Requesting an App Check token…', checkedAt: Date.now() };
+  renderConnection();
+
+  try {
+    const result = await getAppCheckToken(appCheck, forceRefresh);
+    if (!result?.token) throw new Error('Firebase returned no App Check token.');
+    appCheckDiagnostic = {
+      status: 'success',
+      message: 'A valid App Check token was issued to this browser.',
+      checkedAt: Date.now()
+    };
+    console.info('[TAD Lab Manager] App Check token diagnostic succeeded', {
+      projectId: firebaseConfig.projectId,
+      host: location.hostname,
+      checkedAt: new Date().toISOString()
+    });
+    renderConnection();
+    return true;
+  } catch (error) {
+    const code = error?.code ? `${error.code}: ` : '';
+    const message = `${code}${error?.message || 'Unknown App Check error'}`;
+    appCheckDiagnostic = { status: 'error', message, checkedAt: Date.now() };
+    console.error('[TAD Lab Manager] App Check token diagnostic failed', {
+      projectId: firebaseConfig.projectId,
+      host: location.hostname,
+      errorCode: error?.code || null,
+      errorMessage: error?.message || String(error)
+    });
+    renderConnection();
+    return false;
+  }
+}
+
+async function initFirebase() {
+  if (!configured) {
+    renderConnection();
+    machines = starterMachines;
+    renderAll();
+    return;
+  }
+
+  app = initializeApp(firebaseConfig);
+  const siteKey = appCheckConfig?.recaptchaEnterpriseSiteKey || '';
+
+  if (siteKey && !siteKey.includes('PASTE_')) {
+    try {
+      appCheck = initializeAppCheck(app, {
+        provider: new ReCaptchaEnterpriseProvider(siteKey),
+        isTokenAutoRefreshEnabled: true
+      });
+      appCheckEnabled = true;
+      await runAppCheckDiagnostic(true);
+    } catch (error) {
+      appCheckDiagnostic = {
+        status: 'error',
+        message: `${error?.code ? error.code + ': ' : ''}${error?.message || 'App Check initialization failed'}`,
+        checkedAt: Date.now()
+      };
+      console.error('[TAD Lab Manager] App Check initialization failed', error);
+    }
+  }
+
+  renderConnection();
+  auth = getAuth(app);
+  fs = getFirestore(app);
+
+  onAuthStateChanged(auth, async user => {
+    currentUser = user;
+    staff = isApprovedStaffUser(user);
+    renderStaffVisibility();
+
+    if (!user) {
+      try {
+        await signInAnonymously(auth);
+      } catch (e) {
+        console.error(e);
+        toast('Student reporting sign-in could not start');
+      }
+      return;
+    }
+
+    subscribed = false;
+    staffSubscribed = false;
+    subscribeData();
+  });
+}
+
+function subscribeData() {
+  if (!fs || subscribed) return;
+  subscribed = true;
+  onSnapshot(collection(fs, 'machines'), snap => {
+    const live = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    machines = live.length ? live : starterMachines;
+    renderAll();
+  }, err => {
+    console.error('[TAD Lab Manager] Machine subscription failed', err);
+    machines = starterMachines;
+    renderAll();
+  });
+
+  if (staff) subscribeStaffCollections();
+  else {
+    reports = [];
+    repairs = [];
+    renderAll();
+  }
+}
+
+function subscribeStaffCollections() {
+  if (staffSubscribed || !fs || !staff) return;
+  staffSubscribed = true;
+  onSnapshot(query(collection(fs, 'reports'), orderBy('createdAt', 'desc')), snap => {
+    reports = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    renderAll();
+  });
+  onSnapshot(query(collection(fs, 'repairs'), orderBy('date', 'desc')), snap => {
+    repairs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    renderAll();
+  });
+}
+
+async function staffLogin() {
+  if (!configured) return toast('Configure Firebase first');
+  try {
+    const provider = new OAuthProvider('microsoft.com');
+    provider.setCustomParameters({ tenant: 'common' });
+    const result = await signInWithPopup(auth, provider);
+    if (!isApprovedStaffUser(result.user)) {
+      await firebaseSignOut(auth);
+      toast('This Microsoft account is not approved for TAD Lab Manager staff access');
+      return;
+    }
+    staffSubscribed = false;
+    subscribed = false;
+    toast('Staff access enabled');
+  } catch (e) {
+    console.error(e);
+    toast('Sign-in was not completed');
+  }
+}
+
+$('#staffLogin').onclick = staffLogin;
+$('#settingsLogin').onclick = staffLogin;
+$('#signOut').onclick = async () => {
+  await firebaseSignOut(auth);
+  reports = [];
+  repairs = [];
+  subscribed = false;
+  staffSubscribed = false;
+  await signInAnonymously(auth);
+  toast('Signed out');
+};
+
+function renderReportForm() {
+  const sel = $('#reportMachine');
+  const current = sel.value;
+  const q = new URLSearchParams(location.search).get('machine');
+  const list = machines.length ? machines : starterMachines;
+  sel.innerHTML = list.length
+    ? list.slice().sort((a, b) => a.name.localeCompare(b.name)).map(m => `<option value="${esc(m.id)}">${esc(m.name)}${m.room ? ' — ' + esc(m.room) : ''}</option>`).join('')
+    : '<option value="">No machines configured</option>';
+  sel.value = q && list.some(m => m.id === q)
+    ? q
+    : list.some(m => m.id === current) ? current : (list[0]?.id || '');
+  renderMachineResourcePanel();
+}
+
+$('#reportMachine').addEventListener('change', renderMachineResourcePanel);
+$('#reportForm').onsubmit = async e => {
+  e.preventDefault();
+  if (!configured || !fs) return toast('Firebase must be configured before reports can be submitted');
+  if (!currentUser) return toast('Connecting to reporting service…');
+  const machineId = $('#reportMachine').value;
+  if (!machineId) return toast('Please choose a machine');
+  const m = machine(machineId);
+  const payload = {
+    machineId,
+    createdAt: serverTimestamp(),
+    urgency: $('#urgency').value,
+    usable: $('#usable').value,
+    issue: $('#issue').value.trim(),
+    attempted: $('#attempted').value.trim(),
+    contact: $('#contact').value.trim(),
+    resource: $('#resource').value.trim(),
+    status: 'Open',
+    machineNameSnapshot: m.name,
+    roomSnapshot: m.room || '',
+    submittedByUid: currentUser.uid,
+    submittedByEmail: currentUser.email || ''
+  };
+  try {
+    const ref = await addDoc(collection(fs, 'reports'), payload);
+    e.target.reset();
+    renderReportForm();
+    toast(`Report ${ref.id.slice(0, 8)} submitted`);
+    showView('dashboard');
+  } catch (err) {
+    console.error(err);
+    toast('Report could not be submitted. Check Firebase rules/App Check configuration.');
+  }
+};
+
+function renderStats() {
+  if (!staff) return;
+  const open = reports.filter(r => r.status !== 'Resolved').length;
+  const down = new Set(reports.filter(r => r.status !== 'Resolved' && r.usable === 'No').map(r => r.machineId)).size;
+  const year = new Date().getFullYear();
+  const cost = repairs.filter(r => toDate(r.date).getFullYear() === year).reduce((a, r) => a + totalRepair(r), 0);
+  const all = repairs.reduce((a, r) => a + totalRepair(r), 0);
+  $('#statsGrid').innerHTML = [
+    ['Open reports', open, 'Needs review or repair'],
+    ['Machines down', down, 'Currently unusable'],
+    [`${year} repair cost`, money(cost), 'Parts + external service'],
+    ['Lifetime recorded', money(all), `${repairs.length} repair records`]
+  ].map(x => `<div class="stat"><div class="value">${x[1]}</div><div class="label">${x[0]}</div><div class="sub">${x[2]}</div></div>`).join('');
+}
+
+function renderDashboard() {
+  if (!staff) return;
+  const rank = { Critical: 4, High: 3, Medium: 2, Low: 1 };
+  const open = reports.filter(r => r.status !== 'Resolved')
+    .sort((a, b) => (rank[b.urgency] - rank[a.urgency]) || (toDate(b.createdAt) - toDate(a.createdAt)))
+    .slice(0, 6);
+  $('#openIssues').innerHTML = open.length ? open.map(r => `
+    <div class="issue-row"><div><div class="row-title">${esc(machine(r.machineId).name)}</div><div class="row-meta">${date(r.createdAt)} · ${esc(r.issue)}</div></div>${badge(r.urgency)}</div>`).join('') : '<div class="empty">No open issues.</div>';
+
+  const ids = [...new Set(reports.filter(r => r.status !== 'Resolved').map(r => r.machineId))];
+  $('#machineAttention').innerHTML = ids.length ? ids.map(id => {
+    const m = machine(id);
+    const rs = reports.filter(r => r.machineId === id && r.status !== 'Resolved');
+    return `<div class="attention-row"><div><div class="row-title">${esc(m.name)}</div><div class="row-meta">${esc(m.room || '')} · ${rs.length} open report${rs.length === 1 ? '' : 's'}</div></div>${badge(rs.some(r => r.usable === 'No') ? 'Down' : 'Attention')}</div>`;
+  }).join('') : '<div class="empty">All machines clear.</div>';
+}
+
+function renderPublicMachines() {
+  const list = machines.length ? machines : starterMachines;
+  $('#publicMachines').innerHTML = list.slice().sort((a, b) => a.name.localeCompare(b.name)).map(m => `
+    <article class="machine-card">
+      <h3>${esc(m.name)}</h3>
+      <div class="machine-id">${esc(m.id)}</div>
+      <div class="machine-meta"><div><span>Location:</span> ${esc(m.room || '—')}</div><div><span>Direct tutorials:</span> ${tutorialsForMachine(m).length}</div></div>
+      <div class="machine-actions">
+        <button class="btn primary small" onclick="window.reportMachine('${esc(m.id)}')">Report problem</button>
+        <button class="btn secondary small" onclick="window.showMachineTutorials('${esc(m.tutorialEquipment || '')}')">Tutorials</button>
+      </div>
+    </article>`).join('') || '<div class="empty">No machines configured.</div>';
+}
+
+window.reportMachine = id => {
+  const url = new URL(location.href);
+  url.searchParams.set('machine', id);
+  url.hash = 'report';
+  location.href = url.toString();
+};
+
+window.showMachineTutorials = eq => {
+  showView('tutorials');
+  $('#tutorialEquipment').value = [...$('#tutorialEquipment').options].some(o => o.value === eq) ? eq : 'All';
+  renderTutorials();
+};
+
+function reportTable() {
+  if (!staff) return;
+  const status = $('#reportStatusFilter').value;
+  const q = ($('#reportSearch').value || '').toLowerCase();
+  const list = reports.filter(r =>
+    (status === 'All' || r.status === status) &&
+    (!q || [r.id, machine(r.machineId).name, r.issue, r.contact].join(' ').toLowerCase().includes(q))
+  );
+  $('#reportsTable').innerHTML = list.length ? `<div class="table-wrap"><table><thead><tr><th>Date</th><th>Machine</th><th>Urgency</th><th>Issue</th><th>Status</th><th></th></tr></thead><tbody>${list.map(r => `<tr><td>${date(r.createdAt)}</td><td>${esc(machine(r.machineId).name)}</td><td>${badge(r.urgency)}</td><td>${esc(r.issue)}</td><td>${badge(r.status)}</td><td><button class="text-btn" onclick="window.manageReport('${esc(r.id)}')">Manage</button></td></tr>`).join('')}</tbody></table></div>` : '<div class="empty">No matching reports.</div>';
+}
+
+$('#reportStatusFilter').onchange = reportTable;
+$('#reportSearch').oninput = reportTable;
+window.manageReport = id => {
+  const r = reports.find(x => x.id === id);
+  if (!r) return;
+  $('#modalBody').innerHTML = `<h2>${esc(machine(r.machineId).name)}</h2><p>${badge(r.urgency)} ${badge(r.status)}</p><p><strong>Issue</strong><br>${esc(r.issue)}</p><p><strong>Fixes tried</strong><br>${esc(r.attempted || 'None entered')}</p><p><strong>Contact</strong><br>${esc(r.contact || 'Not provided')}</p><div class="form-grid"><label>Status<select id="manageStatus"><option>Open</option><option>Diagnosing</option><option>Waiting for Part</option><option>Resolved</option></select></label><div class="form-actions"><button type="button" class="btn secondary" onclick="window.addRepairFor('${esc(r.id)}')">Add repair/cost</button><button type="button" class="btn primary" onclick="window.saveReportStatus('${esc(r.id)}')">Save status</button></div></div>`;
+  $('#manageStatus').value = r.status;
+  $('#modal').showModal();
+};
+window.saveReportStatus = async id => {
+  await updateDoc(doc(fs, 'reports', id), { status: $('#manageStatus').value, updatedAt: serverTimestamp() });
+  $('#modal').close();
+  toast('Report status updated');
+};
+
+function renderMachines() {
+  if (!staff) return;
+  $('#machineCards').innerHTML = machines.map(m => {
+    const rs = reports.filter(r => r.machineId === m.id);
+    const cost = repairs.filter(r => r.machineId === m.id).reduce((a, r) => a + totalRepair(r), 0);
+    const ts = tutorialsForMachine(m);
+    return `<article class="machine-card"><div class="machine-top"><div><h3>${esc(m.name)}</h3><div class="machine-id">${esc(m.id)}</div></div>${badge(m.status || 'Operational')}</div><div class="machine-meta"><div><span>Type:</span> ${esc(m.category || '—')}</div><div><span>Location:</span> ${esc(m.room || '—')}</div><div><span>Tutorial set:</span> ${esc(m.tutorialEquipment || '—')} (${ts.length})</div><div><span>Reports:</span> ${rs.length}</div><div><span>Recorded repair cost:</span> ${money(cost)}</div></div><div class="machine-actions"><button class="btn secondary small" onclick="window.copyMaintenanceLink('${esc(m.id)}')">Copy Maintenance Link</button><button class="btn secondary small" onclick="window.editMachine('${esc(m.id)}')">Edit</button></div></article>`;
+  }).join('') || '<div class="empty">No machines configured. Use “Add Machine” or seed starter records from Settings.</div>';
+}
+
+window.copyMaintenanceLink = id => {
+  const url = new URL(location.href);
+  url.search = '';
+  url.searchParams.set('machine', id);
+  url.hash = 'report';
+  navigator.clipboard?.writeText(url.toString());
+  toast('Maintenance link copied for Linktree');
+};
+
+function machineModal(existing) {
+  const m = existing || { id: '', name: '', category: '', room: '', manufacturer: '', model: '', serial: '', purchaseCost: 0, status: 'Operational', tutorialEquipment: '' };
+  const eq = [...new Set(tutorials.flatMap(t => tutorialEquipments(t)))].sort();
+  $('#modalBody').innerHTML = `<h2>${existing ? 'Edit' : 'Add'} machine</h2><div class="form-grid"><label>Stable ID<input id="mId" value="${esc(m.id)}" ${existing ? 'disabled' : ''}></label><label>Name<input id="mName" value="${esc(m.name)}"></label><label>Category<input id="mCategory" value="${esc(m.category || '')}"></label><label>Room<input id="mRoom" value="${esc(m.room || '')}"></label><label>Manufacturer<input id="mManufacturer" value="${esc(m.manufacturer || '')}"></label><label>Model<input id="mModel" value="${esc(m.model || '')}"></label><label>Serial<input id="mSerial" value="${esc(m.serial || '')}"></label><label>Purchase cost<input id="mCost" type="number" step="0.01" value="${Number(m.purchaseCost || 0)}"></label><label class="full">Tutorial / equipment set<select id="mTutorial"><option value="">None</option>${eq.map(x => `<option ${x === m.tutorialEquipment ? 'selected' : ''}>${esc(x)}</option>`).join('')}</select></label><div class="form-actions full"><button type="button" class="btn primary" onclick="window.saveMachine('${existing ? esc(m.id) : ''}')">Save machine</button></div></div>`;
+  $('#modal').showModal();
+}
+
+$('#addMachine').onclick = () => machineModal();
+window.editMachine = id => machineModal(machines.find(m => m.id === id));
+window.saveMachine = async original => {
+  if (!staff) return;
+  const id = original || slug($('#mId').value);
+  const name = $('#mName').value.trim();
+  if (!id || !name) return toast('Machine ID and name are required');
+  const obj = {
+    name,
+    category: $('#mCategory').value.trim(),
+    room: $('#mRoom').value.trim(),
+    manufacturer: $('#mManufacturer').value.trim(),
+    model: $('#mModel').value.trim(),
+    serial: $('#mSerial').value.trim(),
+    purchaseCost: Number($('#mCost').value || 0),
+    status: original ? (machine(original).status || 'Operational') : 'Operational',
+    tutorialEquipment: $('#mTutorial').value,
+    updatedAt: serverTimestamp()
+  };
+  await setDoc(doc(fs, 'machines', id), obj, { merge: true });
+  $('#modal').close();
+  toast('Machine saved');
+};
+
+function renderCosts() {
+  if (!staff) return;
+  const year = new Date().getFullYear();
+  const thisYear = repairs.filter(r => toDate(r.date).getFullYear() === year).reduce((a, r) => a + totalRepair(r), 0);
+  const all = repairs.reduce((a, r) => a + totalRepair(r), 0);
+  const days = repairs.reduce((a, r) => a + Number(r.downtimeDays || 0), 0);
+  $('#costStats').innerHTML = [
+    ['This year', money(thisYear), 'Recorded repair spend'],
+    ['All recorded', money(all), 'Parts + service'],
+    ['Downtime', `${days} days`, 'Across repair records'],
+    ['Repair events', repairs.length, 'Maintenance records']
+  ].map(x => `<div class="stat"><div class="value">${x[1]}</div><div class="label">${x[0]}</div><div class="sub">${x[2]}</div></div>`).join('');
+  $('#repairsTable').innerHTML = `<div class="table-wrap"><table><thead><tr><th>Date</th><th>Machine</th><th>Repair / resolution</th><th>Part</th><th>Technician</th><th>Downtime</th><th>Cost</th></tr></thead><tbody>${repairs.map(r => `<tr><td>${date(r.date)}</td><td>${esc(machine(r.machineId).name)}</td><td>${esc(r.resolution)}</td><td>${esc(r.part || '—')}</td><td>${esc(r.technician || '—')}</td><td>${Number(r.downtimeDays || 0)} d</td><td><strong>${money(totalRepair(r))}</strong></td></tr>`).join('')}</tbody></table></div>`;
+}
+
+function repairModal(reportId = '') {
+  const r = reports.find(x => x.id === reportId);
+  $('#modalBody').innerHTML = `<h2>Add repair / cost</h2><div class="form-grid"><label class="full">Machine<select id="rMachine">${machines.map(m => `<option value="${esc(m.id)}">${esc(m.name)}</option>`).join('')}</select></label><label>Related report<select id="rReport"><option value="">None</option>${reports.map(x => `<option value="${esc(x.id)}">${esc(x.id.slice(0, 8))} — ${esc(x.issue.slice(0, 45))}</option>`).join('')}</select></label><label>Technician<input id="rTech" placeholder="Name or team"></label><label class="full">Resolution / work performed<textarea id="rResolution" rows="3"></textarea></label><label>Part / item<input id="rPart"></label><label>Parts cost<input id="rParts" type="number" step="0.01" value="0"></label><label>External service cost<input id="rService" type="number" step="0.01" value="0"></label><label>Labor hours<input id="rHours" type="number" step="0.25" value="0"></label><label>Downtime days<input id="rDown" type="number" step="0.5" value="0"></label><div class="form-actions full"><button type="button" class="btn primary" onclick="window.saveRepair()">Save repair</button></div></div>`;
+  if (r) {
+    $('#rMachine').value = r.machineId;
+    $('#rReport').value = r.id;
+  }
+  $('#modal').showModal();
+}
+
+$('#addRepair').onclick = () => repairModal();
+window.addRepairFor = id => repairModal(id);
+window.saveRepair = async () => {
+  const reportId = $('#rReport').value;
+  const machineId = $('#rMachine').value;
+  const resolution = $('#rResolution').value.trim();
+  if (!resolution) return toast('Please enter the work performed');
+  await addDoc(collection(fs, 'repairs'), {
+    reportId,
+    machineId,
+    date: serverTimestamp(),
+    technician: $('#rTech').value.trim(),
+    resolution,
+    part: $('#rPart').value.trim(),
+    partsCost: Number($('#rParts').value || 0),
+    serviceCost: Number($('#rService').value || 0),
+    laborHours: Number($('#rHours').value || 0),
+    downtimeDays: Number($('#rDown').value || 0)
+  });
+  if (reportId) await updateDoc(doc(fs, 'reports', reportId), { status: 'Resolved', updatedAt: serverTimestamp() });
+  $('#modal').close();
+  toast('Repair record saved');
+};
+
+function csvCell(v) {
+  const s = v?.toDate ? v.toDate().toISOString() : String(v ?? '');
+  return `"${s.replaceAll('"', '""')}"`;
+}
+
+function download(name, text, type = 'text/csv') {
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([text], { type }));
+  a.download = name;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+}
+
+function exportCsv(type) {
+  let headers, rows;
+  if (type === 'reports') {
+    headers = ['Report ID', 'Date', 'Machine ID', 'Machine', 'Room', 'Urgency', 'Usable', 'Issue', 'Fixes Tried', 'Preferred Contact', 'Resource', 'Status'];
+    rows = reports.map(r => [r.id, r.createdAt, r.machineId, machine(r.machineId).name, machine(r.machineId).room, r.urgency, r.usable, r.issue, r.attempted, r.contact, r.resource, r.status]);
+  }
+  if (type === 'machines') {
+    headers = ['Machine ID', 'Name', 'Category', 'Room', 'Manufacturer', 'Model', 'Serial', 'Purchase Cost', 'Status', 'Tutorial Equipment'];
+    rows = machines.map(m => [m.id, m.name, m.category, m.room, m.manufacturer, m.model, m.serial, m.purchaseCost, m.status, m.tutorialEquipment]);
+  }
+  if (type === 'repairs') {
+    headers = ['Repair ID', 'Date', 'Report ID', 'Machine ID', 'Machine', 'Technician', 'Resolution', 'Part', 'Parts Cost', 'Service Cost', 'Total Cost', 'Labor Hours', 'Downtime Days'];
+    rows = repairs.map(r => [r.id, r.date, r.reportId, r.machineId, machine(r.machineId).name, r.technician, r.resolution, r.part, r.partsCost, r.serviceCost, totalRepair(r), r.laborHours, r.downtimeDays]);
+  }
+  download(`TAD-Lab-${type}-${new Date().toISOString().slice(0, 10)}.csv`, [headers, ...rows].map(row => row.map(csvCell).join(',')).join('\n'));
+}
+
+$$('[data-export]').forEach(b => b.onclick = () => exportCsv(b.dataset.export));
+$('#backupJson').onclick = () => download(`TAD-Lab-Full-Backup-${new Date().toISOString().slice(0, 10)}.json`, JSON.stringify({ machines, reports, repairs }, (k, v) => v?.toDate ? v.toDate().toISOString() : v, 2), 'application/json');
+
+async function seedMachines() {
+  if (!staff || !fs) return;
+  const snap = await getDocs(collection(fs, 'machines'));
+  if (!snap.empty && !confirm('Machines already exist. Add/update the starter machine records anyway?')) return;
+  const batch = writeBatch(fs);
+  starterMachines.forEach(m => {
+    const { id, ...data } = m;
+    batch.set(doc(fs, 'machines', id), { ...data, updatedAt: serverTimestamp() }, { merge: true });
+  });
+  await batch.commit();
+  toast('Starter machine records added');
+}
+
+function renderSettingsExtras() {
+  if (!staff || !configured) return;
+  const info = $('#firebaseInfo');
+  if (!$('#seedMachinesBtn')) info.insertAdjacentHTML('beforeend', '<button id="seedMachinesBtn" class="btn secondary">Add starter machine records</button>');
+  $('#seedMachinesBtn')?.addEventListener('click', seedMachines, { once: true });
+}
+
+function renderAll() {
+  renderStaffVisibility();
+  renderConnection();
+  renderReportForm();
+  renderTutorials();
+  renderPublicMachines();
+  renderMachineResourcePanel();
+  if (staff) {
+    renderStats();
+    renderDashboard();
+    reportTable();
+    renderMachines();
+    renderCosts();
+    renderSettingsExtras();
+  }
+}
+
+await loadStaticData();
+await initFirebase();
+renderAll();
+const initial = new URLSearchParams(location.search).has('machine') ? 'report' : (location.hash.replace('#', '') || 'dashboard');
+showView(initial);
