@@ -4,8 +4,10 @@ import {
   getAuth,
   onAuthStateChanged,
   signInAnonymously,
-  OAuthProvider,
-  signInWithPopup,
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
+  sendEmailVerification,
+  sendPasswordResetEmail,
   signOut as firebaseSignOut
 } from 'https://www.gstatic.com/firebasejs/12.17.1/firebase-auth.js';
 import {
@@ -29,10 +31,10 @@ import {
 } from 'https://www.gstatic.com/firebasejs/12.17.1/firebase-app-check.js';
 
 const STAFF_EMAILS = new Set([
-  'ij8878si@minnstate.edu',
-  'chase.cornell@minnstate.edu',
-  'andrew.graham@minnstate.edu',
-  'nick.lowery@minnstate.edu'
+  'eric.carlson.2@bemidjistate.edu',
+  'chase.cornell@bemidjistate.edu',
+  'andrew.graham@bemidjistate.edu',
+  'nick.lowery@bemidjistate.edu'
 ]);
 
 const configured = !!firebaseConfig.projectId && !String(firebaseConfig.projectId).includes('PASTE_');
@@ -70,11 +72,18 @@ function toast(msg) {
   setTimeout(() => t.classList.remove('show'), 2300);
 }
 
+function normalizedEmail(value = '') {
+  return String(value).trim().toLowerCase();
+}
+
+function isApprovedStaffEmail(email) {
+  return STAFF_EMAILS.has(normalizedEmail(email));
+}
+
 function isApprovedStaffUser(user) {
   if (!user?.email) return false;
-  const email = user.email.toLowerCase();
-  const microsoftProvider = user.providerData?.some(p => p.providerId === 'microsoft.com');
-  return microsoftProvider && STAFF_EMAILS.has(email);
+  const passwordProvider = user.providerData?.some(p => p.providerId === 'password');
+  return passwordProvider && user.emailVerified && isApprovedStaffEmail(user.email);
 }
 
 const titles = {
@@ -357,28 +366,96 @@ function subscribeStaffCollections() {
   });
 }
 
-async function staffLogin() {
-  if (!configured) return toast('Configure Firebase first');
+function openStaffAuthModal() {
+  $('#modalBody').innerHTML = `
+    <h2>Staff account</h2>
+    <p>Use your approved <strong>@bemidjistate.edu</strong> address with a password created specifically for TAD Lab Manager. This is separate from your campus Microsoft password.</p>
+    <div class="form-grid">
+      <label class="full">Email<input id="staffEmail" type="email" autocomplete="username" placeholder="name@bemidjistate.edu"></label>
+      <label class="full">Password<input id="staffPassword" type="password" autocomplete="current-password" minlength="6" placeholder="TAD Lab Manager password"></label>
+      <div class="form-actions full">
+        <button type="button" class="btn primary" id="staffSignInAction">Sign in</button>
+        <button type="button" class="btn secondary" id="staffCreateAction">Create account</button>
+        <button type="button" class="text-btn" id="staffResetAction">Reset password</button>
+      </div>
+      <p class="full row-meta">New accounts must use an approved staff email and verify that email before staff tools unlock.</p>
+    </div>`;
+  $('#modal').showModal();
+  $('#staffSignInAction').onclick = staffPasswordSignIn;
+  $('#staffCreateAction').onclick = createStaffAccount;
+  $('#staffResetAction').onclick = resetStaffPassword;
+}
+
+function authFormValues() {
+  return {
+    email: normalizedEmail($('#staffEmail')?.value),
+    password: $('#staffPassword')?.value || ''
+  };
+}
+
+async function staffPasswordSignIn() {
+  const { email, password } = authFormValues();
+  if (!isApprovedStaffEmail(email)) return toast('That email is not on the approved TAD Lab Manager staff list');
+  if (!password) return toast('Enter your TAD Lab Manager password');
   try {
-    const provider = new OAuthProvider('microsoft.com');
-    provider.setCustomParameters({ tenant: 'common' });
-    const result = await signInWithPopup(auth, provider);
-    if (!isApprovedStaffUser(result.user)) {
+    if (auth.currentUser) await firebaseSignOut(auth);
+    const result = await signInWithEmailAndPassword(auth, email, password);
+    if (!result.user.emailVerified) {
+      await sendEmailVerification(result.user);
       await firebaseSignOut(auth);
-      toast('This Microsoft account is not approved for TAD Lab Manager staff access');
+      await signInAnonymously(auth);
+      toast('Verify your email first. A new verification message was sent.');
       return;
     }
-    staffSubscribed = false;
+    if (!isApprovedStaffUser(result.user)) {
+      await firebaseSignOut(auth);
+      await signInAnonymously(auth);
+      toast('This account is not approved for staff access');
+      return;
+    }
+    $('#modal').close();
     subscribed = false;
+    staffSubscribed = false;
     toast('Staff access enabled');
   } catch (e) {
     console.error(e);
-    toast('Sign-in was not completed');
+    toast(e?.code === 'auth/invalid-credential' ? 'Email or password was not recognized' : 'Staff sign-in was not completed');
   }
 }
 
-$('#staffLogin').onclick = staffLogin;
-$('#settingsLogin').onclick = staffLogin;
+async function createStaffAccount() {
+  const { email, password } = authFormValues();
+  if (!isApprovedStaffEmail(email)) return toast('That email is not on the approved TAD Lab Manager staff list');
+  if (password.length < 6) return toast('Use a password with at least 6 characters');
+  try {
+    if (auth.currentUser) await firebaseSignOut(auth);
+    const result = await createUserWithEmailAndPassword(auth, email, password);
+    await sendEmailVerification(result.user);
+    await firebaseSignOut(auth);
+    await signInAnonymously(auth);
+    $('#modal').close();
+    toast('Account created. Check your email and verify it before signing in.');
+  } catch (e) {
+    console.error(e);
+    if (e?.code === 'auth/email-already-in-use') toast('An account already exists for that email. Sign in or reset the password.');
+    else toast('Staff account could not be created');
+  }
+}
+
+async function resetStaffPassword() {
+  const { email } = authFormValues();
+  if (!isApprovedStaffEmail(email)) return toast('Enter an approved staff email first');
+  try {
+    await sendPasswordResetEmail(auth, email);
+    toast('Password reset email sent');
+  } catch (e) {
+    console.error(e);
+    toast('Password reset email could not be sent');
+  }
+}
+
+$('#staffLogin').onclick = openStaffAuthModal;
+$('#settingsLogin').onclick = openStaffAuthModal;
 $('#signOut').onclick = async () => {
   await firebaseSignOut(auth);
   reports = [];
