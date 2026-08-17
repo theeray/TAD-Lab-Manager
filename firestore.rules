@@ -9,7 +9,12 @@ service cloud.firestore {
       return signedIn()
         && request.auth.token.email != null
         && request.auth.token.firebase.sign_in_provider == 'microsoft.com'
-        && request.auth.token.email.matches('.*@bemidjistate\.edu$');
+        && request.auth.token.email in [
+          'ij8878si@minnstate.edu',
+          'chase.cornell@minnstate.edu',
+          'andrew.graham@minnstate.edu',
+          'nick.lowery@minnstate.edu'
+        ];
     }
 
     match /machines/{machineId} {
