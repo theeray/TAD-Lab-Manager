@@ -8,12 +8,13 @@ service cloud.firestore {
     function staff() {
       return signedIn()
         && request.auth.token.email != null
-        && request.auth.token.firebase.sign_in_provider == 'microsoft.com'
+        && request.auth.token.email_verified == true
+        && request.auth.token.firebase.sign_in_provider == 'password'
         && request.auth.token.email in [
-          'ij8878si@minnstate.edu',
-          'chase.cornell@minnstate.edu',
-          'andrew.graham@minnstate.edu',
-          'nick.lowery@minnstate.edu'
+          'eric.carlson.2@bemidjistate.edu',
+          'chase.cornell@bemidjistate.edu',
+          'andrew.graham@bemidjistate.edu',
+          'nick.lowery@bemidjistate.edu'
         ];
     }
 
