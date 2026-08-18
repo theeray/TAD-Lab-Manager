@@ -1,7 +1,10 @@
 import { getApp } from 'https://www.gstatic.com/firebasejs/12.17.1/firebase-app.js';
 import {
   getAuth,
-  signInWithEmailAndPassword
+  onAuthStateChanged,
+  signInWithEmailAndPassword,
+  signOut,
+  signInAnonymously
 } from 'https://www.gstatic.com/firebasejs/12.17.1/firebase-auth.js';
 
 const APPROVED_STAFF = new Set([
@@ -23,15 +26,46 @@ function normalizeEmail(value = '') {
   return String(value).trim().toLowerCase();
 }
 
+function isApprovedStaffUser(user) {
+  return !!user?.email && user.emailVerified && APPROVED_STAFF.has(normalizeEmail(user.email));
+}
+
+function ensureTopSignOut(auth) {
+  const actions = document.querySelector('.top-actions');
+  if (!actions) return null;
+  let button = document.querySelector('#topSignOut');
+  if (!button) {
+    button = document.createElement('button');
+    button.type = 'button';
+    button.id = 'topSignOut';
+    button.className = 'btn secondary hidden';
+    button.textContent = 'Sign out';
+    actions.appendChild(button);
+    button.addEventListener('click', async () => {
+      button.disabled = true;
+      const originalText = button.textContent;
+      button.textContent = 'Signing out…';
+      try {
+        await signOut(auth);
+        await signInAnonymously(auth);
+        location.hash = '#dashboard';
+        showToast('Signed out — student reporting access restored.');
+      } catch (error) {
+        console.error('[TAD Lab Manager] Staff sign out failed', error);
+        showToast('Sign out was not completed');
+      } finally {
+        button.disabled = false;
+        button.textContent = originalText;
+      }
+    });
+  }
+  return button;
+}
+
 async function safeStaffSignIn(event) {
   const button = event.target.closest?.('#staffSignInAction');
   if (!button) return;
 
-  // The main app previously signed out the anonymous reporting user first.
-  // That briefly triggered its auth observer, which could sign anonymously back
-  // in and overwrite the staff session. Sign in directly instead; Firebase
-  // replaces the anonymous session atomically and the main observer then unlocks
-  // the staff dashboard.
   event.preventDefault();
   event.stopImmediatePropagation();
 
@@ -74,3 +108,9 @@ async function safeStaffSignIn(event) {
 }
 
 document.addEventListener('click', safeStaffSignIn, true);
+
+const auth = getAuth(getApp());
+const topSignOut = ensureTopSignOut(auth);
+onAuthStateChanged(auth, user => {
+  topSignOut?.classList.toggle('hidden', !isApprovedStaffUser(user));
+});
