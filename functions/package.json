@@ -1,0 +1,11 @@
+{
+  "name": "tad-lab-manager-functions",
+  "private": true,
+  "engines": { "node": "22" },
+  "main": "index.js",
+  "dependencies": {
+    "firebase-admin": "^13.4.0",
+    "firebase-functions": "^6.4.0",
+    "nodemailer": "^7.0.0"
+  }
+}
