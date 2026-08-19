@@ -5,6 +5,11 @@ service cloud.firestore {
       return request.auth != null;
     }
 
+    function anonymous() {
+      return signedIn()
+        && request.auth.token.firebase.sign_in_provider == 'anonymous';
+    }
+
     function staff() {
       return signedIn()
         && request.auth.token.email != null
@@ -16,6 +21,27 @@ service cloud.firestore {
           'andrew.graham@bemidjistate.edu',
           'nick.lowery@bemidjistate.edu'
         ];
+    }
+
+    function reportRateCountersValid() {
+      let userPath = /databases/$(database)/documents/reportRateUsers/$(request.auth.uid);
+      let globalPath = /databases/$(database)/documents/reportRateGlobal/reports;
+      return staff() || (
+        anonymous()
+        && existsAfter(userPath)
+        && existsAfter(globalPath)
+        && getAfter(userPath).data.uid == request.auth.uid
+        && getAfter(userPath).data.day == request.time.date()
+        && getAfter(userPath).data.updatedAt == request.time
+        && getAfter(userPath).data.count is int
+        && getAfter(userPath).data.count >= 1
+        && getAfter(userPath).data.count <= 10
+        && getAfter(globalPath).data.day == request.time.date()
+        && getAfter(globalPath).data.updatedAt == request.time
+        && getAfter(globalPath).data.count is int
+        && getAfter(globalPath).data.count >= 1
+        && getAfter(globalPath).data.count <= 100
+      );
     }
 
     match /machines/{machineId} {
@@ -51,9 +77,75 @@ service cloud.firestore {
         && request.resource.data.roomSnapshot is string
         && request.resource.data.roomSnapshot.size() <= 250
         && request.resource.data.submittedByEmail is string
-        && request.resource.data.submittedByEmail.size() <= 320;
+        && request.resource.data.submittedByEmail.size() <= 320
+        && reportRateCountersValid();
 
       allow read, update, delete: if staff();
+    }
+
+    match /reportRateUsers/{uid} {
+      allow get: if (anonymous() && request.auth.uid == uid) || staff();
+      allow list: if staff();
+
+      allow create: if anonymous()
+        && request.auth.uid == uid
+        && request.resource.data.keys().hasOnly(['uid','day','count','updatedAt'])
+        && request.resource.data.uid == uid
+        && request.resource.data.day == request.time.date()
+        && request.resource.data.count is int
+        && request.resource.data.count == 1
+        && request.resource.data.updatedAt == request.time;
+
+      allow update: if anonymous()
+        && request.auth.uid == uid
+        && request.resource.data.keys().hasOnly(['uid','day','count','updatedAt'])
+        && request.resource.data.uid == uid
+        && resource.data.uid == uid
+        && request.resource.data.day == request.time.date()
+        && request.resource.data.count is int
+        && request.resource.data.count >= 1
+        && request.resource.data.count <= 10
+        && request.resource.data.updatedAt == request.time
+        && (
+          (resource.data.day == request.time.date()
+            && request.resource.data.count == resource.data.count + 1)
+          ||
+          (resource.data.day != request.time.date()
+            && request.resource.data.count == 1)
+        );
+
+      allow delete: if staff();
+    }
+
+    match /reportRateGlobal/{counterId} {
+      allow get: if signedIn() && counterId == 'reports';
+      allow list: if staff();
+
+      allow create: if anonymous()
+        && counterId == 'reports'
+        && request.resource.data.keys().hasOnly(['day','count','updatedAt'])
+        && request.resource.data.day == request.time.date()
+        && request.resource.data.count is int
+        && request.resource.data.count == 1
+        && request.resource.data.updatedAt == request.time;
+
+      allow update: if anonymous()
+        && counterId == 'reports'
+        && request.resource.data.keys().hasOnly(['day','count','updatedAt'])
+        && request.resource.data.day == request.time.date()
+        && request.resource.data.count is int
+        && request.resource.data.count >= 1
+        && request.resource.data.count <= 100
+        && request.resource.data.updatedAt == request.time
+        && (
+          (resource.data.day == request.time.date()
+            && request.resource.data.count == resource.data.count + 1)
+          ||
+          (resource.data.day != request.time.date()
+            && request.resource.data.count == 1)
+        );
+
+      allow delete: if staff();
     }
 
     match /repairs/{repairId} {
