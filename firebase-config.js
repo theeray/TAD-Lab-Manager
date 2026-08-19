@@ -11,5 +11,5 @@ export const firebaseConfig = {
 };
 
 export const appCheckConfig = {
-  recaptchaEnterpriseSiteKey: "6LdcXYstAAAAAKEG8Tx1OqY855shL1g6Ksi4Gc5q"
+  recaptchaEnterpriseSiteKey: "6Ldm1I4tAAAAAPX3Tr80wVyirAzLhClYRyFdocat"
 };
