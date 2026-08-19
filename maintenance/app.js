@@ -26,7 +26,7 @@ import {
 } from 'https://www.gstatic.com/firebasejs/12.17.1/firebase-firestore.js';
 import {
   initializeAppCheck,
-  ReCaptchaEnterpriseProvider,
+  ReCaptchaV3Provider,
   getToken as getAppCheckToken
 } from 'https://www.gstatic.com/firebasejs/12.17.1/firebase-app-check.js';
 
@@ -198,7 +198,7 @@ function appCheckStatusHtml() {
   const d = appCheckDiagnostic;
   const stamp = d.checkedAt ? new Date(d.checkedAt).toLocaleString() : 'Not yet checked';
   return `
-    <p><strong>App Check client:</strong> ${appCheckEnabled ? 'Initialized with reCAPTCHA Enterprise' : 'Not initialized'}</p>
+    <p><strong>App Check client:</strong> ${appCheckEnabled ? 'Initialized with reCAPTCHA v3' : 'Not initialized'}</p>
     <p><strong>Token diagnostic:</strong> ${esc(d.status)} — ${esc(d.message)}</p>
     <p><strong>Last check:</strong> ${esc(stamp)}</p>
     <p><strong>Host:</strong> ${esc(location.hostname)}</p>
@@ -287,12 +287,12 @@ async function initFirebase() {
   }
 
   app = initializeApp(firebaseConfig);
-  const siteKey = appCheckConfig?.recaptchaEnterpriseSiteKey || '';
+  const siteKey = appCheckConfig?.recaptchaV3SiteKey || '';
 
   if (siteKey && !siteKey.includes('PASTE_')) {
     try {
       appCheck = initializeAppCheck(app, {
-        provider: new ReCaptchaEnterpriseProvider(siteKey),
+        provider: new ReCaptchaV3Provider(siteKey),
         isTokenAutoRefreshEnabled: true
       });
       appCheckEnabled = true;
