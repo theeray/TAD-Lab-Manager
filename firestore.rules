@@ -195,6 +195,70 @@ service cloud.firestore {
       allow read, create, update, delete: if staff();
     }
 
+    // Shared master material/pricing records.
+    // Everyone using the app may read them, but only authorized staff
+    // may change the permanent shared prices.
+    match /materials/{materialId} {
+      allow read: if signedIn();
+
+      allow create, update: if staff()
+        && request.resource.data.keys().hasOnly([
+          'name',
+          'method',
+          'rate',
+          'finishGroup',
+          'active',
+          'demo',
+          'updatedAt',
+          'updatedBy'
+        ])
+        && request.resource.data.name is string
+        && request.resource.data.name.size() > 0
+        && request.resource.data.name.size() <= 150
+        && request.resource.data.method in [
+          'sqin',
+          'gram',
+          'each',
+          'sheetMetalTier'
+        ]
+        && request.resource.data.rate is number
+        && request.resource.data.rate >= 0
+        && request.resource.data.rate <= 10000
+        && request.resource.data.finishGroup in [
+          'none',
+          'wood',
+          'sheet',
+          'printed',
+          'metal',
+          'print'
+        ]
+        && request.resource.data.active is bool
+        && request.resource.data.demo is bool
+        && request.resource.data.updatedAt == request.time
+        && request.resource.data.updatedBy == request.auth.token.email;
+
+      allow delete: if staff();
+    }
+
+    // Shared special pricing rules, currently the sheet-metal tiers.
+    match /pricingConfig/{configId} {
+      allow read: if signedIn();
+
+      allow create, update: if staff()
+        && configId == 'sheetMetalTiers'
+        && request.resource.data.keys().hasOnly([
+          'tiers',
+          'updatedAt',
+          'updatedBy'
+        ])
+        && request.resource.data.tiers is list
+        && request.resource.data.tiers.size() <= 20
+        && request.resource.data.updatedAt == request.time
+        && request.resource.data.updatedBy == request.auth.token.email;
+
+      allow delete: if staff();
+    }
+
     // Private machine-specific email routing.
     // Students cannot read stakeholder names or email addresses.
     match /notificationRoutes/{machineId} {
