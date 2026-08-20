@@ -144,6 +144,7 @@
             <button id="resetPricingBtn" class="ghost">Reset demo pricing</button>
           </div>
         </div>
+        <div id="sharedPricingStatus" class="banner info"><strong>Shared pricing:</strong> Connecting to the TAD master price list…</div>
         <div class="banner info"><strong>Pricing methods:</strong> square inch for sheet/print materials, gram for 3D printing, each for unit items, and sheet-metal tiers for the workbook's special tier logic.</div>
         <div class="table-wrap">
           <table class="pricing-table admin-authoritative">
@@ -183,6 +184,7 @@
     </article>
   </template>
 
-  <script src="app.js"></script>
+  <script src="app.js?v=20260819-2"></script>
+  <script type="module" src="firebase-pricing.js?v=20260819-1"></script>
 </body>
 </html>
