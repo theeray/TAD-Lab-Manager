@@ -36,11 +36,38 @@ function anonymousDb(uid) {
   }).firestore();
 }
 
+function staffDb(uid = 'staff-user') {
+  return env.authenticatedContext(uid, {
+    email: 'eric.carlson.2@bemidjistate.edu',
+    email_verified: true,
+    firebase: { sign_in_provider: 'password' },
+  }).firestore();
+}
+
 async function seedBase() {
   await env.withSecurityRulesDisabled(async (ctx) => {
-    await setDoc(doc(ctx.firestore(), 'machines', 'test-machine'), {
+    const db = ctx.firestore();
+
+    await setDoc(doc(db, 'machines', 'test-machine'), {
       name: 'Test Machine',
       room: 'TEST',
+    });
+
+    await setDoc(doc(db, 'materials', 'test-acrylic'), {
+      name: 'Test Acrylic',
+      method: 'sqin',
+      rate: 0.025,
+      finishGroup: 'sheet',
+      active: true,
+      demo: false,
+      updatedAt: Timestamp.now(),
+      updatedBy: 'eric.carlson.2@bemidjistate.edu',
+    });
+
+    await setDoc(doc(db, 'pricingConfig', 'sheetMetalTiers'), {
+      tiers: [{ max: 36, total: 3 }],
+      updatedAt: Timestamp.now(),
+      updatedBy: 'eric.carlson.2@bemidjistate.edu',
     });
   });
 }
@@ -128,6 +155,77 @@ try {
     const uid = 'ten-report-user';
     const db = anonymousDb(uid);
     await assertFails(submit(db, uid));
+  });
+
+  await check('anonymous users can read shared materials', async () => {
+    const db = anonymousDb('material-reader');
+    await assertSucceeds(
+      getDoc(doc(db, 'materials', 'test-acrylic'))
+    );
+  });
+
+  await check('anonymous users cannot change shared materials', async () => {
+    const db = anonymousDb('material-writer');
+
+    await assertFails(
+      setDoc(doc(db, 'materials', 'anonymous-material'), {
+        name: 'Unauthorized Material',
+        method: 'sqin',
+        rate: 0.01,
+        finishGroup: 'sheet',
+        active: true,
+        demo: false,
+        updatedAt: serverTimestamp(),
+        updatedBy: '',
+      })
+    );
+  });
+
+  await check('authorized staff can change shared materials', async () => {
+    const db = staffDb();
+
+    await assertSucceeds(
+      setDoc(doc(db, 'materials', 'staff-material'), {
+        name: 'Staff Material',
+        method: 'sqin',
+        rate: 0.02,
+        finishGroup: 'sheet',
+        active: true,
+        demo: false,
+        updatedAt: serverTimestamp(),
+        updatedBy: 'eric.carlson.2@bemidjistate.edu',
+      })
+    );
+  });
+
+  await check('anonymous users can read shared pricing configuration', async () => {
+    const db = anonymousDb('pricing-reader');
+    await assertSucceeds(
+      getDoc(doc(db, 'pricingConfig', 'sheetMetalTiers'))
+    );
+  });
+
+  await check('anonymous users cannot add machines', async () => {
+    const db = anonymousDb('machine-writer');
+
+    await assertFails(
+      setDoc(doc(db, 'machines', 'unauthorized-machine'), {
+        name: 'Unauthorized Machine',
+        room: 'TEST',
+      })
+    );
+  });
+
+  await check('anonymous users cannot add repair or cost records', async () => {
+    const db = anonymousDb('repair-writer');
+
+    await assertFails(
+      setDoc(doc(db, 'repairs', 'unauthorized-repair'), {
+        machineId: 'test-machine',
+        resolution: 'Unauthorized repair',
+        partsCost: 999,
+      })
+    );
   });
 
   await check('global 100th report is allowed and 101st is denied', async () => {
