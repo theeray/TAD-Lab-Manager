@@ -633,28 +633,44 @@ function renderReportPhotoPreview() {
 $('#reportPhotos')?.addEventListener('change', async event => {
   const selected = [...(event.target.files || [])];
 
-  if (!selected.length) {
-    clearReportPhotos();
+  if (!selected.length) return;
+
+  const remaining = MAX_REPORT_PHOTOS - reportPhotoAttachments.length;
+
+  if (remaining <= 0) {
+    event.target.value = '';
+    toast(`Maximum ${MAX_REPORT_PHOTOS} photos already selected.`);
     return;
   }
 
-  if (selected.length > MAX_REPORT_PHOTOS) {
-    toast(`Please choose no more than ${MAX_REPORT_PHOTOS} photos.`);
+  if (selected.length > remaining) {
+    toast(
+      `Only ${remaining} more photo${remaining === 1 ? '' : 's'} can be added.`
+    );
   }
 
-  const files = selected.slice(0, MAX_REPORT_PHOTOS);
+  const files = selected.slice(0, remaining);
+  const startIndex = reportPhotoAttachments.length;
 
-  clearReportPhotos();
   $('#photoSummary').textContent = 'Preparing photos…';
 
   try {
-    reportPhotoAttachments = await Promise.all(
-      files.map((file, index) => compressReportPhoto(file, index))
+    const prepared = await Promise.all(
+      files.map((file, index) =>
+        compressReportPhoto(file, startIndex + index)
+      )
     );
+
+    reportPhotoAttachments.push(...prepared);
     renderReportPhotoPreview();
+
+    // Reset only the native picker so another camera/photo selection
+    // can be added without removing already-prepared photos.
+    event.target.value = '';
   } catch (error) {
     console.error('[TAD Lab Manager] Photo preparation failed', error);
-    clearReportPhotos();
+    event.target.value = '';
+    renderReportPhotoPreview();
     toast(error?.message || 'One or more photos could not be prepared.');
   }
 });
