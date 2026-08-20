@@ -12,5 +12,15 @@
     "firestore": {
       "port": 8080
     }
+  },
+  "hosting": {
+    "public": ".",
+    "ignore": [
+      "firebase.json",
+      "**/.*",
+      "**/node_modules/**",
+      "functions/**",
+      "test/**"
+    ]
   }
 }

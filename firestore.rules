@@ -26,27 +26,70 @@ service cloud.firestore {
     function reportRateCountersValid() {
       let userPath = /databases/$(database)/documents/reportRateUsers/$(request.auth.uid);
       let globalPath = /databases/$(database)/documents/reportRateGlobal/reports;
+      let userAfter = getAfter(userPath);
+      let globalAfter = getAfter(globalPath);
+
       return staff() || (
         anonymous()
-        && existsAfter(userPath)
-        && existsAfter(globalPath)
-        && getAfter(userPath).data.uid == request.auth.uid
-        && getAfter(userPath).data.day == request.time.date()
-        && getAfter(userPath).data.updatedAt == request.time
-        && getAfter(userPath).data.count is int
-        && getAfter(userPath).data.count >= 1
-        && getAfter(userPath).data.count <= 10
-        && getAfter(globalPath).data.day == request.time.date()
-        && getAfter(globalPath).data.updatedAt == request.time
-        && getAfter(globalPath).data.count is int
-        && getAfter(globalPath).data.count >= 1
-        && getAfter(globalPath).data.count <= 100
+        && userAfter != null
+        && globalAfter != null
+        && userAfter.data.uid == request.auth.uid
+        && userAfter.data.day == request.time.date()
+        && userAfter.data.updatedAt == request.time
+        && userAfter.data.count is int
+        && userAfter.data.count >= 1
+        && userAfter.data.count <= 10
+        && globalAfter.data.day == request.time.date()
+        && globalAfter.data.updatedAt == request.time
+        && globalAfter.data.count is int
+        && globalAfter.data.count >= 1
+        && globalAfter.data.count <= 100
       );
     }
 
     match /machines/{machineId} {
       allow read: if signedIn();
       allow create, update, delete: if staff();
+    }
+
+    match /machineStatus/{machineId} {
+      allow read: if signedIn();
+
+      allow create, update: if
+        request.resource.data.keys().hasOnly([
+          'machineId',
+          'status',
+          'pendingReportId',
+          'updatedAt'
+        ])
+        && request.resource.data.machineId == machineId
+        && request.resource.data.status in [
+          'Operational',
+          'Report Pending',
+          'Attention',
+          'Out of Service'
+        ]
+        && request.resource.data.pendingReportId is string
+        && request.resource.data.updatedAt == request.time
+        && (
+          staff()
+          ||
+          (
+            anonymous()
+            && request.resource.data.status == 'Report Pending'
+            && getAfter(
+              /databases/$(database)/documents/reports/$(request.resource.data.pendingReportId)
+            ).data.machineId == machineId
+            && getAfter(
+              /databases/$(database)/documents/reports/$(request.resource.data.pendingReportId)
+            ).data.submittedByUid == request.auth.uid
+            && getAfter(
+              /databases/$(database)/documents/reports/$(request.resource.data.pendingReportId)
+            ).data.status == 'Open'
+          )
+        );
+
+      allow delete: if staff();
     }
 
     match /reports/{reportId} {

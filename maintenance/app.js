@@ -22,7 +22,9 @@ import {
   query,
   orderBy,
   serverTimestamp,
-  writeBatch
+  writeBatch,
+  runTransaction,
+  Timestamp
 } from 'https://www.gstatic.com/firebasejs/12.17.1/firebase-firestore.js';
 import {
   initializeAppCheck,
@@ -50,6 +52,7 @@ let machines = [];
 let starterMachines = [];
 let reports = [];
 let repairs = [];
+let machineStatuses = [];
 let tutorials = [];
 let subscribed = false;
 let staffSubscribed = false;
@@ -60,7 +63,31 @@ const esc = (s = '') => String(s).replace(/[&<>\"]/g, c => ({ '&': '&amp;', '<':
 const money = n => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(Number(n || 0));
 const toDate = v => v?.toDate ? v.toDate() : v instanceof Date ? v : new Date(v || Date.now());
 const date = v => toDate(v).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+const dateTime = v => toDate(v).toLocaleString('en-US', {
+  month: 'short',
+  day: 'numeric',
+  year: 'numeric',
+  hour: 'numeric',
+  minute: '2-digit'
+});
 const totalRepair = r => Number(r.partsCost || 0) + Number(r.serviceCost || 0);
+
+const PUBLIC_MACHINE_STATUSES = [
+  'Operational',
+  'Report Pending',
+  'Attention',
+  'Out of Service'
+];
+
+const machinePublicStatus = id =>
+  machineStatuses.find(s => s.id === id)?.status || 'Operational';
+
+const machineStatusDescription = status => ({
+  'Operational': 'No current maintenance concerns reported.',
+  'Report Pending': 'Open maintenance report awaiting staff review.',
+  'Attention': 'Maintenance issue confirmed; check before use.',
+  'Out of Service': 'Do not use until cleared by staff.'
+}[status] || 'Status unavailable.');
 const machine = id => machines.find(m => m.id === id) || starterMachines.find(m => m.id === id) || { id, name: 'Unknown Machine', room: '', tutorialEquipment: '' };
 const badge = v => `<span class="badge ${String(v).toLowerCase().replaceAll(' ', '')}">${esc(v)}</span>`;
 const slug = s => String(s || '').toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
@@ -345,6 +372,15 @@ function subscribeData() {
     renderAll();
   });
 
+  onSnapshot(collection(fs, 'machineStatus'), snap => {
+    machineStatuses = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    renderPublicMachines();
+  }, err => {
+    console.error('[TAD Lab Manager] Public machine-status subscription failed', err);
+    machineStatuses = [];
+    renderPublicMachines();
+  });
+
   if (staff) subscribeStaffCollections();
   else {
     reports = [];
@@ -504,14 +540,118 @@ $('#reportForm').onsubmit = async e => {
     submittedByEmail: currentUser.email || ''
   };
   try {
-    const ref = await addDoc(collection(fs, 'reports'), payload);
+    const reportRef = doc(collection(fs, 'reports'));
+    const userCounterRef = doc(fs, 'reportRateUsers', currentUser.uid);
+    const globalCounterRef = doc(fs, 'reportRateGlobal', 'reports');
+    const machineStatusRef = doc(fs, 'machineStatus', machineId);
+
+    const now = new Date();
+    const day = Timestamp.fromDate(
+      new Date(Date.UTC(
+        now.getUTCFullYear(),
+        now.getUTCMonth(),
+        now.getUTCDate()
+      ))
+    );
+
+    await runTransaction(fs, async transaction => {
+      const [userSnap, globalSnap, machineStatusSnap] = await Promise.all([
+        transaction.get(userCounterRef),
+        transaction.get(globalCounterRef),
+        transaction.get(machineStatusRef)
+      ]);
+
+      const userData = userSnap.exists() ? userSnap.data() : null;
+      const globalData = globalSnap.exists() ? globalSnap.data() : null;
+
+      const sameUserDay =
+        userData?.day?.toMillis?.() === day.toMillis();
+
+      const sameGlobalDay =
+        globalData?.day?.toMillis?.() === day.toMillis();
+
+      const userCount = sameUserDay ? Number(userData.count || 0) + 1 : 1;
+      const globalCount = sameGlobalDay ? Number(globalData.count || 0) + 1 : 1;
+
+      if (userCount > 10) {
+        throw new Error('USER_DAILY_LIMIT');
+      }
+
+      if (globalCount > 100) {
+        throw new Error('GLOBAL_DAILY_LIMIT');
+      }
+
+      transaction.set(userCounterRef, {
+        uid: currentUser.uid,
+        day,
+        count: userCount,
+        updatedAt: serverTimestamp()
+      });
+
+      transaction.set(globalCounterRef, {
+        day,
+        count: globalCount,
+        updatedAt: serverTimestamp()
+      });
+
+      transaction.set(reportRef, payload);
+
+      const existingPublicStatus =
+        machineStatusSnap.exists()
+          ? machineStatusSnap.data()?.status
+          : 'Operational';
+
+      // Never downgrade a staff-confirmed Attention or Out of Service status.
+      if (!['Attention', 'Out of Service'].includes(existingPublicStatus)) {
+        transaction.set(machineStatusRef, {
+          machineId,
+          status: 'Report Pending',
+          pendingReportId: reportRef.id,
+          updatedAt: serverTimestamp()
+        });
+      }
+    });
+
+    // Immediately reflect the successful public status change in the UI.
+    // Firestore has already committed this as part of the report transaction.
+    const currentPublicStatus = machinePublicStatus(machineId);
+
+    if (!['Attention', 'Out of Service'].includes(currentPublicStatus)) {
+      const statusRecord = {
+        id: machineId,
+        machineId,
+        status: 'Report Pending',
+        pendingReportId: reportRef.id
+      };
+
+      const statusIndex = machineStatuses.findIndex(x => x.id === machineId);
+
+      if (statusIndex >= 0) {
+        machineStatuses[statusIndex] = {
+          ...machineStatuses[statusIndex],
+          ...statusRecord
+        };
+      } else {
+        machineStatuses.push(statusRecord);
+      }
+
+      renderPublicMachines();
+    }
+
     e.target.reset();
     renderReportForm();
-    toast(`Report ${ref.id.slice(0, 8)} submitted`);
+    toast(`Report ${reportRef.id.slice(0, 8)} submitted`);
     showView('dashboard');
   } catch (err) {
     console.error(err);
-    toast('Report could not be submitted. Check Firebase rules/App Check configuration.');
+
+    if (err?.message === 'USER_DAILY_LIMIT') {
+      toast('Daily limit reached: maximum 10 reports per browser account.');
+    } else if (err?.message === 'GLOBAL_DAILY_LIMIT') {
+      toast('The lab has reached its 100-report daily safety limit.');
+    } else {
+      toast('Report could not be submitted. The safety limit or Firestore rules may have blocked it.');
+    }
   }
 };
 
@@ -534,10 +674,13 @@ function renderDashboard() {
   if (!staff) return;
   const rank = { Critical: 4, High: 3, Medium: 2, Low: 1 };
   const open = reports.filter(r => r.status !== 'Resolved')
-    .sort((a, b) => (rank[b.urgency] - rank[a.urgency]) || (toDate(b.createdAt) - toDate(a.createdAt)))
+    .sort((a, b) =>
+      (toDate(b.createdAt) - toDate(a.createdAt)) ||
+      ((rank[b.urgency] ?? 0) - (rank[a.urgency] ?? 0))
+    )
     .slice(0, 6);
   $('#openIssues').innerHTML = open.length ? open.map(r => `
-    <div class="issue-row"><div><div class="row-title">${esc(machine(r.machineId).name)}</div><div class="row-meta">${date(r.createdAt)} · ${esc(r.issue)}</div></div>${badge(r.urgency)}</div>`).join('') : '<div class="empty">No open issues.</div>';
+    <div class="issue-row"><div><div class="row-title">${esc(machine(r.machineId).name)}</div><div class="row-meta">${dateTime(r.createdAt)} · ${esc(r.issue)}</div></div>${badge(r.urgency)}</div>`).join('') : '<div class="empty">No open issues.</div>';
 
   const ids = [...new Set(reports.filter(r => r.status !== 'Resolved').map(r => r.machineId))];
   $('#machineAttention').innerHTML = ids.length ? ids.map(id => {
@@ -549,16 +692,41 @@ function renderDashboard() {
 
 function renderPublicMachines() {
   const list = machines.length ? machines : starterMachines;
-  $('#publicMachines').innerHTML = list.slice().sort((a, b) => a.name.localeCompare(b.name)).map(m => `
-    <article class="machine-card">
-      <h3>${esc(m.name)}</h3>
-      <div class="machine-id">${esc(m.id)}</div>
-      <div class="machine-meta"><div><span>Location:</span> ${esc(m.room || '—')}</div><div><span>Direct tutorials:</span> ${tutorialsForMachine(m).length}</div></div>
-      <div class="machine-actions">
-        <button class="btn primary small" onclick="window.reportMachine('${esc(m.id)}')">Report problem</button>
-        <button class="btn secondary small" onclick="window.showMachineTutorials('${esc(m.tutorialEquipment || '')}')">Tutorials</button>
-      </div>
-    </article>`).join('') || '<div class="empty">No machines configured.</div>';
+
+  $('#publicMachines').innerHTML = list
+    .slice()
+    .sort((a, b) => a.name.localeCompare(b.name))
+    .map(m => {
+      const status = machinePublicStatus(m.id);
+
+      return `
+        <article class="machine-card machine-status-${slug(status)}">
+          <div class="public-machine-status status-${slug(status)}">
+            <strong><span class="status-dot"></span>${esc(status)}</strong>
+            <span>${esc(machineStatusDescription(status))}</span>
+          </div>
+
+          <h3>${esc(m.name)}</h3>
+          <div class="machine-id">${esc(m.id)}</div>
+
+          <div class="machine-meta">
+            <div><span>Location:</span> ${esc(m.room || '—')}</div>
+            <div><span>Direct tutorials:</span> ${tutorialsForMachine(m).length}</div>
+          </div>
+
+          <div class="machine-actions">
+            <button class="btn primary small"
+              onclick="window.reportMachine('${esc(m.id)}')">
+              Report problem
+            </button>
+
+            <button class="btn secondary small"
+              onclick="window.showMachineTutorials('${esc(m.tutorialEquipment || '')}')">
+              Tutorials
+            </button>
+          </div>
+        </article>`;
+    }).join('') || '<div class="empty">No machines configured.</div>';
 }
 
 window.reportMachine = id => {
@@ -582,7 +750,7 @@ function reportTable() {
     (status === 'All' || r.status === status) &&
     (!q || [r.id, machine(r.machineId).name, r.issue, r.contact].join(' ').toLowerCase().includes(q))
   );
-  $('#reportsTable').innerHTML = list.length ? `<div class="table-wrap"><table><thead><tr><th>Date</th><th>Machine</th><th>Urgency</th><th>Issue</th><th>Status</th><th></th></tr></thead><tbody>${list.map(r => `<tr><td>${date(r.createdAt)}</td><td>${esc(machine(r.machineId).name)}</td><td>${badge(r.urgency)}</td><td>${esc(r.issue)}</td><td>${badge(r.status)}</td><td><button class="text-btn" onclick="window.manageReport('${esc(r.id)}')">Manage</button></td></tr>`).join('')}</tbody></table></div>` : '<div class="empty">No matching reports.</div>';
+  $('#reportsTable').innerHTML = list.length ? `<div class="table-wrap"><table><thead><tr><th>Date</th><th>Machine</th><th>Urgency</th><th>Issue</th><th>Status</th><th></th></tr></thead><tbody>${list.map(r => `<tr><td>${dateTime(r.createdAt)}</td><td>${esc(machine(r.machineId).name)}</td><td>${badge(r.urgency)}</td><td>${esc(r.issue)}</td><td>${badge(r.status)}</td><td><button class="text-btn" onclick="window.manageReport('${esc(r.id)}')">Manage</button></td></tr>`).join('')}</tbody></table></div>` : '<div class="empty">No matching reports.</div>';
 }
 
 $('#reportStatusFilter').onchange = reportTable;
@@ -590,14 +758,41 @@ $('#reportSearch').oninput = reportTable;
 window.manageReport = id => {
   const r = reports.find(x => x.id === id);
   if (!r) return;
-  $('#modalBody').innerHTML = `<h2>${esc(machine(r.machineId).name)}</h2><p>${badge(r.urgency)} ${badge(r.status)}</p><p><strong>Issue</strong><br>${esc(r.issue)}</p><p><strong>Fixes tried</strong><br>${esc(r.attempted || 'None entered')}</p><p><strong>Contact</strong><br>${esc(r.contact || 'Not provided')}</p><div class="form-grid"><label>Status<select id="manageStatus"><option>Open</option><option>Diagnosing</option><option>Waiting for Part</option><option>Resolved</option></select></label><div class="form-actions"><button type="button" class="btn secondary" onclick="window.addRepairFor('${esc(r.id)}')">Add repair/cost</button><button type="button" class="btn primary" onclick="window.saveReportStatus('${esc(r.id)}')">Save status</button></div></div>`;
+  const publicStatus = machinePublicStatus(r.machineId);
+  $('#modalBody').innerHTML = `<h2>${esc(machine(r.machineId).name)}</h2><p>${badge(r.urgency)} ${badge(r.status)}</p><p><strong>Issue</strong><br>${esc(r.issue)}</p><p><strong>Fixes tried</strong><br>${esc(r.attempted || 'None entered')}</p><p><strong>Contact</strong><br>${esc(r.contact || 'Not provided')}</p><div class="form-grid"><label>Status<select id="manageStatus"><option>Open</option><option>Diagnosing</option><option>Waiting for Part</option><option>Resolved</option></select></label><label class="full">Public machine status
+<select id="manageMachineStatus">
+  ${PUBLIC_MACHINE_STATUSES.map(s => `<option>${esc(s)}</option>`).join('')}
+</select>
+<small>This status is visible to students and anonymous viewers.</small>
+</label>
+<div class="form-actions"><button type="button" class="btn secondary" onclick="window.addRepairFor('${esc(r.id)}')">Add repair/cost</button><button type="button" class="btn primary" onclick="window.saveReportStatus('${esc(r.id)}')">Save status</button></div></div>`;
   $('#manageStatus').value = r.status;
+  $('#manageMachineStatus').value = publicStatus;
   $('#modal').showModal();
 };
 window.saveReportStatus = async id => {
-  await updateDoc(doc(fs, 'reports', id), { status: $('#manageStatus').value, updatedAt: serverTimestamp() });
+  const r = reports.find(x => x.id === id);
+  if (!r) return;
+
+  const reportStatus = $('#manageStatus').value;
+  const publicStatus = $('#manageMachineStatus').value;
+
+  await Promise.all([
+    updateDoc(doc(fs, 'reports', id), {
+      status: reportStatus,
+      updatedAt: serverTimestamp()
+    }),
+
+    setDoc(doc(fs, 'machineStatus', r.machineId), {
+      machineId: r.machineId,
+      status: publicStatus,
+      pendingReportId: publicStatus === 'Report Pending' ? id : '',
+      updatedAt: serverTimestamp()
+    })
+  ]);
+
   $('#modal').close();
-  toast('Report status updated');
+  toast('Report and public machine status updated');
 };
 
 function renderMachines() {

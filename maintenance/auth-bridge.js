@@ -1,4 +1,3 @@
-import './rate-limit.js';
 import { getApp } from 'https://www.gstatic.com/firebasejs/12.17.1/firebase-app.js';
 import {
   getAuth,
