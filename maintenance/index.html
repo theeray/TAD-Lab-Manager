@@ -104,6 +104,14 @@
             </label>
             <label>Preferred contact<input id="contact" placeholder="Name or email (optional)"></label>
             <label>Helpful resource or link<input id="resource" placeholder="Optional URL"></label>
+
+            <label class="full">Photos (optional)
+              <input id="reportPhotos" type="file" accept="image/*" multiple>
+              <small>Choose or take up to 3 photos. Photos are compressed in your browser and will ultimately be attached to the stakeholder email rather than stored with the maintenance record.</small>
+              <div id="photoPreview" class="photo-preview" aria-live="polite"></div>
+              <span id="photoSummary" class="photo-summary">No photos selected.</span>
+            </label>
+
             <div class="form-actions full"><button type="reset" class="btn secondary">Clear</button><button class="btn primary" type="submit">Submit report</button></div>
           </form>
           <div class="notice"><strong>Shared maintenance record:</strong> reports are stored in Firestore and become visible to authorized staff. Automatic email notifications are intentionally not enabled in this Spark/no-billing release.</div>
@@ -164,7 +172,7 @@
 </div>
 <dialog id="modal"><form method="dialog" class="modal-card"><button class="modal-close" value="cancel">×</button><div id="modalBody"></div></form></dialog>
 <div id="toast" class="toast"></div>
-<script type="module" src="app.js?v=20260819-8"></script>
+<script type="module" src="app.js?v=20260819-9"></script>
 <script type="module" src="auth-enhancements.js"></script>
 <script type="module" src="auth-bridge.js?v=20260819-2"></script>
 </body>
