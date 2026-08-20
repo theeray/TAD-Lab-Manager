@@ -4,7 +4,7 @@ This build is designed to launch without a billing account.
 
 ## 1. Create a Firebase project and Web App
 
-In Firebase Console, create or choose the TAD Lab Manager project and register a **Web App**.
+In Firebase Console, create or choose the **TAD Lab Manager** project and register a Web App.
 
 Copy the Firebase Web App configuration values into the root file:
 
@@ -14,7 +14,7 @@ Do not move `firebase-config.js` into the `maintenance` folder; the maintenance 
 
 ## 2. Create Cloud Firestore
 
-Create the default Cloud Firestore database in Native mode.
+Create the default Cloud Firestore database in Standard/Native mode and start in Production mode.
 
 Collections used by this release:
 - `machines`
@@ -25,13 +25,18 @@ No `mail`, `routing`, photo-storage, or Cloud Functions collection/service is re
 
 ## 3. Enable Authentication
 
-Enable:
-- **Anonymous** sign-in for student maintenance submissions
-- **Microsoft** sign-in for staff administration
+Enable **Anonymous** sign-in for student maintenance submissions. Enable anonymous-account auto-cleanup if available.
 
-The included Firestore rules limit staff access to Microsoft-authenticated email addresses ending in `@bemidjistate.edu`.
+Also enable Firebase Authentication **Email/Password** for staff accounts. Staff authentication is local to TAD Lab Manager and does not use Microsoft 365 / Entra SSO, so no institutional app registration is required for this release.
 
-Microsoft sign-in requires a Microsoft/Azure OAuth client configuration and Firebase's redirect URI to be registered with Microsoft.
+The approved staff list in both the web app and Firestore rules is currently:
+
+- `eric.carlson.2@bemidjistate.edu`
+- `chase.cornell@bemidjistate.edu`
+- `andrew.graham@bemidjistate.edu`
+- `nick.lowery@bemidjistate.edu`
+
+Each approved staff member creates their own TAD Lab Manager password from the app's **Staff sign in** dialog. This password is separate from the person's campus Microsoft password. New staff accounts must verify the email address before staff tools unlock.
 
 ## 4. Publish the Firestore rules
 
@@ -42,33 +47,47 @@ Use the included root file:
 The rules allow:
 - authenticated users to read machine records
 - anonymous/authenticated students to create tightly validated reports
-- only Microsoft-authenticated BSU staff to read or change maintenance reports
-- only BSU staff to manage machine and repair records
+- only the four explicitly approved, email-verified Firebase password accounts to read or change maintenance reports
+- only those approved staff accounts to manage machine and repair records
 
-## 5. Configure App Check before public launch
+The repository copy of `firestore.rules` is the source-of-truth version; after changes, publish the matching rules in Firebase Console.
 
-Create a reCAPTCHA Enterprise web key for the deployed GitHub Pages domain.
+## 5. Configure and verify App Check before enforcement
 
-Paste the site key into:
+The web app uses **reCAPTCHA Enterprise** App Check. The reCAPTCHA key should be:
 
-`firebase-config.js`
+- Website / Web
+- score-based
+- allowed for `theeray.github.io`
+- registered to the **TAD Lab Manager Web** Firebase app as reCAPTCHA Enterprise
 
-Then register the web app under Firebase **App Check**. Test normal student and staff use first; after validation, enable enforcement for Firestore.
+The site key lives in `firebase-config.js` and is a public client-side identifier.
 
-## 6. Seed the machine inventory
+Before enabling Firestore enforcement:
 
-After Firebase is connected:
+1. Keep Firestore App Check in **Monitoring**.
+2. Open TAD Lab Manager → **Machines & Maintenance → Settings**.
+3. Check **Token diagnostic** under System connection.
+4. Click **Run App Check diagnostic** if needed.
+5. Do not enable enforcement until the diagnostic reports that a valid token was issued and Firebase App Check metrics begin showing verified requests.
 
-1. Open `maintenance/index.html`.
-2. Sign in as staff with Microsoft 365.
-3. Open **Settings**.
-4. Click **Add starter machine records**.
+The diagnostic intentionally reports only success/error information; it does not display or log the App Check token itself.
 
-The seed contains the same 40-machine inventory used by the branded home page.
+## 6. Create a staff account and seed the machine inventory
+
+After Email/Password authentication is enabled:
+
+1. Open `/maintenance/index.html`.
+2. Click **Staff sign in**.
+3. Enter one of the approved `@bemidjistate.edu` addresses and choose **Create account**.
+4. Check that mailbox and complete the Firebase email-verification link.
+5. Return to the app and sign in with the password created for TAD Lab Manager.
+6. Open **Settings**.
+7. Click **Add starter machine records**.
+
+The seed source is `/data/machines.json`, the same 40-machine inventory used by the branded home page. Until Firestore contains machine documents, the interface can display the local machine list, but student report creation will still be rejected by Firestore rules because a submitted machine ID must exist in the Firestore `machines` collection.
 
 ## 7. GitHub Pages
-
-Upload this entire folder structure to the repository root.
 
 Important paths:
 - `/index.html`
@@ -77,19 +96,19 @@ Important paths:
 - `/data/machines.json`
 - `/firebase-config.js`
 
-In GitHub Pages, publish from the `main` branch and repository root.
+GitHub Pages publishes from the `main` branch and repository root.
 
-Add the final GitHub Pages domain to Firebase Authentication's authorized domains.
+Add `theeray.github.io` to Firebase Authentication's authorized domains.
 
 ## 8. Linktree maintenance URLs
 
 Each machine gets a URL like:
 
-`https://YOUR-GITHUB-PAGES-URL/maintenance/index.html?machine=cnc-shopbot-full-01#report`
+`https://theeray.github.io/TAD-Lab-Manager/maintenance/index.html?machine=cnc-shopbot-full-01#report`
 
 Use that as the machine's **Report a Problem** Linktree destination. The physical QR sticker can remain unchanged if it already points to the Linktree.
 
-See `LINKTREE-MAINTENANCE-LINKS.csv` for the complete 40-machine list after replacing the placeholder domain.
+See `LINKTREE-MAINTENANCE-LINKS.csv` for the complete machine list.
 
 ## No Blaze requirement in this release
 

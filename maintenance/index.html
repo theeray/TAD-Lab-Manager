@@ -5,7 +5,9 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <meta name="theme-color" content="#36B8B2" />
   <title>TAD Lab Manager — Machines & Maintenance</title>
+  <link rel="icon" type="image/png" href="../assets/tad-t-logo.png" />
   <link rel="stylesheet" href="styles.css" />
+  <link rel="stylesheet" href="fixes.css?v=20260819-1" />
 </head>
 <body>
 <div id="setupBanner" class="setup-banner hidden"></div>
@@ -154,7 +156,7 @@
     <section id="view-settings" class="view">
       <div class="two-col">
         <article class="card"><h3>System connection</h3><div id="firebaseInfo"></div></article>
-        <article class="card"><h3>Staff access</h3><p>Students can submit reports. Staff sign in with Microsoft 365 to see issue history, repair costs, exports, and machine administration.</p><div class="stack"><button class="btn primary" id="settingsLogin">Sign in with Microsoft 365</button><button class="btn secondary hidden" id="signOut">Sign out</button></div></article>
+        <article class="card"><h3>Staff access</h3><p>Staff use a TAD Lab Manager account tied to an approved <strong>@bemidjistate.edu</strong> address. The password is created for this app and is separate from the campus Microsoft account.</p><div class="stack"><button class="btn primary" id="settingsLogin">Sign in / create staff account</button><button class="btn secondary hidden" id="signOut">Sign out</button></div></article>
       </div>
       <article class="card"><h3>Abuse protection</h3><p>This release is designed for Firebase Spark with no billing account. Before public launch, configure Firebase App Check and enforce it for Firestore after testing legitimate submissions.</p></article>
     </section>
@@ -162,6 +164,8 @@
 </div>
 <dialog id="modal"><form method="dialog" class="modal-card"><button class="modal-close" value="cancel">×</button><div id="modalBody"></div></form></dialog>
 <div id="toast" class="toast"></div>
-<script type="module" src="app.js"></script>
+<script type="module" src="app.js?v=20260819-7"></script>
+<script type="module" src="auth-enhancements.js"></script>
+<script type="module" src="auth-bridge.js?v=20260819-2"></script>
 </body>
 </html>

@@ -1,0 +1,25 @@
+.home-float {
+  left: 14px;
+  right: auto;
+  bottom: 14px;
+}
+
+.toast {
+  z-index: 10001;
+  max-width: min(420px, calc(100vw - 32px));
+}
+
+@media (max-width: 760px) {
+  .home-float {
+    left: 10px;
+    right: auto;
+    bottom: 10px;
+  }
+
+  .toast {
+    left: 16px;
+    right: 16px;
+    bottom: 72px;
+    text-align: center;
+  }
+}
