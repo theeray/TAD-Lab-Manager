@@ -195,6 +195,12 @@ service cloud.firestore {
       allow read, create, update, delete: if staff();
     }
 
+    // Private machine-specific email routing.
+    // Students cannot read stakeholder names or email addresses.
+    match /notificationRoutes/{machineId} {
+      allow read, create, update, delete: if staff();
+    }
+
     match /{document=**} {
       allow read, write: if false;
     }
