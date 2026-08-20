@@ -775,7 +775,41 @@ window.saveReportStatus = async id => {
   if (!r) return;
 
   const reportStatus = $('#manageStatus').value;
-  const publicStatus = $('#manageMachineStatus').value;
+  let publicStatus = $('#manageMachineStatus').value;
+
+  const otherOpenReports = reports.filter(x =>
+    x.machineId === r.machineId &&
+    x.id !== id &&
+    x.status !== 'Resolved'
+  );
+
+  // Resolving the final open report clears the machine automatically.
+  if (reportStatus === 'Resolved' && otherOpenReports.length === 0) {
+    publicStatus = 'Operational';
+  }
+
+  // If another unresolved report remains, never accidentally clear
+  // a machine just because this individual report was resolved.
+  if (
+    reportStatus === 'Resolved' &&
+    otherOpenReports.length > 0 &&
+    publicStatus === 'Operational'
+  ) {
+    const currentStatus = machinePublicStatus(r.machineId);
+
+    publicStatus =
+      ['Attention', 'Out of Service'].includes(currentStatus)
+        ? currentStatus
+        : 'Report Pending';
+  }
+
+  const pendingReportId =
+    publicStatus === 'Report Pending'
+      ? (
+          otherOpenReports[0]?.id ||
+          (reportStatus !== 'Resolved' ? id : '')
+        )
+      : '';
 
   await Promise.all([
     updateDoc(doc(fs, 'reports', id), {
@@ -786,13 +820,18 @@ window.saveReportStatus = async id => {
     setDoc(doc(fs, 'machineStatus', r.machineId), {
       machineId: r.machineId,
       status: publicStatus,
-      pendingReportId: publicStatus === 'Report Pending' ? id : '',
+      pendingReportId,
       updatedAt: serverTimestamp()
     })
   ]);
 
   $('#modal').close();
-  toast('Report and public machine status updated');
+
+  toast(
+    reportStatus === 'Resolved' && otherOpenReports.length === 0
+      ? 'Report resolved — machine returned to Operational'
+      : 'Report and public machine status updated'
+  );
 };
 
 function renderMachines() {
