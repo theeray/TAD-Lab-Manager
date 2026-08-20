@@ -1,4 +1,4 @@
-import { firebaseConfig, appCheckConfig } from '../firebase-config.js';
+import { firebaseConfig, appCheckConfig } from '../firebase-config.js?v=20260819-2';
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.17.1/firebase-app.js';
 import {
   getAuth,
