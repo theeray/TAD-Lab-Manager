@@ -26,7 +26,7 @@ const featuredImages={
  'laser-epilog-m2-75':'https://simplybook.it/uploads/fablabljmu/image_files/original/ea87ad2ba07b13f16cf4e1a21e98a9da.jpg',
  'cnc-shopbot-d2418-02':'https://shopbottools.com/wp-content/uploads/2024/02/Desktop_VacuumHoldDownDeck.jpg',
  'waterjet-wazer-01':'https://i.kickstarter.com/assets/013/118/664/6f00e6c4dfc788fe6eaeb5a198ff0bf7_original.jpg?anim=false&fit=cover&gravity=auto&height=873&origin=ugc&q=92&sig=3IPNX7kAbn7BFxQ0dfnISq6%2B0emwEn%2Fg%2FPz6js139mQ%3D&v=1473004743&width=1552',
- 'cut-kongsberg-v-01':'assets/kongsberg-v-tad.svg',
+ 'cut-kongsberg-v-01':'assets/kongsberg-v-tad.jpg',
  'cnc-plasma-koike-01':'https://cdn11.bigcommerce.com/s-qitjiw0idi/images/stencil/1280x1280/products/168/636/ShopPro__80657.1709240942.png?c=1'
 };
 
