@@ -15,9 +15,6 @@ jobs:
       - name: Check out repository
         uses: actions/checkout@v4
 
-      - name: Restore approved Kongsberg image
-        run: base64 --decode assets/kongsberg-v-approved.jpg.b64 > assets/kongsberg-v-tad.jpg
-
       - name: Deploy to Firebase Hosting live channel
         uses: FirebaseExtended/action-hosting-deploy@v0
         with:
