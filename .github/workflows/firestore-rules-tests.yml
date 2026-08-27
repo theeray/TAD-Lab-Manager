@@ -1,0 +1,44 @@
+name: Test Firestore Security Rules
+
+on:
+  pull_request:
+    paths:
+      - 'firestore.rules'
+      - 'tests/**'
+      - '.github/workflows/firestore-rules-tests.yml'
+  push:
+    branches:
+      - main
+    paths:
+      - 'firestore.rules'
+      - 'tests/**'
+      - '.github/workflows/firestore-rules-tests.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  rules_tests:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: tests/package-lock.json
+
+      - name: Set up Java for Firestore emulator
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - name: Install test dependencies
+        run: npm ci --prefix tests
+
+      - name: Run Firestore rules tests
+        run: npx firebase-tools@latest emulators:exec --only firestore --project demo-tad-lab-manager-rules-test "npm --prefix tests test"
