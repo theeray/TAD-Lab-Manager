@@ -1,5 +1,6 @@
 import { getApp } from 'https://www.gstatic.com/firebasejs/12.17.1/firebase-app.js';
-import { getAuth, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/12.17.1/firebase-auth.js';
+import { getAuth, onAuthStateChanged, getIdTokenResult } from 'https://www.gstatic.com/firebasejs/12.17.1/firebase-auth.js';
+import { getAppCheck, getToken as getAppCheckToken } from 'https://www.gstatic.com/firebasejs/12.17.1/firebase-app-check.js';
 import {
   getFirestore,
   collection,
@@ -28,7 +29,7 @@ function toast(message) {
   if (!el) return;
   el.textContent = message;
   el.classList.add('show');
-  window.setTimeout(() => el.classList.remove('show'), 4200);
+  window.setTimeout(() => el.classList.remove('show'), 5200);
 }
 
 function isManagerSession(user) {
@@ -40,6 +41,36 @@ function isManagerSession(user) {
     APPROVED_STAFF.has(String(user.email).trim().toLowerCase()) &&
     user.providerData?.some(p => p.providerId === 'password')
   );
+}
+
+async function verifySecurityContext(user) {
+  const tokenResult = await getIdTokenResult(user, true);
+  const provider = tokenResult.claims?.firebase?.sign_in_provider || '';
+  const emailVerified = tokenResult.claims?.email_verified === true;
+  const email = String(tokenResult.claims?.email || user.email || '').trim().toLowerCase();
+
+  console.info('[TAD Lab Manager] Manager auth claims check', {
+    email,
+    emailVerified,
+    signInProvider: provider
+  });
+
+  if (provider !== 'password' || !emailVerified || !APPROVED_STAFF.has(email)) {
+    const error = new Error('AUTH_CLAIMS_INVALID');
+    error.details = { provider, emailVerified, email };
+    throw error;
+  }
+
+  try {
+    const appCheck = getAppCheck(app);
+    const result = await getAppCheckToken(appCheck, true);
+    if (!result?.token) throw new Error('No App Check token returned');
+    console.info('[TAD Lab Manager] App Check preflight succeeded');
+  } catch (cause) {
+    const error = new Error('APP_CHECK_FAILED');
+    error.cause = cause;
+    throw error;
+  }
 }
 
 async function ensureMachineRecord(machineId, user) {
@@ -77,6 +108,7 @@ async function managerSubmit(event) {
   if (!issue) return toast('Please describe the issue');
 
   try {
+    await verifySecurityContext(user);
     const machineRecord = await ensureMachineRecord(machineId, user);
     const reportRef = doc(collection(db, 'reports'));
     const machineStatusRef = doc(db, 'machineStatus', machineId);
@@ -120,12 +152,27 @@ async function managerSubmit(event) {
     window.setTimeout(() => document.querySelector('#nav [data-view="reports"]')?.click(), 250);
   } catch (error) {
     console.error('[TAD Lab Manager] Manager report submission failed', error);
+
+    if (error?.message === 'AUTH_CLAIMS_INVALID') {
+      const provider = error.details?.provider || 'unknown';
+      const verified = error.details?.emailVerified ? 'verified' : 'not verified';
+      toast(`Manager authentication token is not acceptable to Firestore (${provider}, ${verified}). Sign out and sign back in.`);
+      return;
+    }
+
+    if (error?.message === 'APP_CHECK_FAILED') {
+      const appCheckCode = error.cause?.code || error.cause?.message || 'token request failed';
+      toast(`App Check failed before the Firestore write (${appCheckCode}). Keep Firestore App Check in Monitoring while we fix this.`);
+      return;
+    }
+
     if (error?.message === 'MACHINE_DATA_UNAVAILABLE' || error?.message === 'MACHINE_NOT_FOUND') {
       toast('The selected machine could not be found in the Firestore or starter inventory.');
       return;
     }
+
     const code = String(error?.code || 'permission-denied').replace('firestore/', '');
-    toast(`Manager report could not be submitted (${code}). The deployed Firestore rules may be out of date.`);
+    toast(`Auth and App Check passed, but Firestore rejected the manager transaction (${code}).`);
   }
 }
 
