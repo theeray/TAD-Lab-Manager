@@ -2,7 +2,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { assertSucceeds, initializeTestEnvironment } from '@firebase/rules-unit-testing';
-import { collection, doc, serverTimestamp, setDoc } from 'firebase/firestore';
+import { collection, doc, runTransaction, serverTimestamp, setDoc } from 'firebase/firestore';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const rules = fs.readFileSync(path.join(__dirname, '..', 'firestore.rules'), 'utf8');
@@ -28,23 +28,38 @@ try {
     firebase: { sign_in_provider: 'password' },
   }).firestore();
 
-  await assertSucceeds(setDoc(doc(collection(db, 'reports')), {
-    machineId: 'test-machine',
-    createdAt: serverTimestamp(),
-    urgency: 'Low',
-    usable: 'Yes',
-    issue: 'Staff lifecycle test',
-    attempted: '',
-    contact: '',
-    resource: '',
-    status: 'Open',
-    machineNameSnapshot: 'Test Machine',
-    roomSnapshot: 'TEST',
-    submittedByUid: 'staff-user',
-    submittedByEmail: 'eric.carlson.2@bemidjistate.edu',
+  await assertSucceeds(runTransaction(db, async tx => {
+    const reportRef = doc(collection(db, 'reports'));
+    const machineStatusRef = doc(db, 'machineStatus', 'test-machine');
+    const statusSnap = await tx.get(machineStatusRef);
+
+    tx.set(reportRef, {
+      machineId: 'test-machine',
+      createdAt: serverTimestamp(),
+      urgency: 'Low',
+      usable: 'Yes',
+      issue: 'Staff lifecycle test',
+      attempted: '',
+      contact: '',
+      resource: '',
+      status: 'Open',
+      machineNameSnapshot: 'Test Machine',
+      roomSnapshot: 'TEST',
+      submittedByUid: 'staff-user',
+      submittedByEmail: 'eric.carlson.2@bemidjistate.edu',
+    });
+
+    if (!statusSnap.exists() || !['Attention', 'Out of Service'].includes(statusSnap.data()?.status)) {
+      tx.set(machineStatusRef, {
+        machineId: 'test-machine',
+        status: 'Report Pending',
+        pendingReportId: reportRef.id,
+        updatedAt: serverTimestamp(),
+      });
+    }
   }));
 
-  console.log('PASS: authorized staff can submit a report without anonymous rate counters');
+  console.log('PASS: authorized staff can submit the exact report + machine-status transaction without anonymous rate counters');
 } finally {
   await env.cleanup();
 }
