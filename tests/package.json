@@ -3,7 +3,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "test": "node rate-limits.test.mjs"
+    "test": "node rate-limits.test.mjs && node operations-permissions.test.mjs"
   },
   "dependencies": {
     "@firebase/rules-unit-testing": "5.0.1",
