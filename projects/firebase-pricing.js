@@ -15,6 +15,7 @@ import {
   getFirestore,
   collection,
   doc,
+  getDoc,
   getDocs,
   onSnapshot,
   setDoc,
@@ -74,6 +75,49 @@ function currentUserCanEdit(user) {
   );
 }
 
+function configureRestoreButton() {
+  const button = document.getElementById('resetPricingBtn');
+  if (!button) return;
+
+  button.textContent = materialsEmpty ? 'Publish starter catalog' : 'Restore starter catalog';
+  button.title = 'Adds any missing starter materials without overwriting existing shared materials or edited rates.';
+
+  if (button.dataset.safeRestoreInstalled === 'true') return;
+  button.dataset.safeRestoreInstalled = 'true';
+
+  button.addEventListener('click', async event => {
+    if (!canEdit) return;
+
+    event.preventDefault();
+    event.stopImmediatePropagation();
+
+    const message = materialsEmpty
+      ? 'Publish the starter material catalog to shared Firestore pricing?'
+      : 'Restore any missing starter materials? Existing materials and edited rates will be preserved.';
+
+    if (!confirm(message)) return;
+
+    button.disabled = true;
+    const priorText = button.textContent;
+    button.textContent = 'Restoring…';
+
+    try {
+      const result = await publishDefaults();
+      const added = Number(result?.added || 0);
+      alert(added
+        ? `Restored ${added} missing starter material${added === 1 ? '' : 's'}. Existing shared materials and rates were preserved.`
+        : 'The full starter catalog is already present. No existing pricing was changed.');
+    } catch (error) {
+      console.error('[TAD Cost Estimator] Starter catalog restore failed', error);
+      alert('The starter material catalog could not be restored.');
+    } finally {
+      button.disabled = false;
+      button.textContent = priorText;
+      configureRestoreButton();
+    }
+  }, true);
+}
+
 function updateAccessStatus(message = '') {
   ui.setAccess({
     canEdit,
@@ -81,6 +125,7 @@ function updateAccessStatus(message = '') {
     materialsEmpty,
     message
   });
+  queueMicrotask(configureRestoreButton);
 }
 
 function subscribeSharedPricing() {
@@ -174,6 +219,10 @@ async function saveTiers(tiers) {
   });
 }
 
+// Historical versions kept the starter catalog in browser localStorage. Shared
+// Firestore pricing must not appear empty just because one custom material was
+// created first. Restore only missing starter IDs and preserve all existing
+// custom materials and edited rates.
 async function publishDefaults() {
   if (!canEdit || !currentUser?.email) {
     throw new Error('NOT_AUTHORIZED');
@@ -181,13 +230,16 @@ async function publishDefaults() {
 
   const defaults = ui.defaultPricing();
   const defaultTiers = ui.defaultTiers();
-
   const existing = await getDocs(collection(db, 'materials'));
+  const existingIds = new Set(existing.docs.map(d => d.id));
+  const tierRef = doc(db, 'pricingConfig', 'sheetMetalTiers');
+  const tierSnap = await getDoc(tierRef);
   const batch = writeBatch(db);
-
-  existing.docs.forEach(d => batch.delete(d.ref));
+  let writes = 0;
+  let added = 0;
 
   defaults.forEach(material => {
+    if (existingIds.has(material.id)) return;
     batch.set(doc(db, 'materials', material.id), {
       name: material.name,
       method: material.method,
@@ -198,15 +250,21 @@ async function publishDefaults() {
       updatedAt: serverTimestamp(),
       updatedBy: currentUser.email
     });
+    writes += 1;
+    added += 1;
   });
 
-  batch.set(doc(db, 'pricingConfig', 'sheetMetalTiers'), {
-    tiers: defaultTiers,
-    updatedAt: serverTimestamp(),
-    updatedBy: currentUser.email
-  });
+  if (!tierSnap.exists()) {
+    batch.set(tierRef, {
+      tiers: defaultTiers,
+      updatedAt: serverTimestamp(),
+      updatedBy: currentUser.email
+    });
+    writes += 1;
+  }
 
-  await batch.commit();
+  if (writes) await batch.commit();
+  return { added };
 }
 
 window.TADSharedPricingApi = {
