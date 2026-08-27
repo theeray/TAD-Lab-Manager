@@ -1,5 +1,5 @@
 import { getApp } from 'https://www.gstatic.com/firebasejs/12.17.1/firebase-app.js';
-import { getAuth, onAuthStateChanged, getIdTokenResult } from 'https://www.gstatic.com/firebasejs/12.17.1/firebase-auth.js';
+import { getAuth, getIdTokenResult } from 'https://www.gstatic.com/firebasejs/12.17.1/firebase-auth.js';
 import { getAppCheck, getToken as getAppCheckToken } from 'https://www.gstatic.com/firebasejs/12.17.1/firebase-app-check.js';
 import {
   getFirestore,
@@ -22,7 +22,6 @@ const app = getApp();
 const auth = getAuth(app);
 const db = getFirestore(app);
 const form = document.querySelector('#reportForm');
-const studentSubmitHandler = form?.onsubmit || null;
 
 function toast(message) {
   const el = document.querySelector('#toast');
@@ -94,12 +93,8 @@ async function ensureMachineRecord(machineId, user) {
 }
 
 async function managerSubmit(event) {
-  event.preventDefault();
   const user = auth.currentUser;
-  if (!isManagerSession(user)) {
-    if (studentSubmitHandler) return studentSubmitHandler.call(form, event);
-    return;
-  }
+  if (!isManagerSession(user)) return;
 
   const machineSelect = document.querySelector('#reportMachine');
   const machineId = machineSelect?.value || '';
@@ -176,7 +171,11 @@ async function managerSubmit(event) {
   }
 }
 
-onAuthStateChanged(auth, user => {
-  if (!form) return;
-  form.onsubmit = isManagerSession(user) ? managerSubmit : studentSubmitHandler;
-});
+// Intercept only approved manager submissions before the legacy student handler.
+// Anonymous/student submissions continue to the existing rate-limited handler unchanged.
+form?.addEventListener('submit', event => {
+  if (!isManagerSession(auth.currentUser)) return;
+  event.preventDefault();
+  event.stopImmediatePropagation();
+  void managerSubmit(event);
+}, true);
