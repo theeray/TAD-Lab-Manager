@@ -2,16 +2,17 @@ const { initializeApp } = require('firebase-admin/app');
 const { getFirestore, FieldValue } = require('firebase-admin/firestore');
 const { onDocumentCreated, onDocumentUpdated } = require('firebase-functions/v2/firestore');
 const { defineSecret, defineString } = require('firebase-functions/params');
-const nodemailer = require('nodemailer');
 
 initializeApp();
 
-const SMTP_PASS = defineSecret('SMTP_PASS');
-const SMTP_HOST = defineString('SMTP_HOST', { default: 'smtp.office365.com' });
-const SMTP_PORT = defineString('SMTP_PORT', { default: '587' });
-const SMTP_USER = defineString('SMTP_USER');
+// Microsoft Graph application credentials. The Entra application should be
+// granted Mail.Send application permission and scoped to the designated
+// TAD Lab Manager sender mailbox whenever the tenant supports that restriction.
+const MS_CLIENT_SECRET = defineSecret('MS_CLIENT_SECRET');
+const MS_TENANT_ID = defineString('MS_TENANT_ID');
+const MS_CLIENT_ID = defineString('MS_CLIENT_ID');
+const MS_SENDER = defineString('MS_SENDER');
 const NOTIFY_TO = defineString('NOTIFY_TO');
-const FROM_NAME = defineString('FROM_NAME', { default: 'TAD Lab Manager' });
 
 function clean(value, max = 1200) {
   return String(value ?? '').replace(/[\r\n]+/g, ' ').trim().slice(0, max);
@@ -28,27 +29,89 @@ function reporterEmail(value) {
   return unique.length === 1 ? unique[0] : '';
 }
 
-function mailTransport() {
-  const host = SMTP_HOST.value();
-  const port = Number(SMTP_PORT.value() || 587);
-  const user = SMTP_USER.value();
-
-  if (!host || !user) return null;
-
-  return nodemailer.createTransport({
-    host,
-    port,
-    secure: port === 465,
-    auth: { user, pass: SMTP_PASS.value() },
-    connectionTimeout: 10000,
-    greetingTimeout: 10000,
-    socketTimeout: 15000,
-  });
+function recipientList(value) {
+  return clean(value, 1200)
+    .split(/[;,]/)
+    .map(v => v.trim())
+    .filter(Boolean)
+    .filter(v => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v));
 }
 
-function senderAddress() {
-  const user = SMTP_USER.value();
-  return user ? `"${clean(FROM_NAME.value(), 80)}" <${user}>` : '';
+async function graphAccessToken() {
+  const tenantId = MS_TENANT_ID.value();
+  const clientId = MS_CLIENT_ID.value();
+  const clientSecret = MS_CLIENT_SECRET.value();
+
+  if (!tenantId || !clientId || !clientSecret) {
+    throw new Error('Microsoft Graph application settings are incomplete.');
+  }
+
+  const body = new URLSearchParams({
+    client_id: clientId,
+    client_secret: clientSecret,
+    scope: 'https://graph.microsoft.com/.default',
+    grant_type: 'client_credentials',
+  });
+
+  const response = await fetch(
+    `https://login.microsoftonline.com/${encodeURIComponent(tenantId)}/oauth2/v2.0/token`,
+    {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body,
+    }
+  );
+
+  if (!response.ok) {
+    const detail = clean(await response.text(), 500);
+    throw new Error(`Microsoft Graph token request failed (${response.status}): ${detail}`);
+  }
+
+  const payload = await response.json();
+  if (!payload.access_token) throw new Error('Microsoft Graph token response did not include an access token.');
+  return payload.access_token;
+}
+
+async function sendMail({ to, subject, text }) {
+  const sender = clean(MS_SENDER.value(), 320);
+  const recipients = Array.isArray(to) ? to : [to];
+  const validRecipients = recipients
+    .map(v => clean(v, 320))
+    .filter(v => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v));
+
+  if (!sender || !validRecipients.length) {
+    throw new Error('Microsoft Graph sender or recipient settings are incomplete.');
+  }
+
+  const token = await graphAccessToken();
+  const response = await fetch(
+    `https://graph.microsoft.com/v1.0/users/${encodeURIComponent(sender)}/sendMail`,
+    {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        message: {
+          subject: clean(subject, 240),
+          body: {
+            contentType: 'Text',
+            content: String(text ?? '').slice(0, 12000),
+          },
+          toRecipients: validRecipients.map(address => ({
+            emailAddress: { address },
+          })),
+        },
+        saveToSentItems: true,
+      }),
+    }
+  );
+
+  if (!response.ok) {
+    const detail = clean(await response.text(), 700);
+    throw new Error(`Microsoft Graph sendMail failed (${response.status}): ${detail}`);
+  }
 }
 
 exports.notifyMaintenanceReport = onDocumentCreated({
@@ -60,7 +123,7 @@ exports.notifyMaintenanceReport = onDocumentCreated({
   maxInstances: 1,
   concurrency: 1,
   retry: false,
-  secrets: [SMTP_PASS],
+  secrets: [MS_CLIENT_SECRET],
 }, async (event) => {
   const report = event.data?.data();
   if (!report) return;
@@ -83,12 +146,10 @@ exports.notifyMaintenanceReport = onDocumentCreated({
   });
   if (!shouldSend) return;
 
-  const to = NOTIFY_TO.value();
-  const transporter = mailTransport();
-  const from = senderAddress();
-  if (!transporter || !from || !to) {
+  const recipients = recipientList(NOTIFY_TO.value());
+  if (!recipients.length) {
     await logRef.set({ status: 'configuration-error', updatedAt: FieldValue.serverTimestamp() }, { merge: true });
-    console.error('Notification SMTP settings are incomplete.');
+    console.error('Internal maintenance notification recipients are not configured.');
     return;
   }
 
@@ -99,9 +160,8 @@ exports.notifyMaintenanceReport = onDocumentCreated({
   const contact = clean(report.contact, 250) || 'Not provided';
 
   try {
-    const result = await transporter.sendMail({
-      from,
-      to,
+    await sendMail({
+      to: recipients,
       subject: `[TAD Lab] ${urgency || 'New'} report — ${machine}`,
       text: [
         'A new TAD Lab Manager maintenance report was submitted.',
@@ -121,18 +181,16 @@ exports.notifyMaintenanceReport = onDocumentCreated({
 
     await logRef.set({
       status: 'sent',
-      messageId: clean(result.messageId, 250),
       sentAt: FieldValue.serverTimestamp(),
       updatedAt: FieldValue.serverTimestamp(),
     }, { merge: true });
   } catch (error) {
     await logRef.set({
       status: 'send-error',
-      error: clean(error?.message || error, 500),
+      error: clean(error?.message || error, 700),
       updatedAt: FieldValue.serverTimestamp(),
     }, { merge: true });
     console.error('Maintenance notification send failed', error);
-    // retry:false intentionally prevents an uncontrolled retry storm.
   }
 });
 
@@ -145,7 +203,7 @@ exports.notifyReporterStatus = onDocumentUpdated({
   maxInstances: 1,
   concurrency: 1,
   retry: false,
-  secrets: [SMTP_PASS],
+  secrets: [MS_CLIENT_SECRET],
 }, async (event) => {
   const before = event.data?.before?.data();
   const after = event.data?.after?.data();
@@ -179,19 +237,10 @@ exports.notifyReporterStatus = onDocumentUpdated({
   });
   if (!shouldSend) return;
 
-  const transporter = mailTransport();
-  const from = senderAddress();
-  if (!transporter || !from) {
-    await logRef.set({ status: 'configuration-error', updatedAt: FieldValue.serverTimestamp() }, { merge: true });
-    console.error('Reporter status SMTP settings are incomplete.');
-    return;
-  }
-
   const machine = clean(after.machineNameSnapshot || after.machineId, 200) || 'TAD Lab equipment';
 
   try {
-    const result = await transporter.sendMail({
-      from,
+    await sendMail({
       to,
       subject: `[TAD Lab] Report status updated — ${machine}`,
       text: [
@@ -209,14 +258,13 @@ exports.notifyReporterStatus = onDocumentUpdated({
 
     await logRef.set({
       status: 'sent',
-      messageId: clean(result.messageId, 250),
       sentAt: FieldValue.serverTimestamp(),
       updatedAt: FieldValue.serverTimestamp(),
     }, { merge: true });
   } catch (error) {
     await logRef.set({
       status: 'send-error',
-      error: clean(error?.message || error, 500),
+      error: clean(error?.message || error, 700),
       updatedAt: FieldValue.serverTimestamp(),
     }, { merge: true });
     console.error('Reporter status notification send failed', error);
