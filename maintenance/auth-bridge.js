@@ -129,9 +129,8 @@ async function bootstrapEnhancements() {
       topSignOut?.classList.toggle('hidden', !isApprovedStaffUser(user));
     });
 
-    // Import only after the main app has definitely initialized Firebase.
     await import('./operations-enhancements.js?v=20260827-1');
-    await import('./manager-report-submit.js?v=20260827-3');
+    await import('./manager-report-submit.js?v=20260827-4');
     console.info('[TAD Lab Manager] Maintenance enhancements loaded after Firebase initialization');
   } catch (error) {
     console.error('[TAD Lab Manager] Maintenance enhancements failed to load', error);
