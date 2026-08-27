@@ -75,6 +75,36 @@ function currentUserCanEdit(user) {
   );
 }
 
+function configureAddMaterialButton() {
+  const button = document.getElementById('addMaterialBtn');
+  if (!button || button.dataset.topNewMaterialInstalled === 'true') return;
+  button.dataset.topNewMaterialInstalled = 'true';
+
+  button.addEventListener('click', async event => {
+    if (!canEdit) return;
+
+    event.preventDefault();
+    event.stopImmediatePropagation();
+
+    const material = {
+      id: `material-${Date.now()}`,
+      name: '(New Material)',
+      method: 'sqin',
+      rate: 0,
+      finishGroup: 'none',
+      active: true,
+      demo: false
+    };
+
+    try {
+      await saveMaterial(material);
+    } catch (error) {
+      console.error('[TAD Cost Estimator] New material could not be added', error);
+      alert('The material could not be added.');
+    }
+  }, true);
+}
+
 function configureRestoreButton() {
   const button = document.getElementById('resetPricingBtn');
   if (!button) return;
@@ -125,7 +155,10 @@ function updateAccessStatus(message = '') {
     materialsEmpty,
     message
   });
-  queueMicrotask(configureRestoreButton);
+  queueMicrotask(() => {
+    configureAddMaterialButton();
+    configureRestoreButton();
+  });
 }
 
 function subscribeSharedPricing() {
