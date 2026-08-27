@@ -115,16 +115,17 @@ onAuthStateChanged(auth, user => {
   topSignOut?.classList.toggle('hidden', !isApprovedStaffUser(user));
 });
 
-async function loadOperationsEnhancements() {
+async function loadMaintenanceEnhancements() {
   try {
     await import('./operations-enhancements.js?v=20260827-1');
+    await import('./manager-report-submit.js?v=20260827-1');
   } catch (error) {
-    console.error('[TAD Lab Manager] Operations enhancements failed to load', error);
+    console.error('[TAD Lab Manager] Maintenance enhancements failed to load', error);
   }
 }
 
 if (document.readyState === 'complete') {
-  loadOperationsEnhancements();
+  loadMaintenanceEnhancements();
 } else {
-  window.addEventListener('load', loadOperationsEnhancements, { once: true });
+  window.addEventListener('load', loadMaintenanceEnhancements, { once: true });
 }
