@@ -5,6 +5,7 @@ on:
     paths:
       - 'firestore.rules'
       - 'tests/**'
+      - 'functions/**'
       - '.github/workflows/firestore-rules-tests.yml'
   push:
     branches:
@@ -12,6 +13,7 @@ on:
     paths:
       - 'firestore.rules'
       - 'tests/**'
+      - 'functions/**'
       - '.github/workflows/firestore-rules-tests.yml'
 
 permissions:
@@ -30,6 +32,9 @@ jobs:
           node-version: '22'
           cache: npm
           cache-dependency-path: tests/package-lock.json
+
+      - name: Check Firebase Functions syntax
+        run: node --check functions/index.js
 
       - name: Set up Java for Firestore emulator
         uses: actions/setup-java@v4
