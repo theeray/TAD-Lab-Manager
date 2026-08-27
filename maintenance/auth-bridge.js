@@ -118,7 +118,7 @@ onAuthStateChanged(auth, user => {
 async function loadMaintenanceEnhancements() {
   try {
     await import('./operations-enhancements.js?v=20260827-1');
-    await import('./manager-report-submit.js?v=20260827-1');
+    await import('./manager-report-submit.js?v=20260827-2');
   } catch (error) {
     console.error('[TAD Lab Manager] Maintenance enhancements failed to load', error);
   }
