@@ -1,6 +1,5 @@
 import { getApp } from 'https://www.gstatic.com/firebasejs/12.17.1/firebase-app.js';
 import { getAuth, getIdTokenResult } from 'https://www.gstatic.com/firebasejs/12.17.1/firebase-auth.js';
-import { getAppCheck, getToken as getAppCheckToken } from 'https://www.gstatic.com/firebasejs/12.17.1/firebase-app-check.js';
 import {
   getFirestore,
   collection,
@@ -42,7 +41,7 @@ function isManagerSession(user) {
   );
 }
 
-async function verifySecurityContext(user) {
+async function verifyAuthContext(user) {
   const tokenResult = await getIdTokenResult(user, true);
   const provider = tokenResult.claims?.firebase?.sign_in_provider || '';
   const emailVerified = tokenResult.claims?.email_verified === true;
@@ -59,21 +58,6 @@ async function verifySecurityContext(user) {
     error.details = { provider, emailVerified, email };
     throw error;
   }
-
-  let appCheckOk = false;
-  let appCheckError = null;
-  try {
-    const appCheck = getAppCheck(app);
-    const result = await getAppCheckToken(appCheck, true);
-    if (!result?.token) throw new Error('No App Check token returned');
-    appCheckOk = true;
-    console.info('[TAD Lab Manager] App Check preflight succeeded');
-  } catch (cause) {
-    appCheckError = cause;
-    console.warn('[TAD Lab Manager] App Check preflight failed; continuing because enforcement may still be Monitoring', cause);
-  }
-
-  return { appCheckOk, appCheckError };
 }
 
 async function ensureMachineRecord(machineId, user) {
@@ -106,9 +90,8 @@ async function managerSubmit(event) {
   if (!machineId) return toast('Please choose a machine');
   if (!issue) return toast('Please describe the issue');
 
-  let securityContext = { appCheckOk: false, appCheckError: null };
   try {
-    securityContext = await verifySecurityContext(user);
+    await verifyAuthContext(user);
     const machineRecord = await ensureMachineRecord(machineId, user);
     const reportRef = doc(collection(db, 'reports'));
     const machineStatusRef = doc(db, 'machineStatus', machineId);
@@ -148,9 +131,7 @@ async function managerSubmit(event) {
     });
 
     form.reset();
-    toast(securityContext.appCheckOk
-      ? `Report ${reportRef.id.slice(0, 8)} submitted`
-      : `Report ${reportRef.id.slice(0, 8)} submitted; App Check still needs repair before enforcement.`);
+    toast(`Report ${reportRef.id.slice(0, 8)} submitted`);
     window.setTimeout(() => document.querySelector('#nav [data-view="reports"]')?.click(), 250);
   } catch (error) {
     console.error('[TAD Lab Manager] Manager report submission failed', error);
@@ -168,12 +149,7 @@ async function managerSubmit(event) {
     }
 
     const code = String(error?.code || 'permission-denied').replace('firestore/', '');
-    if (!securityContext.appCheckOk) {
-      const appCheckCode = securityContext.appCheckError?.code || securityContext.appCheckError?.message || 'reCAPTCHA token failed';
-      toast(`Firestore rejected the manager transaction (${code}) while App Check is failing (${appCheckCode}). Check Firestore App Check enforcement.`);
-      return;
-    }
-    toast(`Auth and App Check passed, but Firestore rejected the manager transaction (${code}).`);
+    toast(`Manager path active, but Firestore rejected the transaction (${code}). App Check warning: ${document.querySelector('#setupBanner')?.textContent?.includes('App Check') ? 'present' : 'not present'}.`);
   }
 }
 
@@ -185,3 +161,5 @@ form?.addEventListener('submit', event => {
   event.stopImmediatePropagation();
   void managerSubmit(event);
 }, true);
+
+console.info('[TAD Lab Manager] Manager report interceptor loaded');
