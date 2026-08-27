@@ -130,7 +130,7 @@ async function bootstrapEnhancements() {
     });
 
     await import('./operations-enhancements.js?v=20260827-1');
-    await import('./manager-report-submit.js?v=20260827-4');
+    await import('./manager-report-submit.js?v=20260827-5');
     console.info('[TAD Lab Manager] Maintenance enhancements loaded after Firebase initialization');
   } catch (error) {
     console.error('[TAD Lab Manager] Maintenance enhancements failed to load', error);
