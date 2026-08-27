@@ -114,3 +114,17 @@ const topSignOut = ensureTopSignOut(auth);
 onAuthStateChanged(auth, user => {
   topSignOut?.classList.toggle('hidden', !isApprovedStaffUser(user));
 });
+
+async function loadOperationsEnhancements() {
+  try {
+    await import('./operations-enhancements.js?v=20260827-1');
+  } catch (error) {
+    console.error('[TAD Lab Manager] Operations enhancements failed to load', error);
+  }
+}
+
+if (document.readyState === 'complete') {
+  loadOperationsEnhancements();
+} else {
+  window.addEventListener('load', loadOperationsEnhancements, { once: true });
+}
