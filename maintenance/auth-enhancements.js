@@ -101,6 +101,22 @@ function enhanceStaffModal() {
   actions.insertAdjacentElement('afterend', status);
 }
 
-const observer = new MutationObserver(enhanceStaffModal);
+function enhanceReporterContact() {
+  const contact = document.querySelector('#contact');
+  const label = contact?.closest('label');
+  if (!label || document.querySelector('#reporterStatusEmailNote')) return;
+
+  const note = document.createElement('small');
+  note.id = 'reporterStatusEmailNote';
+  note.textContent = 'If you enter an email address, you may receive brief status updates. Internal maintenance details are never included in those emails.';
+  label.appendChild(note);
+}
+
+function enhancePage() {
+  enhanceStaffModal();
+  enhanceReporterContact();
+}
+
+const observer = new MutationObserver(enhancePage);
 observer.observe(document.body, { childList: true, subtree: true });
-enhanceStaffModal();
+enhancePage();

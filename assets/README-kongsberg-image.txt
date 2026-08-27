@@ -1,0 +1,1 @@
+The Firebase Hosting workflows restore the approved Kongsberg featured image from kongsberg-v-approved.jpg.b64 before deployment. This is a temporary compatibility step so the exact approved image is deployed reliably while preserving the current app.js image path.

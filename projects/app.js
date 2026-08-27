@@ -53,9 +53,12 @@ const finishChoices={
   print:['No finish']
 };
 
-let pricing=loadJson(PRICING_KEY,defaultPricing);
-let tiers=loadJson(TIER_KEY,defaultTiers);
+let pricing=deepCopy(defaultPricing);
+let tiers=deepCopy(defaultTiers);
 let currentId=null;
+let pricingEditable=false;
+let sharedPricingEmpty=true;
+let sharedPricingMessage='Connecting to shared pricing…';
 
 function $(id){return document.getElementById(id)}
 function money(v){return new Intl.NumberFormat('en-US',{style:'currency',currency:'USD'}).format(Number(v)||0)}
@@ -80,8 +83,28 @@ function bindGlobal(){
   $('discountAmount').addEventListener('input',recalculate);$('tadHelp').addEventListener('change',recalculate);$('projectName').addEventListener('input',recalculate);
   ['requesterName','requesterEmail','affiliation','department','projectRecipient','approval','discountReason','studentHelper','draftDate','deliveryDate','otherDetails'].forEach(id=>$(id).addEventListener('input',()=>{}));
   $('exportCsvBtn').addEventListener('click',exportCsv);$('exportJsonBtn').addEventListener('click',exportJson);$('importJsonInput').addEventListener('change',importJson);
-  $('addMaterialBtn').addEventListener('click',()=>{pricing.push({id:uid(),name:'New material',method:'sqin',rate:0,finishGroup:'none',active:true,demo:false});persistPricing();});
-  $('resetPricingBtn').addEventListener('click',()=>{if(confirm('Reset all pricing to the demo values?')){pricing=deepCopy(defaultPricing);tiers=deepCopy(defaultTiers);persistPricing();}});
+  $('addMaterialBtn').addEventListener('click',async()=>{
+    if(!pricingEditable)return alert('Shared pricing is read-only for students. Sign in as authorized TAD staff to edit it.');
+    const material={id:'material-'+Date.now(),name:'New material',method:'sqin',rate:0,finishGroup:'none',active:true,demo:false};
+    try{
+      await window.TADSharedPricingApi?.saveMaterial(material);
+    }catch(error){
+      console.error(error);
+      alert('The material could not be added.');
+    }
+  });
+
+  $('resetPricingBtn').addEventListener('click',async()=>{
+    if(!pricingEditable)return alert('Shared pricing is read-only for students.');
+    const label=sharedPricingEmpty?'publish the starter shared pricing':'replace all shared pricing with the starter values';
+    if(!confirm(`Are you sure you want to ${label}?`))return;
+    try{
+      await window.TADSharedPricingApi?.publishDefaults();
+    }catch(error){
+      console.error(error);
+      alert('Shared pricing could not be published.');
+    }
+  });
 }
 
 function switchTab(name){
@@ -186,20 +209,156 @@ function renderDashboard(){
 function deleteProject(id){if(!confirm('Delete this saved estimate?'))return;saveJson(STORAGE_KEY,loadJson(STORAGE_KEY,[]).filter(p=>p.id!==id));renderDashboard()}
 function setStatus(id,status){const list=loadJson(STORAGE_KEY,[]),p=list.find(x=>x.id===id);if(p){p.status=status;p.updatedAt=new Date().toISOString();saveJson(STORAGE_KEY,list);renderDashboard()}}
 
-function renderPricing(){
-  $('pricingTable').innerHTML=pricing.map((p,i)=>`<tr data-index="${i}"><td><input class="p-name" value="${escapeHtml(p.name)}"></td><td><select class="p-method">${[['sqin','Per sq. inch'],['gram','Per gram'],['each','Per each'],['sheetMetalTier','Sheet metal tiers']].map(([v,l])=>`<option value="${v}" ${p.method===v?'selected':''}>${l}</option>`).join('')}</select></td><td><input class="p-rate rate" type="number" min="0" step="0.0001" value="${p.rate}"></td><td><select class="p-finish">${['none','wood','sheet','printed','metal','print'].map(v=>`<option ${p.finishGroup===v?'selected':''}>${v}</option>`).join('')}</select></td><td><input class="p-active" type="checkbox" ${p.active?'checked':''}></td><td><button class="small-btn p-delete">Delete</button></td></tr>`).join('');
-  document.querySelectorAll('#pricingTable tr').forEach(row=>{const i=Number(row.dataset.index);row.querySelectorAll('input,select').forEach(el=>el.onchange=()=>{pricing[i].name=row.querySelector('.p-name').value;pricing[i].id=pricing[i].id||slug(pricing[i].name);pricing[i].method=row.querySelector('.p-method').value;pricing[i].rate=Number(row.querySelector('.p-rate').value)||0;pricing[i].finishGroup=row.querySelector('.p-finish').value;pricing[i].active=row.querySelector('.p-active').checked;pricing[i].demo=false;persistPricing();});row.querySelector('.p-delete').onclick=()=>{pricing.splice(i,1);persistPricing();}});
-  $('tierEditor').innerHTML=tiers.map((t,i)=>`<div class="tier-row"><label>Maximum sq. in.<input class="tier-max" data-i="${i}" type="number" value="${t.max}"></label><label>Fixed total<input class="tier-total" data-i="${i}" type="number" step="0.01" value="${t.total}"></label></div>`).join('');
-  document.querySelectorAll('.tier-max,.tier-total').forEach(el=>el.onchange=()=>{const i=Number(el.dataset.i);tiers[i].max=Number(document.querySelector(`.tier-max[data-i="${i}"]`).value)||0;tiers[i].total=Number(document.querySelector(`.tier-total[data-i="${i}"]`).value)||0;saveJson(TIER_KEY,tiers);recalculate();});
+function refreshMaterialSelectors(){
+  document.querySelectorAll('.part-material').forEach(sel=>{
+    const old=sel.value;
+    populateMaterialSelect(sel);
+    sel.value=old;
+  });
+  recalculate();
 }
-function persistPricing(){saveJson(PRICING_KEY,pricing);renderPricing();document.querySelectorAll('.part-material').forEach(sel=>{const old=sel.value;populateMaterialSelect(sel);sel.value=old;});recalculate()}
+
+async function saveSharedMaterial(material){
+  if(!pricingEditable)return;
+  try{
+    await window.TADSharedPricingApi?.saveMaterial(material);
+  }catch(error){
+    console.error('[TAD Cost Estimator] Material save failed',error);
+    alert('That shared pricing change could not be saved.');
+  }
+}
+
+async function deleteSharedMaterial(material){
+  if(!pricingEditable)return;
+  if(!confirm(`Delete "${material.name}" from the shared material list?`))return;
+  try{
+    await window.TADSharedPricingApi?.removeMaterial(material.id);
+  }catch(error){
+    console.error('[TAD Cost Estimator] Material deletion failed',error);
+    alert('That shared material could not be deleted.');
+  }
+}
+
+async function saveSharedTiers(){
+  if(!pricingEditable)return;
+  try{
+    await window.TADSharedPricingApi?.saveTiers(tiers);
+  }catch(error){
+    console.error('[TAD Cost Estimator] Tier save failed',error);
+    alert('The shared sheet-metal tiers could not be saved.');
+  }
+}
+
+function renderPricing(){
+  const disabled=pricingEditable?'':' disabled';
+
+  $('addMaterialBtn').disabled=!pricingEditable;
+  $('resetPricingBtn').disabled=!pricingEditable;
+  $('resetPricingBtn').textContent=sharedPricingEmpty
+    ? 'Publish starter pricing'
+    : 'Reset shared pricing';
+
+  const status=$('sharedPricingStatus');
+  if(status){
+    status.innerHTML=pricingEditable
+      ? `<strong>Shared pricing:</strong> ${escapeHtml(sharedPricingMessage)} Changes here are permanent and available to everyone.`
+      : `<strong>Shared pricing:</strong> ${escapeHtml(sharedPricingMessage)} Students may use these prices but cannot alter the master list.`;
+  }
+
+  $('pricingTable').innerHTML=pricing.map((p,i)=>`<tr data-index="${i}">
+    <td><input class="p-name" value="${escapeHtml(p.name)}"${disabled}></td>
+    <td><select class="p-method"${disabled}>${
+      [['sqin','Per sq. inch'],['gram','Per gram'],['each','Per each'],['sheetMetalTier','Sheet metal tiers']]
+        .map(([v,l])=>`<option value="${v}" ${p.method===v?'selected':''}>${l}</option>`).join('')
+    }</select></td>
+    <td><input class="p-rate rate" type="number" min="0" step="0.0001" value="${p.rate}"${disabled}></td>
+    <td><select class="p-finish"${disabled}>${
+      ['none','wood','sheet','printed','metal','print']
+        .map(v=>`<option ${p.finishGroup===v?'selected':''}>${v}</option>`).join('')
+    }</select></td>
+    <td><input class="p-active" type="checkbox" ${p.active?'checked':''}${disabled}></td>
+    <td><button class="small-btn p-delete"${disabled}>Delete</button></td>
+  </tr>`).join('');
+
+  if(pricingEditable){
+    document.querySelectorAll('#pricingTable tr').forEach(row=>{
+      const i=Number(row.dataset.index);
+
+      row.querySelectorAll('input,select').forEach(el=>{
+        el.onchange=async()=>{
+          pricing[i].name=row.querySelector('.p-name').value.trim();
+          pricing[i].id=pricing[i].id||slug(pricing[i].name);
+          pricing[i].method=row.querySelector('.p-method').value;
+          pricing[i].rate=Number(row.querySelector('.p-rate').value)||0;
+          pricing[i].finishGroup=row.querySelector('.p-finish').value;
+          pricing[i].active=row.querySelector('.p-active').checked;
+          pricing[i].demo=false;
+          await saveSharedMaterial(pricing[i]);
+        };
+      });
+
+      row.querySelector('.p-delete').onclick=()=>deleteSharedMaterial(pricing[i]);
+    });
+  }
+
+  $('tierEditor').innerHTML=tiers.map((t,i)=>`
+    <div class="tier-row">
+      <label>Maximum sq. in.
+        <input class="tier-max" data-i="${i}" type="number" value="${t.max}"${disabled}>
+      </label>
+      <label>Fixed total
+        <input class="tier-total" data-i="${i}" type="number" step="0.01" value="${t.total}"${disabled}>
+      </label>
+    </div>`).join('');
+
+  if(pricingEditable){
+    document.querySelectorAll('.tier-max,.tier-total').forEach(el=>{
+      el.onchange=async()=>{
+        const i=Number(el.dataset.i);
+        tiers[i].max=Number(document.querySelector(`.tier-max[data-i="${i}"]`).value)||0;
+        tiers[i].total=Number(document.querySelector(`.tier-total[data-i="${i}"]`).value)||0;
+        await saveSharedTiers();
+        recalculate();
+      };
+    });
+  }
+}
+
+window.TADSharedPricingUI={
+  defaultPricing:()=>deepCopy(defaultPricing),
+  defaultTiers:()=>deepCopy(defaultTiers),
+
+  applyPricing:(next,empty=false)=>{
+    pricing=deepCopy(next);
+    sharedPricingEmpty=!!empty;
+    renderPricing();
+    refreshMaterialSelectors();
+  },
+
+  applyTiers:(next)=>{
+    tiers=deepCopy(next);
+    renderPricing();
+    recalculate();
+  },
+
+  setAccess:({canEdit=false,email='',materialsEmpty=false,message=''})=>{
+    pricingEditable=!!canEdit;
+    sharedPricingEmpty=!!materialsEmpty;
+    sharedPricingMessage=message||(
+      pricingEditable
+        ? `Editing enabled for ${email}.`
+        : 'Shared pricing is read-only.'
+    );
+    renderPricing();
+  }
+};
 
 function exportCsv(){
   const list=loadJson(STORAGE_KEY,[]),rows=[['Project','Estimator','Email','Affiliation','Department','Status','Delivery Date','Materials','Design','Discount','Total','Parts']];list.forEach(p=>rows.push([p.project?.name,p.requester?.name,p.requester?.email,p.requester?.affiliation,p.project?.department,p.status,p.project?.deliveryDate,p.totals?.materials,p.totals?.design,p.totals?.discount,p.totals?.total,p.parts?.length||0]));download('tad-projects.csv',rows.map(r=>r.map(csvCell).join(',')).join('\n'),'text/csv')
 }
 function csvCell(v){return '"'+String(v??'').replace(/"/g,'""')+'"'}
 function exportJson(){download('tad-costing-backup.json',JSON.stringify({version:1,exportedAt:new Date().toISOString(),projects:loadJson(STORAGE_KEY,[]),pricing,tiers},null,2),'application/json')}
-function importJson(e){const f=e.target.files?.[0];if(!f)return;const r=new FileReader();r.onload=()=>{try{const d=JSON.parse(r.result);if(Array.isArray(d.projects))saveJson(STORAGE_KEY,d.projects);if(Array.isArray(d.pricing)){pricing=d.pricing;saveJson(PRICING_KEY,pricing)}if(Array.isArray(d.tiers)){tiers=d.tiers;saveJson(TIER_KEY,tiers)}renderDashboard();renderPricing();alert('Backup restored.')}catch{alert('That file could not be read as a TAD Cost Estimator backup.')}};r.readAsText(f);e.target.value=''}
+function importJson(e){const f=e.target.files?.[0];if(!f)return;const r=new FileReader();r.onload=()=>{try{const d=JSON.parse(r.result);if(Array.isArray(d.projects))saveJson(STORAGE_KEY,d.projects);renderDashboard();alert('Private project estimates restored. Shared material pricing was not changed.')}catch{alert('That file could not be read as a TAD Cost Estimator backup.')}};r.readAsText(f);e.target.value=''}
 function download(name,text,type){const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([text],{type}));a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),500)}
 
 init();

@@ -517,6 +517,168 @@ function renderReportForm() {
 }
 
 $('#reportMachine').addEventListener('change', renderMachineResourcePanel);
+
+const MAX_REPORT_PHOTOS = 3;
+const MAX_REPORT_PHOTO_DIMENSION = 1600;
+const REPORT_PHOTO_QUALITY = 0.78;
+
+let reportPhotoAttachments = [];
+
+function clearReportPhotos() {
+  reportPhotoAttachments.forEach(photo => {
+    if (photo.previewUrl) URL.revokeObjectURL(photo.previewUrl);
+  });
+  reportPhotoAttachments = [];
+
+  const input = $('#reportPhotos');
+  if (input) input.value = '';
+
+  const preview = $('#photoPreview');
+  if (preview) preview.innerHTML = '';
+
+  const summary = $('#photoSummary');
+  if (summary) summary.textContent = 'No photos selected.';
+}
+
+function formatPhotoBytes(bytes) {
+  if (bytes < 1024 * 1024) return `${Math.max(1, Math.round(bytes / 1024))} KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+}
+
+function loadPhotoImage(file) {
+  return new Promise((resolve, reject) => {
+    const url = URL.createObjectURL(file);
+    const img = new Image();
+
+    img.onload = () => {
+      URL.revokeObjectURL(url);
+      resolve(img);
+    };
+
+    img.onerror = () => {
+      URL.revokeObjectURL(url);
+      reject(new Error(`Could not read ${file.name || 'photo'}`));
+    };
+
+    img.src = url;
+  });
+}
+
+async function compressReportPhoto(file, index) {
+  if (!String(file.type || '').startsWith('image/')) {
+    throw new Error('Only image files can be attached.');
+  }
+
+  const img = await loadPhotoImage(file);
+
+  const scale = Math.min(
+    1,
+    MAX_REPORT_PHOTO_DIMENSION / Math.max(img.naturalWidth, img.naturalHeight)
+  );
+
+  const width = Math.max(1, Math.round(img.naturalWidth * scale));
+  const height = Math.max(1, Math.round(img.naturalHeight * scale));
+
+  const canvas = document.createElement('canvas');
+  canvas.width = width;
+  canvas.height = height;
+
+  const ctx = canvas.getContext('2d');
+  if (!ctx) throw new Error('Photo compression is not supported in this browser.');
+
+  ctx.drawImage(img, 0, 0, width, height);
+
+  const blob = await new Promise((resolve, reject) => {
+    canvas.toBlob(
+      value => value ? resolve(value) : reject(new Error('Photo compression failed.')),
+      'image/jpeg',
+      REPORT_PHOTO_QUALITY
+    );
+  });
+
+  return {
+    blob,
+    filename: `maintenance-photo-${index + 1}.jpg`,
+    originalName: file.name || `Photo ${index + 1}`,
+    bytes: blob.size,
+    previewUrl: URL.createObjectURL(blob)
+  };
+}
+
+function renderReportPhotoPreview() {
+  const preview = $('#photoPreview');
+  const summary = $('#photoSummary');
+  if (!preview || !summary) return;
+
+  preview.innerHTML = reportPhotoAttachments.map((photo, index) => `
+    <div class="photo-preview-item">
+      <img src="${photo.previewUrl}" alt="Selected maintenance photo ${index + 1}">
+      <div>
+        <strong>Photo ${index + 1}</strong>
+        <span>${formatPhotoBytes(photo.bytes)}</span>
+      </div>
+    </div>
+  `).join('');
+
+  if (!reportPhotoAttachments.length) {
+    summary.textContent = 'No photos selected.';
+    return;
+  }
+
+  const totalBytes = reportPhotoAttachments.reduce((sum, photo) => sum + photo.bytes, 0);
+  summary.textContent =
+    `${reportPhotoAttachments.length} photo${reportPhotoAttachments.length === 1 ? '' : 's'} prepared · ${formatPhotoBytes(totalBytes)} total`;
+}
+
+$('#reportPhotos')?.addEventListener('change', async event => {
+  const selected = [...(event.target.files || [])];
+
+  if (!selected.length) return;
+
+  const remaining = MAX_REPORT_PHOTOS - reportPhotoAttachments.length;
+
+  if (remaining <= 0) {
+    event.target.value = '';
+    toast(`Maximum ${MAX_REPORT_PHOTOS} photos already selected.`);
+    return;
+  }
+
+  if (selected.length > remaining) {
+    toast(
+      `Only ${remaining} more photo${remaining === 1 ? '' : 's'} can be added.`
+    );
+  }
+
+  const files = selected.slice(0, remaining);
+  const startIndex = reportPhotoAttachments.length;
+
+  $('#photoSummary').textContent = 'Preparing photos…';
+
+  try {
+    const prepared = await Promise.all(
+      files.map((file, index) =>
+        compressReportPhoto(file, startIndex + index)
+      )
+    );
+
+    reportPhotoAttachments.push(...prepared);
+    renderReportPhotoPreview();
+
+    // Reset only the native picker so another camera/photo selection
+    // can be added without removing already-prepared photos.
+    event.target.value = '';
+  } catch (error) {
+    console.error('[TAD Lab Manager] Photo preparation failed', error);
+    event.target.value = '';
+    renderReportPhotoPreview();
+    toast(error?.message || 'One or more photos could not be prepared.');
+  }
+});
+
+$('#reportForm').addEventListener('reset', () => {
+  setTimeout(clearReportPhotos, 0);
+});
+
 $('#reportForm').onsubmit = async e => {
   e.preventDefault();
   if (!configured || !fs) return toast('Firebase must be configured before reports can be submitted');
@@ -639,6 +801,7 @@ $('#reportForm').onsubmit = async e => {
     }
 
     e.target.reset();
+    clearReportPhotos();
     renderReportForm();
     toast(`Report ${reportRef.id.slice(0, 8)} submitted`);
     showView('dashboard');

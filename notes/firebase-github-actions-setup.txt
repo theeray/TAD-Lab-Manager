@@ -1,0 +1,1 @@
+Firebase Hosting GitHub Actions configured for PR previews and live deploys from main. Repository secret: FIREBASE_SERVICE_ACCOUNT_TAD_LAB_MANAGER.

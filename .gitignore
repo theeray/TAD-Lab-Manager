@@ -1,0 +1,6 @@
+.firebase/
+**/node_modules/
+*.log
+.DS_Store
+
+.local/

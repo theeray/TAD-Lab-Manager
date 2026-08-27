@@ -1,4 +1,4 @@
-import { getApp } from 'https://www.gstatic.com/firebasejs/12.17.1/firebase-app.js';
+import { getApp, getApps } from 'https://www.gstatic.com/firebasejs/12.17.1/firebase-app.js';
 import {
   getAuth,
   onAuthStateChanged,
@@ -28,6 +28,15 @@ function normalizeEmail(value = '') {
 
 function isApprovedStaffUser(user) {
   return !!user?.email && user.emailVerified && APPROVED_STAFF.has(normalizeEmail(user.email));
+}
+
+async function waitForFirebaseApp(timeoutMs = 15000) {
+  const started = Date.now();
+  while (!getApps().length) {
+    if (Date.now() - started > timeoutMs) throw new Error('Firebase app did not initialize in time');
+    await new Promise(resolve => setTimeout(resolve, 50));
+  }
+  return getApp();
 }
 
 function ensureTopSignOut(auth) {
@@ -86,7 +95,8 @@ async function safeStaffSignIn(event) {
   button.textContent = 'Signing in…';
 
   try {
-    const auth = getAuth(getApp());
+    const app = await waitForFirebaseApp();
+    const auth = getAuth(app);
     const result = await signInWithEmailAndPassword(auth, email, password);
 
     if (!result.user.emailVerified) {
@@ -109,8 +119,22 @@ async function safeStaffSignIn(event) {
 
 document.addEventListener('click', safeStaffSignIn, true);
 
-const auth = getAuth(getApp());
-const topSignOut = ensureTopSignOut(auth);
-onAuthStateChanged(auth, user => {
-  topSignOut?.classList.toggle('hidden', !isApprovedStaffUser(user));
-});
+async function bootstrapEnhancements() {
+  try {
+    const app = await waitForFirebaseApp();
+    const auth = getAuth(app);
+    const topSignOut = ensureTopSignOut(auth);
+
+    onAuthStateChanged(auth, user => {
+      topSignOut?.classList.toggle('hidden', !isApprovedStaffUser(user));
+    });
+
+    await import('./operations-enhancements.js?v=20260827-1');
+    await import('./manager-report-submit.js?v=20260827-5');
+    console.info('[TAD Lab Manager] Maintenance enhancements loaded after Firebase initialization');
+  } catch (error) {
+    console.error('[TAD Lab Manager] Maintenance enhancements failed to load', error);
+  }
+}
+
+bootstrapEnhancements();

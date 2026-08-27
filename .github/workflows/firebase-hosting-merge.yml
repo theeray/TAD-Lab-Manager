@@ -1,0 +1,34 @@
+name: Deploy Firebase Production
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  deploy_live:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Authenticate Firebase service account
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_TAD_LAB_MANAGER }}
+
+      - name: Deploy Firestore security rules
+        run: npx firebase-tools@latest deploy --only firestore:rules --project tad-lab-manager --non-interactive
+
+      - name: Use approved Kongsberg image
+        run: cp kongsberg-v-tad.jpg assets/kongsberg-v-tad.jpg
+
+      - name: Deploy to Firebase Hosting live channel
+        uses: FirebaseExtended/action-hosting-deploy@v0
+        with:
+          firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_TAD_LAB_MANAGER }}
+          projectId: tad-lab-manager
+          channelId: live
