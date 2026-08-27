@@ -60,16 +60,20 @@ async function verifySecurityContext(user) {
     throw error;
   }
 
+  let appCheckOk = false;
+  let appCheckError = null;
   try {
     const appCheck = getAppCheck(app);
     const result = await getAppCheckToken(appCheck, true);
     if (!result?.token) throw new Error('No App Check token returned');
+    appCheckOk = true;
     console.info('[TAD Lab Manager] App Check preflight succeeded');
   } catch (cause) {
-    const error = new Error('APP_CHECK_FAILED');
-    error.cause = cause;
-    throw error;
+    appCheckError = cause;
+    console.warn('[TAD Lab Manager] App Check preflight failed; continuing because enforcement may still be Monitoring', cause);
   }
+
+  return { appCheckOk, appCheckError };
 }
 
 async function ensureMachineRecord(machineId, user) {
@@ -102,8 +106,9 @@ async function managerSubmit(event) {
   if (!machineId) return toast('Please choose a machine');
   if (!issue) return toast('Please describe the issue');
 
+  let securityContext = { appCheckOk: false, appCheckError: null };
   try {
-    await verifySecurityContext(user);
+    securityContext = await verifySecurityContext(user);
     const machineRecord = await ensureMachineRecord(machineId, user);
     const reportRef = doc(collection(db, 'reports'));
     const machineStatusRef = doc(db, 'machineStatus', machineId);
@@ -143,7 +148,9 @@ async function managerSubmit(event) {
     });
 
     form.reset();
-    toast(`Report ${reportRef.id.slice(0, 8)} submitted`);
+    toast(securityContext.appCheckOk
+      ? `Report ${reportRef.id.slice(0, 8)} submitted`
+      : `Report ${reportRef.id.slice(0, 8)} submitted; App Check still needs repair before enforcement.`);
     window.setTimeout(() => document.querySelector('#nav [data-view="reports"]')?.click(), 250);
   } catch (error) {
     console.error('[TAD Lab Manager] Manager report submission failed', error);
@@ -155,18 +162,17 @@ async function managerSubmit(event) {
       return;
     }
 
-    if (error?.message === 'APP_CHECK_FAILED') {
-      const appCheckCode = error.cause?.code || error.cause?.message || 'token request failed';
-      toast(`App Check failed before the Firestore write (${appCheckCode}). Keep Firestore App Check in Monitoring while we fix this.`);
-      return;
-    }
-
     if (error?.message === 'MACHINE_DATA_UNAVAILABLE' || error?.message === 'MACHINE_NOT_FOUND') {
       toast('The selected machine could not be found in the Firestore or starter inventory.');
       return;
     }
 
     const code = String(error?.code || 'permission-denied').replace('firestore/', '');
+    if (!securityContext.appCheckOk) {
+      const appCheckCode = securityContext.appCheckError?.code || securityContext.appCheckError?.message || 'reCAPTCHA token failed';
+      toast(`Firestore rejected the manager transaction (${code}) while App Check is failing (${appCheckCode}). Check Firestore App Check enforcement.`);
+      return;
+    }
     toast(`Auth and App Check passed, but Firestore rejected the manager transaction (${code}).`);
   }
 }
