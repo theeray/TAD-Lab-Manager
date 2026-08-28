@@ -14,8 +14,10 @@ const MAILJET_STAKEHOLDER_EMAILS = defineSecret('MAILJET_STAKEHOLDER_EMAILS');
 
 // Cost/abuse guardrails. This counts recipient deliveries across both internal
 // stakeholder notices and reporter status emails, and stays well below
-// Mailjet Free's 200-recipient/day ceiling.
+// Mailjet Free's 200-recipient/day ceiling. Reporter notices retain their own
+// lower daily ceiling in addition to the shared Mailjet ceiling.
 const MAILJET_DAILY_RECIPIENT_LIMIT = 100;
+const REPORTER_EMAIL_DAILY_LIMIT = 50;
 const REPORTER_EMAIL_PER_REPORT_LIMIT = 10;
 
 function clean(value, max = 1200) {
@@ -232,12 +234,23 @@ exports.notifyReporterStatus = onDocumentUpdated({
     if (existing.exists) return false;
 
     const dailyCount = Number(daily.data()?.count || 0);
+    const reporterDailyCount = Number(daily.data()?.reporterCount || 0);
     const lifetimeCount = Number(reportCount.data()?.count || 0);
 
     if (dailyCount + 1 > MAILJET_DAILY_RECIPIENT_LIMIT) {
       tx.set(logRef, {
         reportId,
         status: 'rate-limited-daily',
+        reportStatus: newStatus,
+        updatedAt: FieldValue.serverTimestamp(),
+      });
+      return false;
+    }
+
+    if (reporterDailyCount >= REPORTER_EMAIL_DAILY_LIMIT) {
+      tx.set(logRef, {
+        reportId,
+        status: 'rate-limited-reporter-daily',
         reportStatus: newStatus,
         updatedAt: FieldValue.serverTimestamp(),
       });
@@ -262,6 +275,7 @@ exports.notifyReporterStatus = onDocumentUpdated({
     });
     tx.set(dailyRef, {
       count: FieldValue.increment(1),
+      reporterCount: FieldValue.increment(1),
       updatedAt: FieldValue.serverTimestamp(),
     }, { merge: true });
     tx.set(reportLimitRef, {
