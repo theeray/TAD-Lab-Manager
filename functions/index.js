@@ -1,6 +1,7 @@
 const { initializeApp } = require('firebase-admin/app');
 const { getFirestore, FieldValue } = require('firebase-admin/firestore');
-const { onDocumentCreated, onDocumentUpdated } = require('firebase-functions/v2/firestore');
+const { getStorage } = require('firebase-admin/storage');
+const { onDocumentWritten, onDocumentUpdated } = require('firebase-functions/v2/firestore');
 const { defineSecret } = require('firebase-functions/params');
 const nodemailer = require('nodemailer');
 
@@ -50,7 +51,7 @@ function utcDayKey() {
   return new Date().toISOString().slice(0, 10);
 }
 
-async function sendGmail({ to, subject, text }) {
+async function sendGmail({ to, subject, text, attachments = [] }) {
   const user = clean(GMAIL_SMTP_USER.value(), 320).toLowerCase();
   const appPassword = String(GMAIL_APP_PASSWORD.value() || '').replace(/\s+/g, '');
   const recipients = [...new Set((Array.isArray(to) ? to : [to])
@@ -78,10 +79,58 @@ async function sendGmail({ to, subject, text }) {
     to: recipients.join(', '),
     subject: clean(subject, 240),
     text: String(text ?? '').slice(0, 12000),
+    attachments: Array.isArray(attachments) ? attachments : [],
   });
 }
 
-exports.notifyMachineStakeholders = onDocumentCreated({
+const STORAGE_BUCKET = 'tad-lab-manager.firebasestorage.app';
+const MAX_EMAIL_PHOTO_BYTES = 1572864;
+
+async function loadReportPhotoAttachments(report, reportId) {
+  const uid = clean(report?.submittedByUid, 180);
+  const expectedPrefix = `reportPhotos/${uid}/${reportId}/`;
+  const paths = Array.isArray(report?.photoPaths)
+    ? report.photoPaths
+        .map(value => clean(value, 500))
+        .filter(value => value.startsWith(expectedPrefix))
+        .slice(0, 3)
+    : [];
+
+  if (!uid || !paths.length) return [];
+
+  const bucket = getStorage().bucket(STORAGE_BUCKET);
+  const attachments = [];
+
+  for (const photoPath of paths) {
+    try {
+      const [buffer] = await bucket.file(photoPath).download();
+      if (!buffer?.length || buffer.length > MAX_EMAIL_PHOTO_BYTES) {
+        console.warn('Skipping invalid maintenance photo attachment', {
+          reportId,
+          photoPath,
+          bytes: buffer?.length || 0,
+        });
+        continue;
+      }
+
+      attachments.push({
+        filename: photoPath.split('/').pop() || 'maintenance-photo.jpg',
+        content: buffer,
+        contentType: 'image/jpeg',
+      });
+    } catch (error) {
+      console.warn('Could not load maintenance photo attachment', {
+        reportId,
+        photoPath,
+        error: clean(error?.message || error, 300),
+      });
+    }
+  }
+
+  return attachments;
+}
+
+exports.notifyMachineStakeholders = onDocumentWritten({
   document: 'reports/{reportId}',
   region: 'us-central1',
   memory: '256MiB',
@@ -96,8 +145,16 @@ exports.notifyMachineStakeholders = onDocumentCreated({
     MAILJET_STAKEHOLDER_EMAILS,
   ],
 }, async (event) => {
-  const report = event.data?.data();
-  if (!report) return;
+  const beforeSnap = event.data?.before;
+  const afterSnap = event.data?.after;
+  if (!afterSnap?.exists) return;
+
+  const report = afterSnap.data();
+  if (!report || report.notificationReady !== true) return;
+
+  // Send once when a new report is immediately ready (no photos), or when
+  // photo upload finalization changes notificationReady from false to true.
+  if (beforeSnap?.exists && beforeSnap.data()?.notificationReady === true) return;
 
   const recipients = emailList(MAILJET_STAKEHOLDER_EMAILS.value());
   if (!recipients.length) {
@@ -153,10 +210,12 @@ exports.notifyMachineStakeholders = onDocumentCreated({
   const issue = clean(report.issue, 1600) || 'No issue description entered';
   const attempted = clean(report.attempted, 1200) || 'None entered';
   const contact = clean(report.contact, 320) || 'Not provided';
+  const attachments = await loadReportPhotoAttachments(report, reportId);
 
   try {
     await sendGmail({
       to: recipients,
+      attachments,
       subject: `[TAD Lab] New maintenance report — ${machine}`,
       text: [
         'A new TAD Lab Manager maintenance report was submitted.',
@@ -178,6 +237,7 @@ exports.notifyMachineStakeholders = onDocumentCreated({
     await logRef.set({
       status: 'sent',
       provider: 'gmail',
+      attachmentCount: attachments.length,
       sentAt: FieldValue.serverTimestamp(),
       updatedAt: FieldValue.serverTimestamp(),
     }, { merge: true });
