@@ -1,18 +1,20 @@
 const { initializeApp } = require('firebase-admin/app');
 const { getFirestore, FieldValue } = require('firebase-admin/firestore');
-const { onDocumentCreated, onDocumentUpdated } = require('firebase-functions/v2/firestore');
+const { onDocumentUpdated } = require('firebase-functions/v2/firestore');
 const { defineSecret, defineString } = require('firebase-functions/params');
 
 initializeApp();
 
-// Microsoft Graph application credentials. The Entra application should be
-// granted Mail.Send application permission and scoped to the designated
-// TAD Lab Manager sender mailbox whenever the tenant supports that restriction.
-const MS_CLIENT_SECRET = defineSecret('MS_CLIENT_SECRET');
-const MS_TENANT_ID = defineString('MS_TENANT_ID');
-const MS_CLIENT_ID = defineString('MS_CLIENT_ID');
-const MS_SENDER = defineString('MS_SENDER');
-const NOTIFY_TO = defineString('NOTIFY_TO');
+// Mailjet credentials are kept in Google Secret Manager, not in source code.
+// The sender address must be verified in Mailjet before this function is deployed.
+const MAILJET_API_KEY = defineSecret('MAILJET_API_KEY');
+const MAILJET_SECRET_KEY = defineSecret('MAILJET_SECRET_KEY');
+const MAILJET_SENDER_EMAIL = defineString('MAILJET_SENDER_EMAIL');
+
+// Cost/abuse guardrails. These are intentionally far below Mailjet's Free-plan
+// ceiling of 200 messages/day.
+const REPORTER_EMAIL_DAILY_LIMIT = 50;
+const REPORTER_EMAIL_PER_REPORT_LIMIT = 10;
 
 function clean(value, max = 1200) {
   return String(value ?? '').replace(/[\r\n]+/g, ' ').trim().slice(0, max);
@@ -22,177 +24,57 @@ function reporterEmail(value) {
   const text = clean(value, 320);
   if (!text) return '';
 
-  // The existing form accepts "Name or email". Only send an automatic
-  // status update when exactly one conventional email address can be found.
+  // Preferred contact may contain a name or email. Send only when exactly one
+  // conventional email address was explicitly provided there.
   const matches = text.match(/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/gi) || [];
   const unique = [...new Set(matches.map(email => email.toLowerCase()))];
   return unique.length === 1 ? unique[0] : '';
 }
 
-function recipientList(value) {
-  return clean(value, 1200)
-    .split(/[;,]/)
-    .map(v => v.trim())
-    .filter(Boolean)
-    .filter(v => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v));
+function utcDayKey() {
+  return new Date().toISOString().slice(0, 10);
 }
 
-async function graphAccessToken() {
-  const tenantId = MS_TENANT_ID.value();
-  const clientId = MS_CLIENT_ID.value();
-  const clientSecret = MS_CLIENT_SECRET.value();
+async function sendMailjetStatus({ to, subject, text }) {
+  const apiKey = clean(MAILJET_API_KEY.value(), 500);
+  const secretKey = clean(MAILJET_SECRET_KEY.value(), 500);
+  const sender = clean(MAILJET_SENDER_EMAIL.value(), 320);
 
-  if (!tenantId || !clientId || !clientSecret) {
-    throw new Error('Microsoft Graph application settings are incomplete.');
+  if (!apiKey || !secretKey || !sender) {
+    throw new Error('Mailjet configuration is incomplete.');
+  }
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(sender)) {
+    throw new Error('Mailjet sender address is invalid.');
+  }
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(to)) {
+    throw new Error('Reporter email address is invalid.');
   }
 
-  const body = new URLSearchParams({
-    client_id: clientId,
-    client_secret: clientSecret,
-    scope: 'https://graph.microsoft.com/.default',
-    grant_type: 'client_credentials',
-  });
-
-  const response = await fetch(
-    `https://login.microsoftonline.com/${encodeURIComponent(tenantId)}/oauth2/v2.0/token`,
-    {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      body,
-    }
-  );
-
-  if (!response.ok) {
-    const detail = clean(await response.text(), 500);
-    throw new Error(`Microsoft Graph token request failed (${response.status}): ${detail}`);
-  }
-
-  const payload = await response.json();
-  if (!payload.access_token) throw new Error('Microsoft Graph token response did not include an access token.');
-  return payload.access_token;
-}
-
-async function sendMail({ to, subject, text }) {
-  const sender = clean(MS_SENDER.value(), 320);
-  const recipients = Array.isArray(to) ? to : [to];
-  const validRecipients = recipients
-    .map(v => clean(v, 320))
-    .filter(v => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v));
-
-  if (!sender || !validRecipients.length) {
-    throw new Error('Microsoft Graph sender or recipient settings are incomplete.');
-  }
-
-  const token = await graphAccessToken();
-  const response = await fetch(
-    `https://graph.microsoft.com/v1.0/users/${encodeURIComponent(sender)}/sendMail`,
-    {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${token}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        message: {
-          subject: clean(subject, 240),
-          body: {
-            contentType: 'Text',
-            content: String(text ?? '').slice(0, 12000),
-          },
-          toRecipients: validRecipients.map(address => ({
-            emailAddress: { address },
-          })),
+  const authorization = Buffer.from(`${apiKey}:${secretKey}`).toString('base64');
+  const response = await fetch('https://api.mailjet.com/v3.1/send', {
+    method: 'POST',
+    headers: {
+      Authorization: `Basic ${authorization}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      Messages: [{
+        From: {
+          Email: sender,
+          Name: 'TAD Lab Manager',
         },
-        saveToSentItems: true,
-      }),
-    }
-  );
+        To: [{ Email: to }],
+        Subject: clean(subject, 240),
+        TextPart: String(text ?? '').slice(0, 12000),
+      }],
+    }),
+  });
 
   if (!response.ok) {
     const detail = clean(await response.text(), 700);
-    throw new Error(`Microsoft Graph sendMail failed (${response.status}): ${detail}`);
+    throw new Error(`Mailjet send failed (${response.status}): ${detail}`);
   }
 }
-
-exports.notifyMaintenanceReport = onDocumentCreated({
-  document: 'reports/{reportId}',
-  region: 'us-central1',
-  memory: '256MiB',
-  timeoutSeconds: 30,
-  minInstances: 0,
-  maxInstances: 1,
-  concurrency: 1,
-  retry: false,
-  secrets: [MS_CLIENT_SECRET],
-}, async (event) => {
-  const report = event.data?.data();
-  if (!report) return;
-
-  const reportId = event.params.reportId;
-  const db = getFirestore();
-  const logRef = db.doc(`notificationLog/${reportId}`);
-
-  // Idempotency guard: if this event is delivered more than once, do not send twice.
-  const shouldSend = await db.runTransaction(async (tx) => {
-    const existing = await tx.get(logRef);
-    if (existing.exists && existing.data()?.status === 'sent') return false;
-    tx.set(logRef, {
-      reportId,
-      status: 'sending',
-      attempts: FieldValue.increment(1),
-      updatedAt: FieldValue.serverTimestamp(),
-    }, { merge: true });
-    return true;
-  });
-  if (!shouldSend) return;
-
-  const recipients = recipientList(NOTIFY_TO.value());
-  if (!recipients.length) {
-    await logRef.set({ status: 'configuration-error', updatedAt: FieldValue.serverTimestamp() }, { merge: true });
-    console.error('Internal maintenance notification recipients are not configured.');
-    return;
-  }
-
-  const machine = clean(report.machineNameSnapshot || report.machineId, 200);
-  const room = clean(report.roomSnapshot, 100);
-  const urgency = clean(report.urgency, 30);
-  const issue = clean(report.issue, 1600);
-  const contact = clean(report.contact, 250) || 'Not provided';
-
-  try {
-    await sendMail({
-      to: recipients,
-      subject: `[TAD Lab] ${urgency || 'New'} report — ${machine}`,
-      text: [
-        'A new TAD Lab Manager maintenance report was submitted.',
-        '',
-        `Machine: ${machine}`,
-        `Room: ${room || 'Not set'}`,
-        `Urgency: ${urgency || 'Not set'}`,
-        `Usable: ${clean(report.usable, 30) || 'Not set'}`,
-        `Issue: ${issue}`,
-        `Fixes tried: ${clean(report.attempted, 1200) || 'None entered'}`,
-        `Preferred contact: ${contact}`,
-        `Report ID: ${reportId}`,
-        '',
-        'Open TAD Lab Manager to review and manage the report.'
-      ].join('\n')
-    });
-
-    await logRef.set({
-      status: 'sent',
-      sentAt: FieldValue.serverTimestamp(),
-      updatedAt: FieldValue.serverTimestamp(),
-    }, { merge: true });
-  } catch (error) {
-    await logRef.set({
-      status: 'send-error',
-      error: clean(error?.message || error, 700),
-      updatedAt: FieldValue.serverTimestamp(),
-    }, { merge: true });
-    console.error('Maintenance notification send failed', error);
-  }
-});
 
 exports.notifyReporterStatus = onDocumentUpdated({
   document: 'reports/{reportId}',
@@ -203,7 +85,7 @@ exports.notifyReporterStatus = onDocumentUpdated({
   maxInstances: 1,
   concurrency: 1,
   retry: false,
-  secrets: [MS_CLIENT_SECRET],
+  secrets: [MAILJET_API_KEY, MAILJET_SECRET_KEY],
 }, async (event) => {
   const before = event.data?.before?.data();
   const after = event.data?.after?.data();
@@ -214,7 +96,7 @@ exports.notifyReporterStatus = onDocumentUpdated({
   if (!newStatus || oldStatus === newStatus) return;
 
   // Privacy boundary: status notices go only to an email the reporter
-  // explicitly supplied in Preferred contact. submittedByEmail is not used.
+  // explicitly supplied in Preferred contact. submittedByEmail is never used.
   const to = reporterEmail(after.contact || before.contact);
   if (!to) return;
 
@@ -222,25 +104,67 @@ exports.notifyReporterStatus = onDocumentUpdated({
   const db = getFirestore();
   const eventKey = clean(event.id || `${Date.now()}`, 180).replace(/[^A-Za-z0-9_.-]/g, '_');
   const logRef = db.doc(`reporterStatusNotificationLog/${eventKey}`);
+  const dailyRef = db.doc(`emailSafety/reporter-${utcDayKey()}`);
+  const reportLimitRef = db.doc(`reporterStatusEmailCounts/${reportId}`);
 
+  // One attempt per Firestore event plus conservative daily/per-report limits.
+  // Failed attempts still consume the cap by design; this favors cost safety over retries.
   const shouldSend = await db.runTransaction(async (tx) => {
-    const existing = await tx.get(logRef);
-    if (existing.exists && existing.data()?.status === 'sent') return false;
+    const [existing, daily, reportCount] = await Promise.all([
+      tx.get(logRef),
+      tx.get(dailyRef),
+      tx.get(reportLimitRef),
+    ]);
+
+    if (existing.exists) return false;
+
+    const dailyCount = Number(daily.data()?.count || 0);
+    const lifetimeCount = Number(reportCount.data()?.count || 0);
+
+    if (dailyCount >= REPORTER_EMAIL_DAILY_LIMIT) {
+      tx.set(logRef, {
+        reportId,
+        status: 'rate-limited-daily',
+        reportStatus: newStatus,
+        updatedAt: FieldValue.serverTimestamp(),
+      });
+      return false;
+    }
+
+    if (lifetimeCount >= REPORTER_EMAIL_PER_REPORT_LIMIT) {
+      tx.set(logRef, {
+        reportId,
+        status: 'rate-limited-report',
+        reportStatus: newStatus,
+        updatedAt: FieldValue.serverTimestamp(),
+      });
+      return false;
+    }
+
     tx.set(logRef, {
       reportId,
       status: 'sending',
       reportStatus: newStatus,
-      attempts: FieldValue.increment(1),
+      updatedAt: FieldValue.serverTimestamp(),
+    });
+    tx.set(dailyRef, {
+      count: FieldValue.increment(1),
+      updatedAt: FieldValue.serverTimestamp(),
+    }, { merge: true });
+    tx.set(reportLimitRef, {
+      reportId,
+      count: FieldValue.increment(1),
       updatedAt: FieldValue.serverTimestamp(),
     }, { merge: true });
     return true;
   });
+
   if (!shouldSend) return;
 
   const machine = clean(after.machineNameSnapshot || after.machineId, 200) || 'TAD Lab equipment';
 
   try {
-    await sendMail({
+    await sendMailjetStatus({
       to,
       subject: `[TAD Lab] Report status updated — ${machine}`,
       text: [
@@ -250,10 +174,10 @@ exports.notifyReporterStatus = onDocumentUpdated({
         `Report ID: ${reportId}`,
         `Current status: ${newStatus}`,
         '',
-        'This automatic message intentionally includes only the report status. Internal maintenance notes, diagnoses, repair details, costs, and manager comments are not included.',
+        'This automatic message intentionally includes only the report status. Internal maintenance notes, diagnoses, repair details, costs, safety discussions, resolution details, and manager comments are not included.',
         '',
-        'TAD Lab Manager'
-      ].join('\n')
+        'TAD Lab Manager',
+      ].join('\n'),
     });
 
     await logRef.set({
