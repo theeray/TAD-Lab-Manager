@@ -1,15 +1,16 @@
 const { initializeApp } = require('firebase-admin/app');
 const { getFirestore, FieldValue } = require('firebase-admin/firestore');
 const { onDocumentUpdated } = require('firebase-functions/v2/firestore');
-const { defineSecret, defineString } = require('firebase-functions/params');
+const { defineSecret } = require('firebase-functions/params');
 
 initializeApp();
 
-// Mailjet credentials are kept in Google Secret Manager, not in source code.
-// The sender address must be verified in Mailjet before this function is deployed.
+// Mailjet credentials and sender identity are kept in Google Secret Manager,
+// not in source code. The sender address must be verified in Mailjet before
+// this function is deployed.
 const MAILJET_API_KEY = defineSecret('MAILJET_API_KEY');
 const MAILJET_SECRET_KEY = defineSecret('MAILJET_SECRET_KEY');
-const MAILJET_SENDER_EMAIL = defineString('MAILJET_SENDER_EMAIL');
+const MAILJET_SENDER_EMAIL = defineSecret('MAILJET_SENDER_EMAIL');
 
 // Cost/abuse guardrails. These are intentionally far below Mailjet's Free-plan
 // ceiling of 200 messages/day.
@@ -85,7 +86,7 @@ exports.notifyReporterStatus = onDocumentUpdated({
   maxInstances: 1,
   concurrency: 1,
   retry: false,
-  secrets: [MAILJET_API_KEY, MAILJET_SECRET_KEY],
+  secrets: [MAILJET_API_KEY, MAILJET_SECRET_KEY, MAILJET_SENDER_EMAIL],
 }, async (event) => {
   const before = event.data?.before?.data();
   const after = event.data?.after?.data();
