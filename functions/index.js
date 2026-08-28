@@ -2,21 +2,24 @@ const { initializeApp } = require('firebase-admin/app');
 const { getFirestore, FieldValue } = require('firebase-admin/firestore');
 const { onDocumentCreated, onDocumentUpdated } = require('firebase-functions/v2/firestore');
 const { defineSecret } = require('firebase-functions/params');
+const nodemailer = require('nodemailer');
 
 initializeApp();
 
-// Mailjet credentials, sender identity, and stakeholder routing are kept in
-// Google Secret Manager, not in public source or machine JSON.
-const MAILJET_API_KEY = defineSecret('MAILJET_API_KEY');
-const MAILJET_SECRET_KEY = defineSecret('MAILJET_SECRET_KEY');
-const MAILJET_SENDER_EMAIL = defineSecret('MAILJET_SENDER_EMAIL');
+// Gmail SMTP credentials and stakeholder routing are kept in Google Secret
+// Manager, not in public source or machine JSON. MAILJET_STAKEHOLDER_EMAILS is
+// retained as the existing private stakeholder-list secret name so no extra
+// secret migration is needed tonight.
+const GMAIL_SMTP_USER = defineSecret('GMAIL_SMTP_USER');
+const GMAIL_APP_PASSWORD = defineSecret('GMAIL_APP_PASSWORD');
 const MAILJET_STAKEHOLDER_EMAILS = defineSecret('MAILJET_STAKEHOLDER_EMAILS');
 
+const REPLY_TO_EMAIL = 'eric.carlson.2@bemidjistate.edu';
+
 // Cost/abuse guardrails. This counts recipient deliveries across both internal
-// stakeholder notices and reporter status emails, and stays well below
-// Mailjet Free's 200-recipient/day ceiling. Reporter notices retain their own
-// lower daily ceiling in addition to the shared Mailjet ceiling.
-const MAILJET_DAILY_RECIPIENT_LIMIT = 100;
+// stakeholder notices and reporter status emails. It remains well below the
+// practical daily limits of a personal Gmail account.
+const EMAIL_DAILY_RECIPIENT_LIMIT = 100;
 const REPORTER_EMAIL_DAILY_LIMIT = 50;
 const REPORTER_EMAIL_PER_REPORT_LIMIT = 10;
 
@@ -47,42 +50,35 @@ function utcDayKey() {
   return new Date().toISOString().slice(0, 10);
 }
 
-async function sendMailjet({ to, subject, text }) {
-  const apiKey = clean(MAILJET_API_KEY.value(), 500);
-  const secretKey = clean(MAILJET_SECRET_KEY.value(), 500);
-  const sender = clean(MAILJET_SENDER_EMAIL.value(), 320);
+async function sendGmail({ to, subject, text }) {
+  const user = clean(GMAIL_SMTP_USER.value(), 320).toLowerCase();
+  const appPassword = String(GMAIL_APP_PASSWORD.value() || '').replace(/\s+/g, '');
   const recipients = [...new Set((Array.isArray(to) ? to : [to])
     .map(v => clean(v, 320).toLowerCase())
     .filter(validEmail))];
 
-  if (!apiKey || !secretKey || !sender || !validEmail(sender)) {
-    throw new Error('Mailjet configuration is incomplete or invalid.');
+  if (!user || !validEmail(user) || !appPassword) {
+    throw new Error('Gmail SMTP configuration is incomplete or invalid.');
   }
   if (!recipients.length) {
     throw new Error('No valid email recipients were provided.');
   }
 
-  const authorization = Buffer.from(`${apiKey}:${secretKey}`).toString('base64');
-  const response = await fetch('https://api.mailjet.com/v3.1/send', {
-    method: 'POST',
-    headers: {
-      Authorization: `Basic ${authorization}`,
-      'Content-Type': 'application/json',
+  const transporter = nodemailer.createTransport({
+    service: 'gmail',
+    auth: {
+      user,
+      pass: appPassword,
     },
-    body: JSON.stringify({
-      Messages: [{
-        From: { Email: sender, Name: 'TAD Lab Manager' },
-        To: recipients.map(Email => ({ Email })),
-        Subject: clean(subject, 240),
-        TextPart: String(text ?? '').slice(0, 12000),
-      }],
-    }),
   });
 
-  if (!response.ok) {
-    const detail = clean(await response.text(), 700);
-    throw new Error(`Mailjet send failed (${response.status}): ${detail}`);
-  }
+  await transporter.sendMail({
+    from: `TAD Lab Manager <${user}>`,
+    replyTo: REPLY_TO_EMAIL,
+    to: recipients.join(', '),
+    subject: clean(subject, 240),
+    text: String(text ?? '').slice(0, 12000),
+  });
 }
 
 exports.notifyMachineStakeholders = onDocumentCreated({
@@ -95,9 +91,8 @@ exports.notifyMachineStakeholders = onDocumentCreated({
   concurrency: 1,
   retry: false,
   secrets: [
-    MAILJET_API_KEY,
-    MAILJET_SECRET_KEY,
-    MAILJET_SENDER_EMAIL,
+    GMAIL_SMTP_USER,
+    GMAIL_APP_PASSWORD,
     MAILJET_STAKEHOLDER_EMAILS,
   ],
 }, async (event) => {
@@ -113,7 +108,7 @@ exports.notifyMachineStakeholders = onDocumentCreated({
   const reportId = event.params.reportId;
   const db = getFirestore();
   const logRef = db.doc(`stakeholderNotificationLog/${reportId}`);
-  const dailyRef = db.doc(`emailSafety/mailjet-${utcDayKey()}`);
+  const dailyRef = db.doc(`emailSafety/gmail-${utcDayKey()}`);
 
   const shouldSend = await db.runTransaction(async (tx) => {
     const [existing, daily] = await Promise.all([
@@ -124,10 +119,11 @@ exports.notifyMachineStakeholders = onDocumentCreated({
     if (existing.exists) return false;
 
     const dailyCount = Number(daily.data()?.count || 0);
-    if (dailyCount + recipients.length > MAILJET_DAILY_RECIPIENT_LIMIT) {
+    if (dailyCount + recipients.length > EMAIL_DAILY_RECIPIENT_LIMIT) {
       tx.set(logRef, {
         reportId,
         status: 'rate-limited-daily',
+        provider: 'gmail',
         recipientCount: recipients.length,
         updatedAt: FieldValue.serverTimestamp(),
       });
@@ -137,6 +133,7 @@ exports.notifyMachineStakeholders = onDocumentCreated({
     tx.set(logRef, {
       reportId,
       status: 'sending',
+      provider: 'gmail',
       recipientCount: recipients.length,
       updatedAt: FieldValue.serverTimestamp(),
     });
@@ -158,7 +155,7 @@ exports.notifyMachineStakeholders = onDocumentCreated({
   const contact = clean(report.contact, 320) || 'Not provided';
 
   try {
-    await sendMailjet({
+    await sendGmail({
       to: recipients,
       subject: `[TAD Lab] New maintenance report — ${machine}`,
       text: [
@@ -180,12 +177,14 @@ exports.notifyMachineStakeholders = onDocumentCreated({
 
     await logRef.set({
       status: 'sent',
+      provider: 'gmail',
       sentAt: FieldValue.serverTimestamp(),
       updatedAt: FieldValue.serverTimestamp(),
     }, { merge: true });
   } catch (error) {
     await logRef.set({
       status: 'send-error',
+      provider: 'gmail',
       error: clean(error?.message || error, 700),
       updatedAt: FieldValue.serverTimestamp(),
     }, { merge: true });
@@ -202,7 +201,7 @@ exports.notifyReporterStatus = onDocumentUpdated({
   maxInstances: 1,
   concurrency: 1,
   retry: false,
-  secrets: [MAILJET_API_KEY, MAILJET_SECRET_KEY, MAILJET_SENDER_EMAIL],
+  secrets: [GMAIL_SMTP_USER, GMAIL_APP_PASSWORD],
 }, async (event) => {
   const before = event.data?.before?.data();
   const after = event.data?.after?.data();
@@ -221,7 +220,7 @@ exports.notifyReporterStatus = onDocumentUpdated({
   const db = getFirestore();
   const eventKey = clean(event.id || `${Date.now()}`, 180).replace(/[^A-Za-z0-9_.-]/g, '_');
   const logRef = db.doc(`reporterStatusNotificationLog/${eventKey}`);
-  const dailyRef = db.doc(`emailSafety/mailjet-${utcDayKey()}`);
+  const dailyRef = db.doc(`emailSafety/gmail-${utcDayKey()}`);
   const reportLimitRef = db.doc(`reporterStatusEmailCounts/${reportId}`);
 
   const shouldSend = await db.runTransaction(async (tx) => {
@@ -237,10 +236,11 @@ exports.notifyReporterStatus = onDocumentUpdated({
     const reporterDailyCount = Number(daily.data()?.reporterCount || 0);
     const lifetimeCount = Number(reportCount.data()?.count || 0);
 
-    if (dailyCount + 1 > MAILJET_DAILY_RECIPIENT_LIMIT) {
+    if (dailyCount + 1 > EMAIL_DAILY_RECIPIENT_LIMIT) {
       tx.set(logRef, {
         reportId,
         status: 'rate-limited-daily',
+        provider: 'gmail',
         reportStatus: newStatus,
         updatedAt: FieldValue.serverTimestamp(),
       });
@@ -251,6 +251,7 @@ exports.notifyReporterStatus = onDocumentUpdated({
       tx.set(logRef, {
         reportId,
         status: 'rate-limited-reporter-daily',
+        provider: 'gmail',
         reportStatus: newStatus,
         updatedAt: FieldValue.serverTimestamp(),
       });
@@ -261,6 +262,7 @@ exports.notifyReporterStatus = onDocumentUpdated({
       tx.set(logRef, {
         reportId,
         status: 'rate-limited-report',
+        provider: 'gmail',
         reportStatus: newStatus,
         updatedAt: FieldValue.serverTimestamp(),
       });
@@ -270,6 +272,7 @@ exports.notifyReporterStatus = onDocumentUpdated({
     tx.set(logRef, {
       reportId,
       status: 'sending',
+      provider: 'gmail',
       reportStatus: newStatus,
       updatedAt: FieldValue.serverTimestamp(),
     });
@@ -291,7 +294,7 @@ exports.notifyReporterStatus = onDocumentUpdated({
   const machine = clean(after.machineNameSnapshot || after.machineId, 200) || 'TAD Lab equipment';
 
   try {
-    await sendMailjet({
+    await sendGmail({
       to,
       subject: `[TAD Lab] Report status updated — ${machine}`,
       text: [
@@ -309,12 +312,14 @@ exports.notifyReporterStatus = onDocumentUpdated({
 
     await logRef.set({
       status: 'sent',
+      provider: 'gmail',
       sentAt: FieldValue.serverTimestamp(),
       updatedAt: FieldValue.serverTimestamp(),
     }, { merge: true });
   } catch (error) {
     await logRef.set({
       status: 'send-error',
+      provider: 'gmail',
       error: clean(error?.message || error, 700),
       updatedAt: FieldValue.serverTimestamp(),
     }, { merge: true });
