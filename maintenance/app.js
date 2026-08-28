@@ -31,6 +31,12 @@ import {
   ReCaptchaV3Provider,
   getToken as getAppCheckToken
 } from 'https://www.gstatic.com/firebasejs/12.17.1/firebase-app-check.js';
+import {
+  getStorage,
+  ref as storageRef,
+  uploadBytes,
+  deleteObject
+} from 'https://www.gstatic.com/firebasejs/12.17.1/firebase-storage.js';
 
 const STAFF_EMAILS = new Set([
   'eric.carlson.2@bemidjistate.edu',
@@ -44,6 +50,7 @@ let app = null;
 let appCheck = null;
 let auth = null;
 let fs = null;
+let storage = null;
 let currentUser = null;
 let staff = false;
 let appCheckEnabled = false;
@@ -337,6 +344,7 @@ async function initFirebase() {
   renderConnection();
   auth = getAuth(app);
   fs = getFirestore(app);
+  storage = getStorage(app);
 
   onAuthStateChanged(auth, async user => {
     currentUser = user;
@@ -521,6 +529,7 @@ $('#reportMachine').addEventListener('change', renderMachineResourcePanel);
 const MAX_REPORT_PHOTOS = 3;
 const MAX_REPORT_PHOTO_DIMENSION = 1600;
 const REPORT_PHOTO_QUALITY = 0.78;
+const MAX_REPORT_PHOTO_BYTES = 1572864; // 1.5 MiB per compressed JPEG
 
 let reportPhotoAttachments = [];
 
@@ -596,6 +605,10 @@ async function compressReportPhoto(file, index) {
     );
   });
 
+  if (blob.size > MAX_REPORT_PHOTO_BYTES) {
+    throw new Error('A prepared photo is still too large. Try a lower-resolution photo.');
+  }
+
   return {
     blob,
     filename: `maintenance-photo-${index + 1}.jpg`,
@@ -628,6 +641,45 @@ function renderReportPhotoPreview() {
   const totalBytes = reportPhotoAttachments.reduce((sum, photo) => sum + photo.bytes, 0);
   summary.textContent =
     `${reportPhotoAttachments.length} photo${reportPhotoAttachments.length === 1 ? '' : 's'} prepared · ${formatPhotoBytes(totalBytes)} total`;
+}
+
+async function deleteUploadedReportPhotos(paths = []) {
+  if (!storage) return;
+  await Promise.allSettled(
+    paths.map(path => deleteObject(storageRef(storage, path)))
+  );
+}
+
+async function uploadReportPhotos(reportRef) {
+  if (!reportPhotoAttachments.length) return [];
+  if (!storage || !currentUser) {
+    throw new Error('Photo storage is not ready.');
+  }
+
+  const uploadedPaths = [];
+
+  try {
+    for (let index = 0; index < reportPhotoAttachments.length; index += 1) {
+      const photo = reportPhotoAttachments[index];
+      const path = `reportPhotos/${currentUser.uid}/${reportRef.id}/${photo.filename}`;
+      const target = storageRef(storage, path);
+
+      await uploadBytes(target, photo.blob, {
+        contentType: 'image/jpeg',
+        customMetadata: {
+          reportId: reportRef.id,
+          submittedByUid: currentUser.uid
+        }
+      });
+
+      uploadedPaths.push(path);
+    }
+
+    return uploadedPaths;
+  } catch (error) {
+    await deleteUploadedReportPhotos(uploadedPaths);
+    throw error;
+  }
 }
 
 $('#reportPhotos')?.addEventListener('change', async event => {
@@ -699,7 +751,10 @@ $('#reportForm').onsubmit = async e => {
     machineNameSnapshot: m.name,
     roomSnapshot: m.room || '',
     submittedByUid: currentUser.uid,
-    submittedByEmail: currentUser.email || ''
+    submittedByEmail: currentUser.email || '',
+    photoCount: reportPhotoAttachments.length,
+    photoPaths: [],
+    notificationReady: reportPhotoAttachments.length === 0
   };
   try {
     const reportRef = doc(collection(fs, 'reports'));
@@ -774,6 +829,32 @@ $('#reportForm').onsubmit = async e => {
       }
     });
 
+    let photoWarning = '';
+
+    if (payload.photoCount > 0) {
+      let uploadedPhotoPaths = [];
+
+      try {
+        uploadedPhotoPaths = await uploadReportPhotos(reportRef);
+        await updateDoc(reportRef, {
+          photoPaths: uploadedPhotoPaths,
+          notificationReady: true
+        });
+      } catch (photoError) {
+        console.error('[TAD Lab Manager] Report photo upload failed', photoError);
+        await deleteUploadedReportPhotos(uploadedPhotoPaths);
+
+        // Do not strand the maintenance report if a photo fails. Release the
+        // stakeholder notification without attachments and tell the reporter.
+        await updateDoc(reportRef, {
+          photoCount: 0,
+          photoPaths: [],
+          notificationReady: true
+        });
+        photoWarning = 'Report submitted, but the photo attachment could not be uploaded.';
+      }
+    }
+
     // Immediately reflect the successful public status change in the UI.
     // Firestore has already committed this as part of the report transaction.
     const currentPublicStatus = machinePublicStatus(machineId);
@@ -803,7 +884,7 @@ $('#reportForm').onsubmit = async e => {
     e.target.reset();
     clearReportPhotos();
     renderReportForm();
-    toast(`Report ${reportRef.id.slice(0, 8)} submitted`);
+    toast(photoWarning || `Report ${reportRef.id.slice(0, 8)} submitted`);
     showView('dashboard');
   } catch (err) {
     console.error(err);

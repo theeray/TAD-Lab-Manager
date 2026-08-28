@@ -97,7 +97,8 @@ service cloud.firestore {
         && request.resource.data.keys().hasOnly([
           'machineId','createdAt','urgency','usable','issue','attempted','contact',
           'resource','status','machineNameSnapshot','roomSnapshot',
-          'submittedByUid','submittedByEmail'
+          'submittedByUid','submittedByEmail','photoCount','photoPaths',
+          'notificationReady'
         ])
         && request.resource.data.submittedByUid == request.auth.uid
         && request.resource.data.createdAt == request.time
@@ -121,9 +122,33 @@ service cloud.firestore {
         && request.resource.data.roomSnapshot.size() <= 250
         && request.resource.data.submittedByEmail is string
         && request.resource.data.submittedByEmail.size() <= 320
+        && request.resource.data.photoCount is int
+        && request.resource.data.photoCount >= 0
+        && request.resource.data.photoCount <= 3
+        && request.resource.data.photoPaths is list
+        && request.resource.data.photoPaths.size() == 0
+        && request.resource.data.notificationReady is bool
+        && request.resource.data.notificationReady == (request.resource.data.photoCount == 0)
         && reportRateCountersValid();
 
-      allow read, update, delete: if staff();
+      allow read, delete: if staff();
+
+      allow update: if staff() || (
+        signedIn()
+        && resource.data.submittedByUid == request.auth.uid
+        && resource.data.status == 'Open'
+        && resource.data.notificationReady == false
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+          'photoCount','photoPaths','notificationReady'
+        ])
+        && request.resource.data.photoCount is int
+        && request.resource.data.photoCount >= 0
+        && request.resource.data.photoCount <= 3
+        && request.resource.data.photoPaths is list
+        && request.resource.data.photoPaths.size() == request.resource.data.photoCount
+        && request.resource.data.photoPaths.size() <= 3
+        && request.resource.data.notificationReady == true
+      );
     }
 
     match /reportRateUsers/{uid} {
