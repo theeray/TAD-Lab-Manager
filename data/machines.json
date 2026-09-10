@@ -191,7 +191,7 @@
     "model": "Carvey",
     "official": "https://www.inventables.com/",
     "manual": "https://support.inventables.com/",
-    "serial": "429-1353008",
+    "serial": "",
     "lab": "Plastics Lab",
     "labKey": "light",
     "status": "Operational",
@@ -225,7 +225,7 @@
     "official": "https://www.koike.com/shoppro/",
     "manual": "https://www.koike.com/",
     "safety": "https://www.osha.gov/welding-cutting-brazing",
-    "serial": "387873-1-1",
+    "serial": "",
     "component": "Hypertherm Powermax45 XP plasma source",
     "lab": "Welding Lab — CNC Plasma",
     "labKey": "red",
@@ -260,7 +260,7 @@
     "official": "https://formech.com/",
     "manual": "https://formech.com/",
     "safety": "https://www.osha.gov/machine-guarding",
-    "serial": "829",
+    "serial": "",
     "lab": "Plastics Lab",
     "labKey": "light",
     "status": "Operational",
@@ -276,7 +276,7 @@
     "model": "Compadre",
     "official": "https://www.aglinc.com/products/wide-format-graphics-laminators/5-compadre/",
     "manual": "https://www.aglinc.com/products/wide-format-graphics-laminators/5-compadre/",
-    "serial": "1976",
+    "serial": "",
     "lab": "Large Format Lab",
     "labKey": "blue",
     "status": "Operational",
@@ -324,7 +324,7 @@
     "model": "S-1501B",
     "official": "https://smartstitch-official.com/",
     "manual": "https://smartstitch-official.com/",
-    "serial": "SS20241029145",
+    "serial": "",
     "lab": "TAD Lab",
     "labKey": "neutral",
     "status": "Operational",
@@ -525,7 +525,7 @@
     "official": "https://powermatic.com/",
     "manual": "https://powermatic.com/support",
     "safety": "https://www.osha.gov/etools/woodworking",
-    "serial": "1909WB37002",
+    "serial": "",
     "lab": "Woods Lab",
     "labKey": "green",
     "status": "Operational",
@@ -669,5 +669,121 @@
     "status": "Operational",
     "purchaseCost": 0,
     "tutorialEquipment": ""
+  },
+  {
+    "id": "metrology-zeiss-duramax-555-01",
+    "name": "ZEISS DuraMax 5/5/5 Coordinate Measuring Machine",
+    "category": "Metrology / Inspection",
+    "room": "BN226",
+    "manufacturer": "ZEISS Industrial Quality Solutions",
+    "model": "DuraMax 5/5/5 (DX02 / DuraMax 02)",
+    "official": "https://www.zeiss.com/metrology/us/systems/cmms/shop-floor-cmms/duramax.html",
+    "manual": "",
+    "reference": "https://www.zeiss.com/content/dam/iqs/united-states/systems/duramax/duramax-onepager.pdf",
+    "referenceLabel": "ZEISS DuraMax specification sheet",
+    "training": "https://www.zeiss.com/metrology/us/services/zeiss-academy-metrology.html",
+    "trainingLabel": "ZEISS metrology training",
+    "serial": "",
+    "lab": "Metrology / Inspection Lab",
+    "labKey": "yellow",
+    "status": "Operational",
+    "purchaseCost": 0,
+    "tutorialEquipment": "",
+    "description": "A CNC tactile coordinate measuring machine used for precision dimensional inspection. Its probe touches or scans an object to measure size, form, orientation, and position; compare manufactured parts with CAD specifications; evaluate geometric tolerances; and produce repeatable quality-control results.",
+    "capabilities": [
+      "Measures coordinates, distances, diameters, angles, depths, hole locations, and feature positions in three axes.",
+      "Evaluates form and geometric tolerances such as flatness, straightness, roundness, cylindricity, parallelism, perpendicularity, and position.",
+      "Performs both single-point probing and tactile scanning of contours and free-form surfaces.",
+      "Creates repeatable CNC inspection routines and CAD-based inspection plans in ZEISS CALYPSO.",
+      "Supports dimensional studies of machined, molded, cast, and 3D-printed parts.",
+      "Can use an optional rotary table for four-axis inspection when that accessory is installed."
+    ],
+    "specifications": [
+      {
+        "label": "Machine type",
+        "value": "CNC tactile coordinate measuring machine (CMM)"
+      },
+      {
+        "label": "Measuring volume",
+        "value": "500 × 500 × 500 mm (approximately 19.69 × 19.69 × 19.69 in)"
+      },
+      {
+        "label": "Maximum workpiece load",
+        "value": "100 kg (approximately 220 lb)"
+      },
+      {
+        "label": "Sensor",
+        "value": "ZEISS VAST XXT TL3"
+      },
+      {
+        "label": "Measurement method",
+        "value": "Tactile single-point probing and scanning"
+      },
+      {
+        "label": "Scanning rate",
+        "value": "Up to 500 measured points per second"
+      },
+      {
+        "label": "Probe-tip diameter",
+        "value": "0.3–8 mm"
+      },
+      {
+        "label": "Maximum radial stylus reach",
+        "value": "65 mm with a star stylus"
+      },
+      {
+        "label": "Typical axial stylus length",
+        "value": "30–150 mm"
+      },
+      {
+        "label": "Primary software",
+        "value": "ZEISS CALYPSO"
+      },
+      {
+        "label": "Compressed air",
+        "value": "Not required"
+      },
+      {
+        "label": "Standard rated temperature range",
+        "value": "18–22°C (64.4–71.6°F)"
+      },
+      {
+        "label": "Extended temperature range",
+        "value": "Up to 18–30°C (64.4–86°F) under the applicable ZEISS TVA specification"
+      },
+      {
+        "label": "Length-measurement error",
+        "value": "E₀ = 2.4 + L/300 µm at 18–22°C; approximately 4.07 µm over 500 mm"
+      }
+    ],
+    "appropriateUses": [
+      "Precision inspection of clean, rigid machined components and assemblies.",
+      "Checking 3D-printed parts for shrinkage, warping, and dimensional deviation.",
+      "Inspecting molded parts, castings, gears, housings, fixtures, and prototypes.",
+      "Comparing manufactured geometry with CAD dimensions and tolerances.",
+      "Documenting repeatable quality-control measurements and reports."
+    ],
+    "limitations": [
+      "This is a tactile inspection system, not a rapid optical full-surface 3D scanner.",
+      "Flexible, soft, compressible, fragile, hot, wet, oily, dirty, or abrasive parts require staff review before measurement.",
+      "Parts must fit within the measurement envelope, remain within the load limit, and be securely fixtured."
+    ],
+    "safetyGuidance": [
+      "Trained users only. Obtain authorization before operating or programming the machine.",
+      "Secure the workpiece and confirm that the probe’s complete travel path is clear before starting motion.",
+      "Keep hands, clothing, tools, and loose objects outside the measuring area while the axes are moving.",
+      "Never push the gantry or probe by hand, lean on the measuring table, or reposition a moving part.",
+      "Do not exceed the 100 kg workpiece limit; use appropriate lifting equipment for heavy parts.",
+      "Do not modify a stylus configuration, clearance plane, travel path, or inspection program without authorization.",
+      "Stop and report any collision, damaged stylus, unusual sound, unexpected motion, or unexplained measurement drift.",
+      "Do not resume operation after a collision until authorized staff have inspected the machine."
+    ],
+    "trainingGuidance": [
+      "Identify the probe, stylus, reference sphere, measuring table, controller, joystick, and emergency stop.",
+      "Complete the pre-use inspection and learn safe part cleaning, handling, and fixturing.",
+      "Learn machine startup, referencing, stylus qualification, part alignment, and normal shutdown.",
+      "Run an approved CALYPSO inspection plan and correctly interpret and save the results.",
+      "Programmers must understand CAD-based inspection plans, measurement strategies, GD&T, and safe clearance paths."
+    ]
   }
 ]
