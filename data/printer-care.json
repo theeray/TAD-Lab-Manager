@@ -1,0 +1,29 @@
+[
+  {
+    "machineId": "print-hp-latex-330",
+    "name": "HP Latex 330",
+    "targetDays": 5,
+    "overdueDays": 7,
+    "guidance": "HP reports that ink migration on Latex 300/500 Series printheads is more likely after about 5–7 days without printing. TAD therefore treats 5 days as due-soon and 7 days as overdue for an active printer.",
+    "storageGuidance": "HP's Latex 300 Series guide does not specify a routine ink-line flush interval. For extended storage, unload substrate, park the carriage in the service station, leave ink cartridges/printheads/maintenance cartridge installed, and shut down using the front-panel power button and then the rear switch.",
+    "sourceUrl": "https://lkc.hp.com/printers/hp-latex-335/blog/how-fix-ink-migration-issues-latex-300-and-500-printer-series"
+  },
+  {
+    "machineId": "print-hp-latex-335",
+    "name": "HP Latex 335",
+    "targetDays": 5,
+    "overdueDays": 7,
+    "guidance": "HP reports that ink migration on Latex 300/500 Series printheads is more likely after about 5–7 days without printing. TAD therefore treats 5 days as due-soon and 7 days as overdue for an active printer.",
+    "storageGuidance": "HP's Latex 300 Series guide does not specify a routine ink-line flush interval. For extended storage, unload substrate, park the carriage in the service station, leave ink cartridges/printheads/maintenance cartridge installed, and shut down using the front-panel power button and then the rear switch.",
+    "sourceUrl": "https://lkc.hp.com/printers/hp-latex-335/blog/how-fix-ink-migration-issues-latex-300-and-500-printer-series"
+  },
+  {
+    "machineId": "print-sawgrass-sg1000",
+    "name": "Sawgrass SG1000 Dye Sublimation Printer",
+    "targetDays": 4,
+    "overdueDays": 7,
+    "guidance": "Sawgrass recommends at least 1–2 prints per week when the SG500/SG1000 is not used daily and says to leave the printer plugged in and switched on so its automatic cleaning cycle can run every 10 hours.",
+    "storageGuidance": "Sawgrass recommends leaving the printer powered on during inactivity. If it must be powered off, Sawgrass says to turn it on for a few minutes every 20–25 days; after extended inactivity, run a nozzle check before printing. A head flush is a recovery step after cleaning attempts, not routine storage.",
+    "sourceUrl": "https://care.sawgrassink.com/hc/en-us/articles/11075317607579-Preventative-Maintenance-Steps-SG500-1000"
+  }
+]
