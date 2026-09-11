@@ -259,6 +259,39 @@ service cloud.firestore {
       allow delete: if staff();
     }
 
+    // Persistent staff-only printer use/storage history. Entries are immutable
+    // so the maintenance record remains auditable; incorrect entries can be deleted.
+    match /printerLogs/{logId} {
+      allow read: if staff();
+
+      allow create: if staff()
+        && request.resource.data.keys().hasOnly([
+          'machineId',
+          'eventType',
+          'eventDate',
+          'notes',
+          'createdAt',
+          'recordedBy'
+        ])
+        && request.resource.data.machineId is string
+        && exists(/databases/$(database)/documents/machines/$(request.resource.data.machineId))
+        && request.resource.data.eventType in [
+          'print',
+          'nozzle-check',
+          'storage',
+          'return-service'
+        ]
+        && request.resource.data.eventDate is string
+        && request.resource.data.eventDate.size() == 10
+        && request.resource.data.notes is string
+        && request.resource.data.notes.size() <= 1000
+        && request.resource.data.createdAt == request.time
+        && request.resource.data.recordedBy == request.auth.token.email;
+
+      allow update: if false;
+      allow delete: if staff();
+    }
+
     // Private machine-specific email routing.
     // Students cannot read stakeholder names or email addresses.
     match /notificationRoutes/{machineId} {
