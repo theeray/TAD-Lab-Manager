@@ -23,7 +23,7 @@ const STAFF_EMAILS = new Set([
 const EVENT_LABELS = {
   print: 'Production / test print',
   'nozzle-check': 'Nozzle / diagnostic print',
-  storage: 'Flushed / stored for inactivity',
+  storage: 'Stored / parked per manufacturer procedure',
   'return-service': 'Returned to active service'
 };
 
@@ -134,7 +134,7 @@ function statusFor(profile) {
   if (latest?.eventType === 'storage') {
     return {
       cls: 'stored',
-      label: 'Flushed / stored',
+      label: 'Stored / parked',
       detail: `Storage status set ${latest.eventDate}. Routine print reminder paused.`
     };
   }
@@ -153,6 +153,7 @@ function statusFor(profile) {
   const elapsed = daysSince(latestPrint.eventDate);
   const target = Number(profile.targetDays || 0);
   const overdue = Number(profile.overdueDays || target || 0);
+  const isTadThreshold = profile.cadenceBasis === 'tad-operational';
 
   if (!overdue) {
     return {
@@ -162,11 +163,13 @@ function statusFor(profile) {
     };
   }
 
-  if (elapsed > overdue) {
+  if (elapsed >= overdue) {
     return {
       cls: 'overdue',
       label: `Overdue — ${elapsed} days since print`,
-      detail: `Recommended maximum gap: about ${overdue} days while active.`
+      detail: isTadThreshold
+        ? `TAD operational threshold: ${overdue} days while active; this is not an HP-prescribed print interval.`
+        : `Recommended maximum gap: about ${overdue} days while active.`
     };
   }
 
@@ -174,14 +177,18 @@ function statusFor(profile) {
     return {
       cls: 'soon',
       label: `Due soon — ${elapsed} days since print`,
-      detail: `Approaching the ${overdue}-day maximum active-use gap.`
+      detail: isTadThreshold
+        ? `Approaching TAD's ${overdue}-day operational threshold.`
+        : `Approaching the ${overdue}-day maximum active-use gap.`
     };
   }
 
   return {
     cls: 'current',
     label: `Current — ${elapsed} day${elapsed === 1 ? '' : 's'} since print`,
-    detail: `Next preventive print due within about ${Math.max(1, target - elapsed)} day${Math.max(1, target - elapsed) === 1 ? '' : 's'}.`
+    detail: isTadThreshold
+      ? `Next TAD all-color test print due within about ${Math.max(1, target - elapsed)} day${Math.max(1, target - elapsed) === 1 ? '' : 's'}.`
+      : `Next preventive print due within about ${Math.max(1, target - elapsed)} day${Math.max(1, target - elapsed) === 1 ? '' : 's'}.`
   };
 }
 
@@ -218,7 +225,7 @@ function render() {
       </div>
       <button type="button" class="btn secondary small" id="printerLogExport">Download printer log CSV</button>
     </div>
-    <div class="notice"><strong>Current status:</strong> ${overdueCount} overdue · ${storedCount} stored. “Flushed / stored” is a record that the appropriate model-specific shutdown/storage procedure was completed; it does not mean every printer requires an ink-line flush.</div>
+    <div class="notice"><strong>Current status:</strong> ${overdueCount} overdue · ${storedCount} stored. “Stored / parked” records that the appropriate model-specific shutdown or storage procedure was completed; it does not mean the ink lines were flushed.</div>
     <div class="printer-care-grid">
       ${profiles.map(profile => {
         const status = statusFor(profile);
@@ -239,10 +246,10 @@ function render() {
               <label>Event<select class="printer-event-type">
                 <option value="print">Production / test print</option>
                 <option value="nozzle-check">Nozzle / diagnostic print</option>
-                <option value="storage">Flushed / stored for inactivity</option>
+                <option value="storage">Stored / parked per manufacturer procedure</option>
                 <option value="return-service">Returned to active service</option>
               </select></label>
-              <label class="wide">Notes<input class="printer-event-notes" maxlength="1000" placeholder="Optional: media, nozzle result, flush/service details…"></label>
+              <label class="wide">Notes<input class="printer-event-notes" maxlength="1000" placeholder="Optional: media, nozzle result, storage/service details…"></label>
               <div class="printer-log-actions"><button type="button" class="btn primary small printer-log-save">Save log entry</button></div>
             </div>
 

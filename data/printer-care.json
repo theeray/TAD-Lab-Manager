@@ -4,8 +4,9 @@
     "name": "HP Latex 330",
     "targetDays": 5,
     "overdueDays": 7,
-    "guidance": "HP reports that ink migration on Latex 300/500 Series printheads is more likely after about 5–7 days without printing. TAD therefore treats 5 days as due-soon and 7 days as overdue for an active printer.",
-    "storageGuidance": "HP's Latex 300 Series guide does not specify a routine ink-line flush interval. For extended storage, unload substrate, park the carriage in the service station, leave ink cartridges/printheads/maintenance cartridge installed, and shut down using the front-panel power button and then the rear switch.",
+    "cadenceBasis": "tad-operational",
+    "guidance": "HP notes that cross-color ink migration may occur within the same shared printhead after approximately 5–7 days without printing. This is a printhead effect, not a published tube dry-out interval. TAD uses a weekly all-color test print to detect migration and verify that the ink-delivery system remains properly primed; 5-day due-soon and 7-day overdue markers are TAD operational thresholds, not an HP-prescribed print schedule.",
+    "storageGuidance": "The non-printhead components that can require service are the Ink Delivery System's ink-supply tubes. If the tubes lose prime or contain air, HP service procedures call for Purge Tubes or Refill Ink Tubes; HP does not specify a number of idle days after which this occurs. For extended inactivity, store and park the printer according to HP procedure: unload substrate, park the carriage in the service station, leave ink cartridges, printheads, and the maintenance cartridge installed, then shut down with the front-panel power button followed by the rear switch.",
     "sourceUrl": "https://lkc.hp.com/printers/hp-latex-335/blog/how-fix-ink-migration-issues-latex-300-and-500-printer-series"
   },
   {
@@ -13,8 +14,9 @@
     "name": "HP Latex 335",
     "targetDays": 5,
     "overdueDays": 7,
-    "guidance": "HP reports that ink migration on Latex 300/500 Series printheads is more likely after about 5–7 days without printing. TAD therefore treats 5 days as due-soon and 7 days as overdue for an active printer.",
-    "storageGuidance": "HP's Latex 300 Series guide does not specify a routine ink-line flush interval. For extended storage, unload substrate, park the carriage in the service station, leave ink cartridges/printheads/maintenance cartridge installed, and shut down using the front-panel power button and then the rear switch.",
+    "cadenceBasis": "tad-operational",
+    "guidance": "HP notes that cross-color ink migration may occur within the same shared printhead after approximately 5–7 days without printing. This is a printhead effect, not a published tube dry-out interval. TAD uses a weekly all-color test print to detect migration and verify that the ink-delivery system remains properly primed; 5-day due-soon and 7-day overdue markers are TAD operational thresholds, not an HP-prescribed print schedule.",
+    "storageGuidance": "The non-printhead components that can require service are the Ink Delivery System's ink-supply tubes. If the tubes lose prime or contain air, HP service procedures call for Purge Tubes or Refill Ink Tubes; HP does not specify a number of idle days after which this occurs. For extended inactivity, store and park the printer according to HP procedure: unload substrate, park the carriage in the service station, leave ink cartridges, printheads, and the maintenance cartridge installed, then shut down with the front-panel power button followed by the rear switch.",
     "sourceUrl": "https://lkc.hp.com/printers/hp-latex-335/blog/how-fix-ink-migration-issues-latex-300-and-500-printer-series"
   },
   {
