@@ -238,7 +238,11 @@ function render() {
             <div class="printer-care-guidance">
               <p><strong>Official guidance:</strong> ${esc(profile.guidance)}</p>
               <p><strong>Storage:</strong> ${esc(profile.storageGuidance)}</p>
-              <p><a href="${esc(profile.sourceUrl)}" target="_blank" rel="noopener">Official source ↗</a></p>
+              <p>
+                <a href="${esc(profile.sourceUrl)}" target="_blank" rel="noopener">Official guidance source ↗</a>
+                ${profile.storageInstructionsUrl ? ` · <a href="${esc(profile.storageInstructionsUrl)}" target="_blank" rel="noopener">Move/store instructions (guide copy) ↗</a>` : ''}
+                ${profile.officialManualsUrl ? ` · <a href="${esc(profile.officialManualsUrl)}" target="_blank" rel="noopener">Official ${esc(profile.name)} manuals ↗</a>` : ''}
+              </p>
             </div>
 
             <div class="printer-log-form">

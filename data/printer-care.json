@@ -7,7 +7,9 @@
     "cadenceBasis": "tad-operational",
     "guidance": "HP notes that cross-color ink migration may occur within the same shared printhead after approximately 5–7 days without printing. This is a printhead effect, not a published tube dry-out interval. TAD uses a weekly all-color test print to detect migration and verify that the ink-delivery system remains properly primed; 5-day due-soon and 7-day overdue markers are TAD operational thresholds, not an HP-prescribed print schedule.",
     "storageGuidance": "The non-printhead components that can require service are the Ink Delivery System's ink-supply tubes. If the tubes lose prime or contain air, HP service procedures call for Purge Tubes or Refill Ink Tubes; HP does not specify a number of idle days after which this occurs. For extended inactivity, store and park the printer according to HP procedure: unload substrate, park the carriage in the service station, leave ink cartridges, printheads, and the maintenance cartridge installed, then shut down with the front-panel power button followed by the rear switch.",
-    "sourceUrl": "https://lkc.hp.com/printers/hp-latex-335/blog/how-fix-ink-migration-issues-latex-300-and-500-printer-series"
+    "sourceUrl": "https://lkc.hp.com/printers/hp-latex-335/blog/how-fix-ink-migration-issues-latex-300-and-500-printer-series",
+    "storageInstructionsUrl": "https://hp.manymanuals.com/printers/latex-360-printer/user-manual-9075/155",
+    "officialManualsUrl": "https://support.hp.com/us-en/product/setup-user-guides/hp-latex-330-printer/6838367"
   },
   {
     "machineId": "print-hp-latex-335",
@@ -17,7 +19,9 @@
     "cadenceBasis": "tad-operational",
     "guidance": "HP notes that cross-color ink migration may occur within the same shared printhead after approximately 5–7 days without printing. This is a printhead effect, not a published tube dry-out interval. TAD uses a weekly all-color test print to detect migration and verify that the ink-delivery system remains properly primed; 5-day due-soon and 7-day overdue markers are TAD operational thresholds, not an HP-prescribed print schedule.",
     "storageGuidance": "The non-printhead components that can require service are the Ink Delivery System's ink-supply tubes. If the tubes lose prime or contain air, HP service procedures call for Purge Tubes or Refill Ink Tubes; HP does not specify a number of idle days after which this occurs. For extended inactivity, store and park the printer according to HP procedure: unload substrate, park the carriage in the service station, leave ink cartridges, printheads, and the maintenance cartridge installed, then shut down with the front-panel power button followed by the rear switch.",
-    "sourceUrl": "https://lkc.hp.com/printers/hp-latex-335/blog/how-fix-ink-migration-issues-latex-300-and-500-printer-series"
+    "sourceUrl": "https://lkc.hp.com/printers/hp-latex-335/blog/how-fix-ink-migration-issues-latex-300-and-500-printer-series",
+    "storageInstructionsUrl": "https://hp.manymanuals.com/printers/latex-360-printer/user-manual-9075/155",
+    "officialManualsUrl": "https://support.hp.com/us-en/product/setup-user-guides/hp-latex-335-printer/12703055"
   },
   {
     "machineId": "print-sawgrass-sg1000",
