@@ -104,7 +104,7 @@ Add `theeray.github.io` to Firebase Authentication's authorized domains.
 
 Each machine gets a URL like:
 
-`https://theeray.github.io/TAD-Lab-Manager/maintenance/index.html?machine=cnc-shopbot-full-01#report`
+`https://tad-lab-manager.web.app/maintenance/index.html?machine=cnc-shopbot-full-01#report`
 
 Use that as the machine's **Report a Problem** Linktree destination. The physical QR sticker can remain unchanged if it already points to the Linktree.
 

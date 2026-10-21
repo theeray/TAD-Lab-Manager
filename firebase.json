@@ -21,7 +21,9 @@
       "**/node_modules/**",
       "functions/**",
       "tests/**",
-      "**/*.log"
+      "**/*.log",
+      "scripts/**",
+      "**/gha-creds-*.json"
     ],
     "headers": [
       {

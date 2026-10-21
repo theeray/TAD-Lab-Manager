@@ -1,0 +1,34 @@
+name: Maintain old Lab Manager links
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/retire-preview-channels.mjs'
+      - '.github/workflows/legacy-hosting-redirects.yml'
+  schedule:
+    - cron: '17 8 * * 1'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: lab-manager-legacy-redirects
+  cancel-in-progress: false
+
+jobs:
+  maintain_redirects:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Authenticate existing Firebase deployment account
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_TAD_LAB_MANAGER }}
+      - name: Redirect existing legacy preview channels and renew their lifetime
+        run: node scripts/retire-preview-channels.mjs
