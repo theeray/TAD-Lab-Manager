@@ -72,9 +72,11 @@ GitHub Pages uses a browser redirect because it cannot configure HTTP redirects.
 
 The **Maintain old Lab Manager links** workflow retires every surviving preview
 channel created before October 21, 2026 at 18:24:38 UTC, using an HTTP 301 to
-the corresponding production path. It renews these channels weekly because
-Firebase preview channels can expire after at most 30 days. It never deploys
-to `live`, and leaves new development preview channels alone.
+the corresponding production path. The October 21 inventory confirmed that
+only the live channel remains; all historical preview channels had already
+been removed. No recurring renewal job is needed. The workflow remains
+available for manual checks and never deploys to `live` or new development
+preview channels.
 Already-deleted preview URLs, including an expired URL's random suffix, cannot
 be recovered by creating another channel with the same name.
 
