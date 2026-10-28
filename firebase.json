@@ -6,6 +6,10 @@
     {
       "source": "functions",
       "codebase": "default"
+    },
+    {
+      "source": "checkout-functions",
+      "codebase": "equipment-checkout"
     }
   ],
   "emulators": {
@@ -20,10 +24,13 @@
       "**/.*",
       "**/node_modules/**",
       "functions/**",
+      "checkout-functions/**",
+      "docs/**",
       "tests/**",
       "**/*.log",
       "scripts/**",
-      "**/gha-creds-*.json"
+      "**/gha-creds-*.json",
+      "firebase.checkout-emulator.json"
     ],
     "headers": [
       {

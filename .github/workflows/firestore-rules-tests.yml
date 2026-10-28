@@ -6,6 +6,9 @@ on:
       - 'firestore.rules'
       - 'tests/**'
       - 'functions/**'
+      - 'checkout-functions/**'
+      - 'checkout/**'
+      - 'equipment-checkout.html'
       - '.github/workflows/firestore-rules-tests.yml'
   push:
     branches:
@@ -14,6 +17,9 @@ on:
       - 'firestore.rules'
       - 'tests/**'
       - 'functions/**'
+      - 'checkout-functions/**'
+      - 'checkout/**'
+      - 'equipment-checkout.html'
       - '.github/workflows/firestore-rules-tests.yml'
 
 permissions:
@@ -34,7 +40,12 @@ jobs:
           cache-dependency-path: tests/package-lock.json
 
       - name: Check Firebase Functions syntax
-        run: node --check functions/index.js
+        run: |
+          node --check functions/index.js
+          node --check checkout-functions/index.js
+          node --check checkout-functions/service.js
+          node --check checkout-functions/delivery.js
+          node --check checkout/app.js
 
       - name: Set up Java for Firestore emulator
         uses: actions/setup-java@v4
@@ -43,7 +54,30 @@ jobs:
           java-version: '21'
 
       - name: Install test dependencies
-        run: npm ci --prefix tests
+        run: |
+          npm ci --prefix tests
+          npm ci --prefix checkout-functions
 
       - name: Run Firestore rules tests
-        run: npx firebase-tools@latest emulators:exec --only firestore --project demo-tad-lab-manager-rules-test "npm --prefix tests test"
+        run: npx firebase-tools@latest emulators:exec --only firestore --project demo-tad-checkout "npm --prefix checkout-functions test && npm --prefix tests test"
+
+  deploy_checkout_pilot:
+    name: Deploy paused checkout pilot backend
+    needs: rules_tests
+    if: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.head.ref == 'feature/verified-ipad-checkout' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Authenticate existing Firebase deployment account
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_TAD_LAB_MANAGER }}
+      - name: Inspect existing Firestore database
+        run: npx firebase-tools@latest firestore:databases:list --project tad-lab-manager --non-interactive
+      - name: Install pilot backend dependencies
+        run: npm ci --prefix checkout-functions
+      - name: Deploy only pilot backend and current access rules
+        run: npx firebase-tools@latest deploy --only functions:equipment-checkout,firestore:rules --project tad-lab-manager --non-interactive

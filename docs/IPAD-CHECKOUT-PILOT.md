@@ -1,0 +1,71 @@
+# Verified-email iPad checkout pilot
+
+This is a one-iPad self-service checkout flow integrated with TAD Lab Manager. The asset number has **not** been invented or registered in production. Register the actual asset after its case/asset photos are supplied. Checkouts default to paused and email defaults to off.
+
+## Student workflow
+
+The case sticker opens `https://tad-lab-manager.web.app/equipment-checkout.html?asset=ACTUAL-STICKER-ID`. The ID is looked up against a manager-registered inventory record, never trusted as editable asset metadata. The same ID is included in the verification email's continue URL, so registration/verification does not require rescanning.
+
+Students create an email/password account, open Firebase's verification email, and return to checkout. “I verified my email” reloads the account and refreshes its ID token. The submit function independently requires a verified token **and** a currently verified, enabled account with the same email. Merely hiding/showing the form does not authorize a loan. A verified email confirms mailbox access, not enrollment or faculty permission.
+
+The form collects name, course/project, purpose, return date (today through 30 days), condition/notes, accessories, and a versioned acknowledgment. Email/UID, asset metadata, and timestamps are server-derived. The acknowledgment is a pilot responsibility statement, not a substitute for an institution-approved loan agreement. The old prototype's faculty-approval stage is not part of this simplified pilot. Lab managers confirm physical returns.
+
+## Data and access
+
+The existing `(default)` Firestore database and its current document API are used. No database, auth provider, or existing maintenance rules are replaced. All new checkout paths remain covered by the existing default-deny rules. The browser uses authenticated, App Check enforced callable functions; the Admin SDK performs validated transactions. Verified managers are the same four emails used by the existing app.
+
+- `checkoutConfig/pilot`: private routing, sheet ID, enabled flag, one pilot asset ID.
+- `checkoutAssets/{assetId}`: registered metadata and current loan pointer; contains no borrower identity.
+- `checkoutProfiles/{uid}`: private name/email autofill, written by the server.
+- `checkoutBorrowers/{uid}`: current loan pointer.
+- `checkoutLoans/{loanId}`: current loan state and immutable original checkout fields. Only the manager return function updates return fields.
+- `checkoutEvents/{eventId}`: permanent append-only checkout/return snapshots. No callable edits or deletes events.
+- `checkoutOutbox/{eventId}`: private delivery progress, bounded retries, and per-event leases.
+- `checkoutCounters/history`, `checkoutDaily/{date}`, `checkoutDeliveryBudgets/{date}`: transactional sequence and daily limits.
+
+Client reads/writes to every new path, including staff client SDK requests, remain denied. Students can retrieve only their own loans through `checkoutSession`. Managers can retrieve up to the newest 500 events and export a spreadsheet-safe CSV. Older events stay in the database. Direct SDK bypass/PII access, role injection, and history alteration are tested against the Firestore emulator.
+
+A checkout transaction creates the loan, history event, outbox item, profile, sequence, and availability pointers together. A deterministic UID/request ID makes connection retries idempotent. Concurrent students cannot acquire the same iPad. Returns create a second event and release the asset; the original event remains unchanged. The one-iPad pilot allows only one active loan per borrower.
+
+## Delivery setup
+
+The manager screen has a dedicated Google spreadsheet destination and three email modes: off, pilot (Eric only), and all four stakeholders (Nick Lowery, Andrew Graham, Eric Carlson, Chase Cornell). No student can select recipients. Pilot email mode is intended for the first real receipt test; switching to stakeholder mode affects future/not-yet-delivered notices, and does not resend completed pilot notices.
+
+Share a dedicated spreadsheet, restricted to lab managers, as Editor with `tad-lab-manager@appspot.gserviceaccount.com`. App manager permissions do not automatically grant Google spreadsheet access; give each intended manager access to the spreadsheet separately. The Google Sheets API must be enabled on the Firebase project's underlying Google Cloud project. The functions explicitly run as this service account; if a different runtime account is needed, change both backend options and the displayed sharing instructions together.
+
+The writer creates a separate `TAD checkout log` tab with an app ownership marker. It refuses to overwrite a pre-existing unmarked tab with that name. Event sequence determines a fixed row, so a retry updates that event's row instead of appending another copy. Values use RAW input so student text cannot execute as sheet formulas. Do not edit/sort/delete rows in the managed tab; use a separate sheet/view for sorting. Firestore remains authoritative. Once set, the destination cannot be changed from the pilot screen.
+
+Gmail SMTP uses the existing `GMAIL_SMTP_USER` and `GMAIL_APP_PASSWORD` Firebase secrets. Their actual availability and BSU receipt must be verified in the deployed environment. The sender is authenticated Gmail, not a spoofed BSU address. Reply-To is Eric's BSU address. Auth verification/reset mail is sent independently by Firebase Auth; Gmail SMTP is for checkout notifications.
+
+An outbox worker attempts configured deliveries after a saved event. Scheduled retries run every 30 minutes, up to ten attempts; managers can manually retry pending items after fixing configuration or reaching a daily limit. Each component records its own success. Sheet errors or SMTP errors do not undo a checkout. SMTP is at-least-once: a crash after SMTP acceptance but before saving success, or partial recipient rejection, can still cause duplicate notices on retry. A deterministic Message-ID and the event ID help identify duplicates; exactly-once SMTP delivery is not claimed.
+
+Limits are 100 successful checkouts/day and 100 checkout-email recipient attempts/day (four stakeholders consume four). Each function has zero minimum and one maximum instance. These are application controls, not a guarantee of a maximum Google Cloud bill. Other app services have their own usage. Configure project budget alerts and appropriate service spend controls separately.
+
+## Deployment and first physical test
+
+The new backend is a separate `equipment-checkout` codebase in `checkout-functions/`. The existing `functions/` codebase and draft maintenance email implementation are unchanged.
+
+1. In an authenticated Firebase environment, confirm `tad-lab-manager` billing and inspect the existing `(default)` database edition/location. The workstation used for initial development had no authenticated Firebase CLI session; it could not inspect live billing or deploy functions.
+2. Install `npm ci --prefix checkout-functions`. Check the Gmail secrets exist and the runtime service account has Firestore and secret access. Enable the Google Sheets API. Do not put secret values in files or GitHub source.
+3. Deploy only the pilot codebase: `npx firebase-tools@latest deploy --only functions:equipment-checkout --project tad-lab-manager`. This includes the scheduled retry worker and may require the normal Functions/Eventarc/Scheduler IAM setup. Do not deploy the unrelated default codebase.
+4. Deploy the reviewed hosting changes through the existing main-branch hosting workflow. Check Firebase Auth authorized domains and the verification email template's action handler. Production continuation must retain the asset parameter. Preview hosting domains need their own Auth/reCAPTCHA authorization for real account tests.
+5. Sign in as a verified manager. Register the actual iPad from its photos; this produces the sticker destination. Registration keeps checkouts paused and email off. No fabricated demo inventory is seeded in production.
+6. Configure and share the actual spreadsheet, select Eric-only pilot email, and enable the pilot. Print one QR sticker for the confirmed asset URL.
+7. On a phone, scan the sticker, create a new account, verify actual inbox receipt, follow the verification link, and return to checkout. Attempt checkout before verifying too: it must fail. Confirm autofill and the retained asset after verification.
+8. Submit one checkout and confirm the manager history, spreadsheet row, and actual email receipt. Refresh/retry the request to confirm only one loan exists. A second borrower must be blocked while it is out.
+9. A manager confirms return. Confirm a separate return event/row/email and restored availability. Then select all four stakeholders and verify routing before student rollout.
+
+Registration/asset photos, a real spreadsheet destination, live backend deployment, Auth/App Check live verification, and actual email/spreadsheet receipt are still required to complete the physical pilot. No real email receipt or sheet write is claimed by emulator tests.
+
+## Automated verification
+
+Install `npm ci --prefix tests` and `npm ci --prefix checkout-functions`, then run:
+
+```sh
+npx firebase-tools@latest emulators:exec --only firestore --project demo-tad-checkout "npm --prefix checkout-functions test && npm --prefix tests test"
+node --test scripts/canonical-redirect.test.mjs
+```
+
+Use Java 21 with current Firebase Tools. Local initial verification also passed with Firebase Tools 14.15.2/Firestore emulator 1.19.8 and Java 17. Production runtime is Node 22; the initial workstation used Node 24 for local tests.
+
+For local browser testing only, `firebase.checkout-emulator.json` runs Auth, Firestore, Functions and Hosting against the `demo-tad-checkout` project. Add ignored `checkout-functions/.secret.local` dummy SMTP values if the emulator requests them. The browser connects to emulators only on `localhost`/`127.0.0.1` with `?emulator=1`; production hosts cannot opt into emulator mode. The delivery worker refuses all external email/sheet operations in emulator mode.
