@@ -23,6 +23,9 @@ function id(value) {
     'invalid-argument', 'Use an asset ID containing letters, numbers, hyphens, or underscores.');
   return value;
 }
+function validAssetNumber(value) {
+  return typeof value === 'string' && value.length === 7 && /^[0-9]{7}$/.test(value);
+}
 function day(now) {
   return new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Chicago', year: 'numeric', month: '2-digit', day: '2-digit' }).format(now);
 }
@@ -46,7 +49,8 @@ function serial(doc) {
 function assetView(doc) {
   if (!doc.exists) return null;
   const a = doc.data();
-  return { id: doc.id, assetNumber: a.assetNumber, label: a.label, model: a.model, active: a.active, available: !a.currentLoanId };
+  return { id: doc.id, assetNumber: a.assetNumber, label: a.label, model: a.model, active: a.active, available: !a.currentLoanId,
+    assetNumberValid: validAssetNumber(a.assetNumber) };
 }
 
 function createService({ db, auth, FieldValue, now = () => new Date() }) {
@@ -108,6 +112,8 @@ function createService({ db, auth, FieldValue, now = () => new Date() }) {
       ensure(cfg.data()?.enabled === true, 'failed-precondition', 'The pilot is not accepting checkouts yet.');
       ensure(asset.exists && asset.data().active === true && cfg.data().pilotAssetId === assetId,
         'not-found', 'This iPad is not registered for the pilot. Ask a lab manager.');
+      ensure(validAssetNumber(asset.data().assetNumber),
+        'failed-precondition', 'The university asset number must contain exactly 7 digits. Ask a lab manager to verify the asset label.');
       ensure(!asset.data().currentLoanId, 'already-exists', 'This iPad is already checked out.');
       ensure(!borrower.data()?.currentLoanId, 'already-exists', 'You already have an active equipment loan.');
       ensure((daily.data()?.count || 0) < 100, 'resource-exhausted', 'The daily pilot checkout limit has been reached. Contact a lab manager.');
@@ -174,7 +180,10 @@ function createService({ db, auth, FieldValue, now = () => new Date() }) {
     const staff = await manager(request);
     const d = request.data || {};
     const assetId = id(d.assetId);
-    const asset = { assetNumber: text(d.assetNumber, 'Asset number', 80, 1), label: text(d.label, 'iPad label', 100, 2),
+    const assetNumber = text(d.assetNumber, 'Asset number', 80, 1);
+    ensure(validAssetNumber(assetNumber), 'invalid-argument',
+      'University asset number must contain exactly 7 digits. Do not include “PROPERTY OF THE STATE OF MINNESOTA”.');
+    const asset = { assetNumber, label: text(d.label, 'iPad label', 100, 2),
       model: text(d.model ?? '', 'Model', 100), active: true, currentLoanId: null,
       createdAt: FieldValue.serverTimestamp(), updatedAt: FieldValue.serverTimestamp(), registeredBy: staff.email };
     return db.runTransaction(async tx => {
@@ -193,14 +202,21 @@ function createService({ db, auth, FieldValue, now = () => new Date() }) {
       'invalid-argument', 'Choose valid pilot and notification settings.');
     const spreadsheetId = text(d.spreadsheetId || '', 'Spreadsheet ID', 120);
     ensure(!spreadsheetId || /^[A-Za-z0-9_-]{20,120}$/.test(spreadsheetId), 'invalid-argument', 'Enter a valid Google spreadsheet ID or URL.');
-    const cfg = await configRef.get();
-    ensure(cfg.data()?.pilotAssetId, 'failed-precondition', 'Register the pilot iPad first.');
-    // Once rows have been written, changing the destination would leave an incomplete history.
-    ensure(!cfg.data()?.spreadsheetId || cfg.data().spreadsheetId === spreadsheetId,
-      'failed-precondition', 'An existing spreadsheet destination cannot be changed from the pilot screen.');
-    await configRef.set({ enabled: d.enabled, notificationMode: d.notificationMode, spreadsheetId,
-      updatedAt: FieldValue.serverTimestamp(), updatedBy: staff.email }, { merge: true });
-    return { saved: true };
+    return db.runTransaction(async tx => {
+      const cfg = await tx.get(configRef);
+      ensure(cfg.data()?.pilotAssetId, 'failed-precondition', 'Register the pilot iPad first.');
+      if (d.enabled) {
+        const asset = await tx.get(db.doc(`checkoutAssets/${cfg.data().pilotAssetId}`));
+        ensure(asset.exists && validAssetNumber(asset.data().assetNumber),
+          'failed-precondition', 'Verify the 7-digit university asset number before enabling checkouts.');
+      }
+      // Once rows have been written, changing the destination would leave an incomplete history.
+      ensure(!cfg.data()?.spreadsheetId || cfg.data().spreadsheetId === spreadsheetId,
+        'failed-precondition', 'An existing spreadsheet destination cannot be changed from the pilot screen.');
+      tx.set(configRef, { enabled: d.enabled, notificationMode: d.notificationMode, spreadsheetId,
+        updatedAt: FieldValue.serverTimestamp(), updatedBy: staff.email }, { merge: true });
+      return { saved: true };
+    });
   }
   return { session, submit, recordReturn, dashboard, registerAsset, configure, manager };
 }

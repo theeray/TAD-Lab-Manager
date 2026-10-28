@@ -18,7 +18,7 @@ const request = (uid = 'student', data = {}, verified = true) => ({
 });
 const form = (extra = {}) => ({ assetId: 'IPAD-PILOT', requestId: randomUUID(), name: 'Test Student', course: 'Illustration', purpose: 'Class drawing project', dueDate: '2026-10-30', condition: 'Good', notes: '', accessories: ['Case'], agreement: POLICY, ...extra });
 async function seed() {
-  await service.registerAsset(request('manager', { assetId: 'IPAD-PILOT', assetNumber: 'DEMO-ONLY-024', label: 'Test iPad', model: 'Fictional test fixture' }));
+  await service.registerAsset(request('manager', { assetId: 'IPAD-PILOT', assetNumber: '0000024', label: 'Test iPad', model: 'Fictional test fixture' }));
   await service.configure(request('manager', { enabled: true, notificationMode: 'off', spreadsheetId: '' }));
 }
 const reject = (fn, code) => assert.rejects(fn, error => error.code === code);
@@ -53,7 +53,7 @@ test('verified checkout records trusted identity, asset snapshot, timestamp and 
   const result = await service.submit(request('student', form({ borrowerEmail: 'forged@example.test' })));
   const loan = (await db.doc(`checkoutLoans/${result.loanId}`).get()).data();
   assert.equal(loan.borrowerEmail, users.student.email);
-  assert.equal(loan.assetNumber, 'DEMO-ONLY-024');
+  assert.equal(loan.assetNumber, '0000024');
   assert.equal(loan.createdAt instanceof Timestamp, true);
   assert.equal((await db.collection('checkoutEvents').get()).size, 1);
   assert.equal((await db.collection('checkoutOutbox').get()).size, 1);
@@ -119,6 +119,51 @@ test('one-iPad registration and fixed spreadsheet destination are enforced', asy
 test('server daily checkout cap prevents further writes', async () => {
   await db.doc('checkoutDaily/2026-10-28').set({ count: 100 });
   await reject(() => service.submit(request('student', form())), 'resource-exhausted');
+});
+test('registration rejects short, long, nonnumeric, and ownership-text asset numbers', async () => {
+  for (const assetNumber of ['198209', '19820960', '198209X', '198 096', '１９８２０９６', '1982096 PROPERTY OF THE STATE OF MINNESOTA', 1982096]) {
+    await reject(() => service.registerAsset(request('manager', {
+      assetId: 'NEW-IPAD', assetNumber, assetNumberLength: String(assetNumber).length, label: 'Unregistered iPad',
+    })), 'invalid-argument');
+  }
+  assert.equal((await db.doc('checkoutAssets/NEW-IPAD').get()).exists, false);
+});
+test('the confirmed test iPad uses asset 1982096 and a separate case label', async () => {
+  await db.doc('checkoutAssets/IPAD-PILOT').delete();
+  await db.doc('checkoutConfig/pilot').delete();
+  await service.registerAsset(request('manager', {
+    assetId: 'IPAD-PILOT', assetNumber: '1982096', label: 'Student iPad #07',
+  }));
+  await service.configure(request('manager', { enabled: true, notificationMode: 'off', spreadsheetId: '' }));
+  const { loanId } = await service.submit(request('student', form()));
+  assert.equal((await db.doc(`checkoutEvents/${loanId}`).get()).data().assetNumber, '1982096');
+  assert.equal((await db.doc(`checkoutEvents/${loanId}`).get()).data().assetLabel, 'Student iPad #07');
+});
+test('seven-digit asset numbers preserve leading zeros through registration and checkout', async () => {
+  await db.doc('checkoutAssets/IPAD-PILOT').delete();
+  await db.doc('checkoutConfig/pilot').delete();
+  await service.registerAsset(request('manager', {
+    assetId: 'IPAD-PILOT', assetNumber: ' 0000024 ', label: 'Leading-zero test iPad',
+  }));
+  await service.configure(request('manager', { enabled: true, notificationMode: 'off', spreadsheetId: '' }));
+  const { loanId } = await service.submit(request('student', form()));
+  for (const path of ['checkoutAssets/IPAD-PILOT', `checkoutLoans/${loanId}`, `checkoutEvents/${loanId}`]) {
+    assert.equal((await db.doc(path).get()).data().assetNumber, '0000024');
+  }
+});
+test('invalid stored numbers block checkout and enabling without partial loan records', async () => {
+  for (const assetNumber of ['198209', '19820960', '198209X', '1982096 PROPERTY OF THE STATE OF MINNESOTA', 1982096]) {
+    await db.doc('checkoutAssets/IPAD-PILOT').update({ assetNumber });
+    const state = await service.session(request('student', { assetId: 'IPAD-PILOT' }));
+    assert.equal(state.asset.assetNumberValid, false);
+    await reject(() => service.submit(request('student', form({ assetNumberLength: String(assetNumber).length }))), 'failed-precondition');
+    await reject(() => service.configure(request('manager', { enabled: true, notificationMode: 'off', spreadsheetId: '' })), 'failed-precondition');
+  }
+  for (const collection of ['checkoutLoans', 'checkoutEvents', 'checkoutOutbox']) {
+    assert.equal((await db.collection(collection).get()).size, 0);
+  }
+  await service.configure(request('manager', { enabled: false, notificationMode: 'off', spreadsheetId: '' }));
+  assert.equal((await db.doc('checkoutConfig/pilot').get()).data().enabled, false);
 });
 test('calendar validation rejects impossible dates', () => {
   assert.throws(() => dueDate('2026-11-31', clock()), error => error.code === 'invalid-argument');

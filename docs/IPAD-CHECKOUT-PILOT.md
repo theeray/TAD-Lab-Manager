@@ -1,6 +1,6 @@
 # Verified-email iPad checkout pilot
 
-This is a one-iPad self-service checkout flow integrated with TAD Lab Manager. The asset number has **not** been invented or registered in production. Register the actual asset after its case/asset photos are supplied. Checkouts default to paused and email defaults to off.
+This is a one-iPad self-service checkout flow integrated with TAD Lab Manager. Eric confirmed the test device as **Student iPad #07**, university asset **1982096**. Its registration form is prefilled with that number, case label, and sticker ID `IPAD-07`; prefilling is not production registration. The printed text “PROPERTY OF THE STATE OF MINNESOTA” is ownership wording, not part of the number. Checkouts default to paused and email defaults to off.
 
 ## Student workflow
 
@@ -9,6 +9,12 @@ The case sticker opens `https://tad-lab-manager.web.app/equipment-checkout.html?
 Students create an email/password account, open Firebase's verification email, and return to checkout. “I verified my email” reloads the account and refreshes its ID token. The submit function independently requires a verified token **and** a currently verified, enabled account with the same email. Merely hiding/showing the form does not authorize a loan. A verified email confirms mailbox access, not enrollment or faculty permission.
 
 The form collects name, course/project, purpose, return date (today through 30 days), condition/notes, accessories, and a versioned acknowledgment. Email/UID, asset metadata, and timestamps are server-derived. The acknowledgment is a pilot responsibility statement, not a substitute for an institution-approved loan agreement. The old prototype's faculty-approval stage is not part of this simplified pilot. Lab managers confirm physical returns.
+
+## Asset-number validation
+
+The university asset number must be a string of **exactly seven ASCII digits**. Leading zeros stay intact. Short, long, nonnumeric, signed, decimal, Unicode-lookalike, or ownership-text-inclusive entries are rejected. The form provides a live count and clear error before submission. It permits a long paste to remain visible so an eight-digit value is rejected instead of silently truncating to a valid seven-digit prefix. The seven-digit rule is fixed in the backend, not inferred from the input or controlled by a request parameter.
+
+Manager registration, pilot enablement, and the checkout transaction enforce this rule. The borrower form uses the registered number and cannot override it; an invalid stored number disables the checkout button and is rejected by a direct backend call too. This validation is for the university asset number, distinct from a case label (`Student iPad #07`) or QR sticker ID (`IPAD-07`).
 
 ## Data and access
 
@@ -49,13 +55,13 @@ The new backend is a separate `equipment-checkout` codebase in `checkout-functio
 2. Install `npm ci --prefix checkout-functions`. Check the Gmail secrets exist and the runtime service account has Firestore and secret access. Enable the Google Sheets API. Do not put secret values in files or GitHub source.
 3. Deploy only the pilot codebase: `npx firebase-tools@latest deploy --only functions:equipment-checkout --project tad-lab-manager`. This includes the scheduled retry worker and may require the normal Functions/Eventarc/Scheduler IAM setup. Do not deploy the unrelated default codebase.
 4. Deploy the reviewed hosting changes through the existing main-branch hosting workflow. Check Firebase Auth authorized domains and the verification email template's action handler. Production continuation must retain the asset parameter. Preview hosting domains need their own Auth/reCAPTCHA authorization for real account tests.
-5. Sign in as a verified manager. Register the actual iPad from its photos; this produces the sticker destination. Registration keeps checkouts paused and email off. No fabricated demo inventory is seeded in production.
+5. Sign in as a verified manager. Review the prefilled Student iPad #07 / asset 1982096 against the physical label and register it; this produces the sticker destination. Registration keeps checkouts paused and email off. No demo inventory is seeded in production.
 6. Configure and share the actual spreadsheet, select Eric-only pilot email, and enable the pilot. Print one QR sticker for the confirmed asset URL.
 7. On a phone, scan the sticker, create a new account, verify actual inbox receipt, follow the verification link, and return to checkout. Attempt checkout before verifying too: it must fail. Confirm autofill and the retained asset after verification.
 8. Submit one checkout and confirm the manager history, spreadsheet row, and actual email receipt. Refresh/retry the request to confirm only one loan exists. A second borrower must be blocked while it is out.
 9. A manager confirms return. Confirm a separate return event/row/email and restored availability. Then select all four stakeholders and verify routing before student rollout.
 
-Registration/asset photos, a real spreadsheet destination, live backend deployment, Auth/App Check live verification, and actual email/spreadsheet receipt are still required to complete the physical pilot. No real email receipt or sheet write is claimed by emulator tests.
+Production registration of the confirmed asset, a real spreadsheet destination, live backend deployment, Auth/App Check live verification, and actual email/spreadsheet receipt are still required to complete the physical pilot. No real email receipt or sheet write is claimed by emulator tests.
 
 ## Automated verification
 
@@ -82,6 +88,6 @@ npx firebase-tools@latest emulators:exec --config firebase.checkout-emulator.jso
 
 ## Live deployment status (October 28, 2026)
 
-The hosting preview was published and GitHub backend/permission tests passed on Node 22 with Firebase Tools 15.34.1 and the standard-edition Firestore emulator. The existing GitHub Firebase service account could authenticate but received HTTP 403 for both database listing and a read of the known `(default)` database. The backend deployment stopped before any pilot functions or access rules were deployed. No IAM changes were made, and this does not establish current Blaze billing status.
+The hosting preview was published and GitHub backend/permission tests passed on Node 22 with Firebase Tools 15.34.1 and the standard-edition Firestore emulator. The existing GitHub Firebase service account could authenticate but received HTTP 403 for both database listing and a read of the known `(default)` database. The backend deployment stopped before any pilot functions or access rules were deployed. No IAM changes were made. Blaze was subsequently confirmed in the owner’s Firebase console; the Google Cloud IAM page was unavailable in the cloud browser, so deployment-account permissions are still unresolved.
 
 The prior automatic PR deployment attempt has been replaced by a manual `Deploy iPad checkout pilot backend` workflow, so ordinary preview/code updates do not keep retrying a permission-blocked deployment. Once an authorized deployment account/session can inspect the existing database and deploy this codebase, run that workflow or the narrow CLI deployment command above. Live Auth/App Check, Gmail receipt and spreadsheet delivery remain unverified.

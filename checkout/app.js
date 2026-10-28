@@ -91,10 +91,11 @@ function renderAsset(asset = null) {
 }
 function updateReadiness() {
   const user = auth.currentUser;
-  const ready = !!user?.emailVerified && session?.user?.verified && session?.enabled && session?.asset?.active && session?.asset?.available && !pageBusy;
+  const ready = !!user?.emailVerified && session?.user?.verified && session?.enabled && session?.asset?.active && session?.asset?.available && session?.asset?.assetNumberValid === true && !pageBusy;
   $('#submitCheckout').disabled = !ready;
   $('#checkoutReadiness').textContent = !assetId ? 'Scan the QR code on an iPad case to select it.'
     : !session?.asset ? 'This iPad has not been registered for the pilot yet.'
+    : !session.asset.assetNumberValid ? 'A lab manager needs to verify the 7-digit university asset number before checkout.'
     : !session.enabled ? 'The pilot is not accepting checkouts yet.'
     : !session.asset.available ? 'This iPad is already checked out.' : 'The asset number and your verified email are recorded automatically.';
 }
@@ -217,7 +218,7 @@ async function showManager() {
   if (asset) {
     const url = new URL('/equipment-checkout.html', localEmulator ? location.origin : 'https://tad-lab-manager.web.app'); url.searchParams.set('asset', asset.id);
     if (localEmulator) url.searchParams.set('emulator', '1');
-    $('#registeredAsset').innerHTML = `<p><strong>${esc(asset.label)}</strong><br>Asset ${esc(asset.assetNumber)}<br>${esc(asset.model)}</p><p class="small">QR sticker destination:</p><p><a href="${esc(url.href)}">${esc(url.href)}</a></p><p class="small muted">Use this permanent link when printing the case sticker.</p>`;
+    $('#registeredAsset').innerHTML = `<p><strong>${esc(asset.label)}</strong><br>Asset ${esc(asset.assetNumber)}<br>${esc(asset.model)}</p><p class="small">University asset numbers must contain exactly 7 digits.</p><p class="small">QR sticker destination:</p><p><a href="${esc(url.href)}">${esc(url.href)}</a></p><p class="small muted">Use this permanent link when printing the case sticker.</p>`;
   }
   $('#sheetUrl').value = config.spreadsheetId || '';
   $('#sheetUrl').readOnly = !!config.spreadsheetId;
@@ -236,7 +237,18 @@ async function showManager() {
 $('#managerNav').onclick = () => run($('#managerNav'), showManager);
 $('#refreshHistory').onclick = () => run($('#refreshHistory'), showManager);
 $('#backToCheckout').onclick = () => { $('#managerPanel').hidden = true; $('#studentView').hidden = false; location.hash = ''; };
-$('#registerForm').onsubmit = event => { event.preventDefault(); run(event.submitter, async () => {
+function updateAssetNumberValidation() {
+  const number = $('#registerNumber');
+  const value = number.value.trim();
+  const message = /^[0-9]{7}$/.test(value) && value.length === 7 ? ''
+    : 'Enter exactly 7 digits from the university asset label. Do not include the ownership text.';
+  number.setCustomValidity(message);
+  number.setAttribute('aria-invalid', String(!!number.value && !!message));
+  $('#registerNumberHint').textContent = `${value.length} of 7 characters entered. Digits only; keep leading zeros. “PROPERTY OF THE STATE OF MINNESOTA” is not part of the number.`;
+}
+$('#registerNumber').addEventListener('input', updateAssetNumberValidation);
+updateAssetNumberValidation();
+$('#registerForm').onsubmit = event => { event.preventDefault(); updateAssetNumberValidation(); if (!$('#registerForm').reportValidity()) return; run(event.submitter, async () => {
   await call('checkoutRegisterAsset', { assetId: $('#registerId').value.trim(), assetNumber: $('#registerNumber').value.trim(), label: $('#registerLabel').value.trim(), model: $('#registerModel').value.trim() });
   await showManager();
 }); };
