@@ -69,3 +69,13 @@ node --test scripts/canonical-redirect.test.mjs
 Use Java 21 with current Firebase Tools. Local initial verification also passed with Firebase Tools 14.15.2/Firestore emulator 1.19.8 and Java 17. Production runtime is Node 22; the initial workstation used Node 24 for local tests.
 
 For local browser testing only, `firebase.checkout-emulator.json` runs Auth, Firestore, Functions and Hosting against the `demo-tad-checkout` project. Add ignored `checkout-functions/.secret.local` dummy SMTP values if the emulator requests them. The browser connects to emulators only on `localhost`/`127.0.0.1` with `?emulator=1`; production hosts cannot opt into emulator mode. The delivery worker refuses all external email/sheet operations in emulator mode.
+
+The browser smoke test (`scripts/checkout-browser-smoke.cjs`) uses actual Auth and Firestore emulators, actual email action codes, and a local HTTP callable adapter to the real service. It covers signup, the verification gate, asset retention, autofilled email, checkout, manager history, confirmed return, clearing private data on sign-out, and narrow-screen layout. It does not test deployed Cloud Functions IAM/App Check enforcement or real email/Sheets delivery. The adapter avoids the workstation's restriction on the Functions emulator's Unix sockets.
+
+```sh
+npm install --prefix .local --no-save playwright
+# Install that Playwright version's Chromium using its CLI, then:
+npx firebase-tools@latest emulators:exec --config firebase.checkout-emulator.json --project demo-tad-checkout --only auth,firestore,hosting "node scripts/checkout-browser-smoke.cjs"
+```
+
+`TAD_CHECKOUT_CHROMIUM` can select an already-installed Chromium executable. Work Mode can also use its runtime Playwright package. All fixtures and screenshots are local to the emulator test; they are not production asset registrations.

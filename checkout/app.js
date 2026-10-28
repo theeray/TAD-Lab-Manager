@@ -56,10 +56,16 @@ function showFailure(error) {
 async function run(button, fn) {
   if (pageBusy) return;
   pageBusy = true;
-  const wasDisabled = button?.disabled;
-  if (button) button.disabled = true;
+  const enabledButtons = [...document.querySelectorAll('button:not(:disabled)')];
+  enabledButtons.forEach(item => { item.disabled = true; });
+  document.querySelector('main').setAttribute('aria-busy', 'true');
   try { await fn(); } catch (error) { showFailure(error); }
-  finally { pageBusy = false; if (button) button.disabled = !!wasDisabled; updateReadiness(); }
+  finally {
+    pageBusy = false;
+    enabledButtons.forEach(item => { item.disabled = false; });
+    document.querySelector('main').removeAttribute('aria-busy');
+    updateReadiness();
+  }
 }
 function actionSettings() {
   // Derive the path locally; never accept an arbitrary redirect from a QR URL.

@@ -75,8 +75,8 @@ jobs:
         uses: google-github-actions/auth@v2
         with:
           credentials_json: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_TAD_LAB_MANAGER }}
-      - name: Inspect existing Firestore database
-        run: npx firebase-tools@latest firestore:databases:list --project tad-lab-manager --non-interactive
+      - name: Inspect only the existing default Firestore database
+        run: npx firebase-tools@latest firestore:databases:get '(default)' --project tad-lab-manager --non-interactive
       - name: Install pilot backend dependencies
         run: npm ci --prefix checkout-functions
       - name: Deploy only pilot backend and current access rules
