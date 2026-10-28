@@ -11,13 +11,13 @@ function cells(eventId, e) {
 }
 function message(eventId, e) {
   return {
-    subject: `[TAD Checkout] ${e.eventType === 'return' ? 'Returned' : 'Checked out'}: ${e.assetLabel} (${e.assetNumber})`,
+    subject: `[TAD Checkout] ${e.eventType === 'return' ? 'Returned' : e.eventType === 'renewal' ? 'Re-checked out' : 'Checked out'}: ${e.assetLabel} (${e.assetNumber})`,
     messageId: `<tad-checkout-${eventId}@tad-lab-manager.web.app>`,
     text: [
-      `Equipment ${e.eventType === 'return' ? 'return confirmed by a lab manager' : 'checkout recorded'}.`, '',
+      `Equipment ${e.eventType === 'return' ? 'return confirmed by a lab manager' : e.eventType === 'renewal' ? 're-checkout recorded for a new eight-week module' : 'checkout recorded'}.`, '',
       `iPad: ${e.assetLabel}`, `Asset number: ${e.assetNumber}`, `Borrower: ${e.borrowerName}`,
       `Verified email: ${e.borrowerEmail}`, `Recorded at: ${iso(e.createdAt)}`,
-      `Due date: ${e.dueDate}`, `Course/project: ${e.course}`, `Loan ID: ${e.loanId}`, '',
+      `Return or re-checkout by: ${e.dueDate}`, `Course/project: ${e.course}`, `Loan ID: ${e.loanId}`, '',
       'Open the manager history for the complete record:',
       'https://tad-lab-manager.web.app/equipment-checkout.html#manager',
     ].join('\n'),

@@ -1,5 +1,6 @@
 'use strict';
 const { createHash } = require('node:crypto');
+const { deadline, newDeadline, loanView } = require('./loan-policy');
 
 const STAFF = Object.freeze([
   'eric.carlson.2@bemidjistate.edu',
@@ -8,7 +9,7 @@ const STAFF = Object.freeze([
   'nick.lowery@bemidjistate.edu',
 ]);
 const ACCESSORIES = ['Case', 'Apple Pencil', 'Charging cable', 'Power adapter', 'Keyboard'];
-const POLICY = 'ipad-pilot-v1';
+const POLICY = 'ipad-eight-week-v2';
 class CheckoutError extends Error {
   constructor(code, message) { super(message); this.code = code; }
 }
@@ -28,16 +29,6 @@ function validAssetNumber(value) {
 }
 function day(now) {
   return new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Chicago', year: 'numeric', month: '2-digit', day: '2-digit' }).format(now);
-}
-function dueDate(value, now) {
-  ensure(typeof value === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(value), 'invalid-argument', 'Choose a return date.');
-  const parsed = new Date(`${value}T12:00:00Z`);
-  const today = day(now);
-  const maximum = new Date(`${today}T12:00:00Z`);
-  maximum.setUTCDate(maximum.getUTCDate() + 30);
-  ensure(!Number.isNaN(parsed.valueOf()) && parsed.toISOString().slice(0, 10) === value && value >= today && value <= maximum.toISOString().slice(0, 10),
-    'invalid-argument', 'The return date must be today through 30 days from today.');
-  return value;
 }
 function serial(doc) {
   if (!doc.exists) return null;
@@ -74,13 +65,22 @@ function createService({ db, auth, FieldValue, now = () => new Date() }) {
   async function session(request) {
     const user = await identity(request, false);
     const assetId = request.data?.assetId ? id(request.data.assetId) : null;
-    const [config, profile, asset, loans] = await Promise.all([
+    const [config, profile, asset, loans, borrower] = await Promise.all([
       configRef.get(), db.doc(`checkoutProfiles/${user.uid}`).get(),
       assetId ? db.doc(`checkoutAssets/${assetId}`).get() : Promise.resolve(null),
       db.collection('checkoutLoans').where('borrowerUid', '==', user.uid).limit(20).get(),
+      db.doc(`checkoutBorrowers/${user.uid}`).get(),
     ]);
+    const ownLoans = loans.docs.map(doc => loanView(serial(doc)));
+    const activeId = borrower.data()?.currentLoanId;
+    if (activeId && !ownLoans.some(loan => loan.id === activeId)) {
+      const active = await db.doc(`checkoutLoans/${activeId}`).get();
+      if (active.exists && active.data().borrowerUid === user.uid) ownLoans.push(loanView(serial(active)));
+    }
+    const serverNow = now();
     return { user, profile: profile.data() || {}, asset: asset ? assetView(asset) : null,
-      enabled: config.data()?.enabled === true, loans: loans.docs.map(serial) };
+      serverNow: serverNow.toISOString(), checkoutDueAt: newDeadline(serverNow).toISOString(),
+      enabled: config.data()?.enabled === true, loans: ownLoans };
   }
   async function submit(request) {
     const user = await identity(request);
@@ -97,33 +97,50 @@ function createService({ db, auth, FieldValue, now = () => new Date() }) {
     ensure(Array.isArray(d.accessories) && d.accessories.length <= ACCESSORIES.length &&
       new Set(d.accessories).size === d.accessories.length && d.accessories.every(v => ACCESSORIES.includes(v)), 'invalid-argument', 'Select the included accessories.');
     ensure(d.agreement === POLICY, 'invalid-argument', 'Accept the checkout acknowledgment.');
-    const due = dueDate(d.dueDate, now());
+    const cycleStartedAt = now();
+    const renewalDueAt = newDeadline(cycleStartedAt);
+    const due = day(renewalDueAt);
+    const previousLoanId = d.renewLoanId || null;
+    ensure(previousLoanId === null || (typeof previousLoanId === 'string' && /^[a-f0-9]{64}$/.test(previousLoanId)),
+      'invalid-argument', 'Invalid previous loan ID.');
     const hash = createHash('sha256').update(`${user.uid}:${requestId}`).digest('hex');
     const loanRef = db.doc(`checkoutLoans/${hash}`);
     const assetRef = db.doc(`checkoutAssets/${assetId}`);
     const borrowerRef = db.doc(`checkoutBorrowers/${user.uid}`);
     const counterRef = db.doc('checkoutCounters/history');
-    const dailyRef = db.doc(`checkoutDaily/${day(now())}`);
+    const dailyRef = db.doc(`checkoutDaily/${day(cycleStartedAt)}`);
     return db.runTransaction(async tx => {
-      const [old, cfg, asset, borrower, counter, daily] = await Promise.all([
+      const [old, cfg, asset, borrower, counter, daily, previous] = await Promise.all([
         tx.get(loanRef), tx.get(configRef), tx.get(assetRef), tx.get(borrowerRef), tx.get(counterRef), tx.get(dailyRef),
+        previousLoanId ? tx.get(db.doc(`checkoutLoans/${previousLoanId}`)) : Promise.resolve(null),
       ]);
-      if (old.exists) return { loanId: old.id, alreadySaved: true };
+      if (old.exists) return { loanId: old.id, alreadySaved: true, dueDate: old.data().dueDate, renewalDueAt: deadline(old.data())?.toISOString() || null };
       ensure(cfg.data()?.enabled === true, 'failed-precondition', 'The pilot is not accepting checkouts yet.');
       ensure(asset.exists && asset.data().active === true && cfg.data().pilotAssetId === assetId,
         'not-found', 'This iPad is not registered for the pilot. Ask a lab manager.');
       ensure(validAssetNumber(asset.data().assetNumber),
         'failed-precondition', 'The university asset number must contain exactly 7 digits. Ask a lab manager to verify the asset label.');
-      ensure(!asset.data().currentLoanId, 'already-exists', 'This iPad is already checked out.');
-      ensure(!borrower.data()?.currentLoanId, 'already-exists', 'You already have an active equipment loan.');
+      if (previousLoanId) {
+        const prior = previous?.data();
+        ensure(prior?.borrowerUid === user.uid && prior.assetId === assetId,
+          'permission-denied', 'You can only re-check out your own current iPad.');
+        ensure(prior.status === 'checked-out' && asset.data().currentLoanId === previousLoanId && borrower.data()?.currentLoanId === previousLoanId,
+          'failed-precondition', 'This loan is no longer active. Refresh your history.');
+        const priorDeadline = deadline(prior);
+        ensure(priorDeadline && cycleStartedAt >= priorDeadline, 'failed-precondition', 'Re-checkout is available once the eight-week period has ended.');
+      } else {
+        ensure(!asset.data().currentLoanId, 'already-exists', 'This iPad is already checked out.');
+        ensure(!borrower.data()?.currentLoanId, 'already-exists', 'You already have an active equipment loan.');
+      }
       ensure((daily.data()?.count || 0) < 100, 'resource-exhausted', 'The daily pilot checkout limit has been reached. Contact a lab manager.');
       const sequence = (counter.data()?.sequence || 0) + 1;
       const createdAt = FieldValue.serverTimestamp();
       const loan = { assetId, assetNumber: asset.data().assetNumber, assetLabel: asset.data().label,
         borrowerUid: user.uid, borrowerEmail: user.email, borrowerName: name, course, purpose,
-        dueDate: due, condition: d.condition, notes, accessories: d.accessories, agreement: POLICY,
+        dueDate: due, cycleStartedAt, renewalDueAt, previousLoanId, condition: d.condition, notes, accessories: d.accessories, agreement: POLICY,
         createdAt, status: 'checked-out' };
-      const event = { ...loan, loanId: hash, eventType: 'checkout', sequence, recordedBy: user.email };
+      const event = { ...loan, loanId: hash, eventType: previousLoanId ? 'renewal' : 'checkout', sequence, recordedBy: user.email };
+      if (previousLoanId) tx.update(previous.ref, { status: 'renewed', renewedAt: createdAt, renewedBy: user.email, renewedToLoanId: hash });
       tx.create(loanRef, loan);
       tx.create(db.doc(`checkoutEvents/${hash}`), event);
       tx.create(db.doc(`checkoutOutbox/${hash}`), { eventId: hash, status: 'pending', attempts: 0, createdAt });
@@ -132,7 +149,7 @@ function createService({ db, auth, FieldValue, now = () => new Date() }) {
       tx.set(db.doc(`checkoutProfiles/${user.uid}`), { name, email: user.email, updatedAt: createdAt });
       tx.set(counterRef, { sequence });
       tx.set(dailyRef, { count: (daily.data()?.count || 0) + 1 });
-      return { loanId: hash, alreadySaved: false };
+      return { loanId: hash, alreadySaved: false, dueDate: due, renewalDueAt: renewalDueAt.toISOString() };
     });
   }
   async function recordReturn(request) {
@@ -148,6 +165,7 @@ function createService({ db, auth, FieldValue, now = () => new Date() }) {
       ensure(loan.exists, 'not-found', 'Loan not found.');
       if (loan.data().status === 'returned') return { alreadySaved: true };
       const data = loan.data();
+      ensure(data.status === 'checked-out', 'failed-precondition', 'Only the current loan can be returned. Refresh your history.');
       const [asset, borrower] = await Promise.all([
         tx.get(db.doc(`checkoutAssets/${data.assetId}`)), tx.get(db.doc(`checkoutBorrowers/${data.borrowerUid}`)),
       ]);
@@ -172,8 +190,10 @@ function createService({ db, auth, FieldValue, now = () => new Date() }) {
       db.collection('checkoutEvents').orderBy('sequence', 'desc').limit(500).get(),
       db.collection('checkoutOutbox').orderBy('createdAt', 'desc').limit(100).get(),
     ]);
-    return { config: cfg.data() || { enabled: false, notificationMode: 'off', spreadsheetId: '' },
-      assets: assets.docs.map(serial), events: events.docs.map(serial), outbox: outbox.docs.map(serial),
+    const activeIds = [...new Set(assets.docs.map(doc => doc.data().currentLoanId).filter(Boolean))];
+    const activeLoans = await Promise.all(activeIds.map(async loanId => loanView(serial(await db.doc(`checkoutLoans/${loanId}`).get()) || {})));
+    return { serverNow: now().toISOString(), activeLoans: activeLoans.filter(loan => loan.id), config: cfg.data() || { enabled: false, notificationMode: 'off', spreadsheetId: '' },
+      assets: assets.docs.map(serial), events: events.docs.map(doc => loanView(serial(doc))), outbox: outbox.docs.map(serial),
       recipients: STAFF, sheetServiceAccount: 'tad-lab-manager@appspot.gserviceaccount.com' };
   }
   async function registerAsset(request) {
@@ -220,4 +240,4 @@ function createService({ db, auth, FieldValue, now = () => new Date() }) {
   }
   return { session, submit, recordReturn, dashboard, registerAsset, configure, manager };
 }
-module.exports = { createService, CheckoutError, STAFF, POLICY, ACCESSORIES, day, dueDate };
+module.exports = { createService, CheckoutError, STAFF, POLICY, ACCESSORIES, day };

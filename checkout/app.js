@@ -1,3 +1,4 @@
+import { loanStatus } from './loan-status.mjs';
 import { firebaseConfig, appCheckConfig } from '../firebase-config.js';
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.17.1/firebase-app.js';
 import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, sendEmailVerification, sendPasswordResetEmail, signOut, reload, getIdToken, connectAuthEmulator } from 'https://www.gstatic.com/firebasejs/12.17.1/firebase-auth.js';
@@ -28,6 +29,14 @@ let requestId = crypto.randomUUID();
 let lastVerificationSent = 0;
 let authGeneration = 0;
 let pageBusy = false;
+let renewingLoanId = '';
+let serverTimeOffset = 0;
+const viewNow = () => Date.now() + serverTimeOffset;
+function syncClock(data) { if (data.serverNow) serverTimeOffset = Date.parse(data.serverNow) - Date.now(); }
+function statusMarkup(loan) {
+  const status = loanStatus(loan, viewNow());
+  return `<span class="loan-status ${status.state}" data-loan-status="${status.state}"><span class="status-icon" aria-hidden="true">${status.icon}</span>${esc(status.label)}</span>`;
+}
 
 function notice(message, error = false) {
   $('#notice').textContent = message;
@@ -65,6 +74,7 @@ async function run(button, fn) {
     enabledButtons.forEach(item => { item.disabled = false; });
     document.querySelector('main').removeAttribute('aria-busy');
     updateReadiness();
+    if (session) renderOwnLoans(session.loans);
   }
 }
 function actionSettings() {
@@ -91,18 +101,27 @@ function renderAsset(asset = null) {
 }
 function updateReadiness() {
   const user = auth.currentUser;
-  const ready = !!user?.emailVerified && session?.user?.verified && session?.enabled && session?.asset?.active && session?.asset?.available && session?.asset?.assetNumberValid === true && !pageBusy;
+  const active = session?.loans?.find(loan => loan.status === 'checked-out');
+  const renewing = active?.id === renewingLoanId && active?.assetId === assetId && loanStatus(active, viewNow()).needsCheckout;
+  const ready = !!user?.emailVerified && session?.user?.verified && session?.enabled && session?.asset?.active &&
+    (session.asset.available && !active || renewing) && session?.asset?.assetNumberValid === true && !pageBusy;
   $('#submitCheckout').disabled = !ready;
+  $('#submitCheckout').textContent = renewingLoanId ? 'Record new eight-week checkout' : 'Record checkout';
   $('#checkoutReadiness').textContent = !assetId ? 'Scan the QR code on an iPad case to select it.'
     : !session?.asset ? 'This iPad has not been registered for the pilot yet.'
     : !session.asset.assetNumberValid ? 'A lab manager needs to verify the 7-digit university asset number before checkout.'
     : !session.enabled ? 'The pilot is not accepting checkouts yet.'
-    : !session.asset.available ? 'This iPad is already checked out.' : 'The asset number and your verified email are recorded automatically.';
+    : renewing ? 'Complete this form again for the new module. Your previous checkout stays in the permanent history.'
+    : !session.asset.available ? 'This iPad is checked out. At eight weeks, use “Re-checkout this iPad” in your history, or return it to lab staff.'
+    : active ? 'Return your current iPad before borrowing another.'
+    : 'The asset number, verified email, and eight-week deadline are recorded automatically.';
 }
 function renderOwnLoans(loans) {
   $('#ownLoansPanel').hidden = !loans?.length;
-  $('#ownLoans').innerHTML = [...(loans || [])].sort((a, b) => String(b.createdAt).localeCompare(String(a.createdAt))).map(l =>
-    `<div class="loan-row"><strong>${esc(l.assetLabel)}</strong> · ${esc(l.assetNumber)}<br>${l.status === 'returned' ? 'Returned' : 'Checked out'} · Due ${esc(l.dueDate)}<br><span class="muted">Recorded ${esc(displayDate(l.createdAt))}</span></div>`).join('');
+  $('#ownLoans').innerHTML = [...(loans || [])].sort((a, b) => String(b.createdAt).localeCompare(String(a.createdAt))).map(l => {
+    const status = loanStatus(l, viewNow());
+    return `<div class="loan-row"><strong>${esc(l.assetLabel)}</strong> · ${esc(l.assetNumber)}<br>${statusMarkup(l)}<br>Return or re-checkout by ${esc(displayDate(l.renewalDueAt))}<br><span class="muted">Recorded ${esc(displayDate(l.createdAt))}</span>${status.needsCheckout ? `<p><button class="btn primary" type="button" data-renew="${esc(l.id)}" ${pageBusy || !session?.enabled ? 'disabled' : ''}>Re-checkout this iPad</button></p>` : ''}</div>`;
+  }).join('');
 }
 async function refreshSession({ quiet = false } = {}) {
   const user = auth.currentUser;
@@ -111,6 +130,9 @@ async function refreshSession({ quiet = false } = {}) {
   const data = await call('checkoutSession', { assetId });
   if (generation !== authGeneration || auth.currentUser?.uid !== user.uid) return;
   session = data;
+  syncClock(data);
+  $('#dueDate').value = displayDate(data.checkoutDueAt);
+  if (renewingLoanId && !data.loans.some(loan => loan.id === renewingLoanId && loan.status === 'checked-out')) renewingLoanId = '';
   renderAsset(data.asset);
   $('#managerNav').hidden = !data.user.manager || !user.emailVerified;
   $('#borrowerEmail').textContent = user.email;
@@ -123,9 +145,9 @@ async function refreshSession({ quiet = false } = {}) {
   if (location.hash === '#manager' && data.user.manager && user.emailVerified) await showManager();
 }
 function clearPrivateViews() {
-  session = null; managerData = null;
+  session = null; managerData = null; renewingLoanId = ''; serverTimeOffset = 0;
   $('#managerPanel').hidden = true; $('#studentView').hidden = false; $('#managerNav').hidden = true;
-  $('#historyRows').replaceChildren(); $('#ownLoans').replaceChildren(); $('#ownLoansPanel').hidden = true;
+  $('#activeLoans').replaceChildren(); $('#historyRows').replaceChildren(); $('#ownLoans').replaceChildren(); $('#ownLoansPanel').hidden = true;
   $('#confirmation').hidden = true; $('#checkoutForm').reset(); $('#borrowerName').value = '';
   $('#returnDialog').close();
 }
@@ -192,14 +214,15 @@ $('#checkoutForm').onsubmit = event => {
   run($('#submitCheckout'), async () => {
     await reload(auth.currentUser); await getIdToken(auth.currentUser, true);
     if (!auth.currentUser.emailVerified) { await recheckVerification(); return; }
+    const wasRenewal = !!renewingLoanId;
     const result = await call('checkoutSubmit', {
       assetId, requestId, name: $('#borrowerName').value.trim(), course: $('#course').value.trim(), purpose: $('#purpose').value.trim(),
-      dueDate: $('#dueDate').value, condition: $('#condition').value, notes: $('#conditionNotes').value.trim(),
-      accessories: [...document.querySelectorAll('[name=accessory]:checked')].map(e => e.value), agreement: $('#agreement').checked ? 'ipad-pilot-v1' : '',
+      renewLoanId: renewingLoanId || null, condition: $('#condition').value, notes: $('#conditionNotes').value.trim(),
+      accessories: [...document.querySelectorAll('[name=accessory]:checked')].map(e => e.value), agreement: $('#agreement').checked ? 'ipad-eight-week-v2' : '',
     });
-    $('#confirmationText').textContent = `${session.asset.label} · Asset ${session.asset.assetNumber} · Return by ${$('#dueDate').value}. Record ${result.loanId.slice(0, 12)}.`;
+    $('#confirmationText').textContent = `${session.asset.label} · Asset ${session.asset.assetNumber} · Return or re-checkout by ${displayDate(result.renewalDueAt)}. Record ${result.loanId.slice(0, 12)}.`;
     $('#confirmation').hidden = false; $('#checkoutPanel').hidden = true;
-    notice('Checkout saved. Email and spreadsheet deliveries are tracked separately by lab managers.');
+    notice(`${wasRenewal ? 'New eight-week checkout' : 'Checkout'} saved. Email and spreadsheet deliveries are tracked separately by lab managers.`);
     await refreshSession({ quiet: true });
     requestId = crypto.randomUUID();
     $('#confirmation').scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -209,7 +232,7 @@ async function showManager() {
   const generation = authGeneration;
   const data = await call('checkoutDashboard');
   if (generation !== authGeneration || !auth.currentUser?.emailVerified) return;
-  managerData = data;
+  managerData = data; syncClock(data);
   $('#studentView').hidden = true; $('#managerPanel').hidden = false;
   location.hash = 'manager';
   const { config, assets, events, outbox, recipients, sheetServiceAccount } = managerData;
@@ -226,14 +249,40 @@ async function showManager() {
   $('#notificationMode').value = config.notificationMode || 'off';
   $('#pilotEnabled').checked = config.enabled === true;
   $('#recipientList').textContent = recipients.join(' · ');
-  const returned = new Set(events.filter(e => e.eventType === 'return').map(e => e.loanId));
+  renderManagerLoans();
+  notice(`Pilot ${config.enabled ? 'enabled' : 'paused'} · Email: ${config.notificationMode || 'off'} · Spreadsheet: ${config.spreadsheetId ? 'configured — check delivery status below' : 'not configured'}.`);
+}
+function renderManagerLoans() {
+  if (!managerData) return;
+  const { events, outbox, activeLoans } = managerData;
+  const activeIds = new Set(activeLoans.map(loan => loan.id));
+  const returnedIds = new Set(events.filter(e => e.eventType === 'return').map(e => e.loanId));
+  $('#activeLoans').innerHTML = activeLoans.length ? activeLoans.map(loan => `<div class="loan-row"><strong>${esc(loan.assetLabel)}</strong> · Asset ${esc(loan.assetNumber)}<br>${statusMarkup(loan)}<p>${esc(loan.borrowerName)} · ${esc(loan.borrowerEmail)}<br>Return or re-checkout by ${esc(displayDate(loan.renewalDueAt))}</p></div>`).join('') : '<p class="muted">No iPads are currently checked out.</p>';
   $('#historyEmpty').hidden = events.length > 0;
   $('#historyRows').innerHTML = events.map(e => {
     const job = outbox.find(o => o.eventId === e.id);
-    return `<tr><td>${esc(displayDate(e.createdAt))}</td><td>${esc(e.eventType)}</td><td>${esc(e.assetNumber)}<small>${esc(e.assetLabel)}</small></td><td>${esc(e.borrowerName)}<small>${esc(e.borrowerEmail)}</small></td><td>${esc(e.dueDate)}</td><td>${esc(job?.status || 'See delivery log')}<small>${esc(job?.lastError || '')}</small></td><td>${e.eventType === 'checkout' && !returned.has(e.loanId) ? `<button class="btn secondary" type="button" data-return="${esc(e.loanId)}">Confirm return</button>` : '—'}</td></tr>`;
+    const statusLoan = e.eventType === 'return' ? { ...e, status: 'returned' }
+      : activeIds.has(e.loanId) ? { ...e, status: 'checked-out' }
+      : { ...e, status: returnedIds.has(e.loanId) ? 'returned' : 'renewed' };
+    return `<tr><td>${esc(displayDate(e.createdAt))}</td><td>${esc(e.eventType)}</td><td>${esc(e.assetNumber)}<small>${esc(e.assetLabel)}</small></td><td>${esc(e.borrowerName)}<small>${esc(e.borrowerEmail)}</small></td><td>${statusMarkup(statusLoan)}</td><td>${esc(displayDate(e.renewalDueAt))}</td><td>${esc(job?.status || 'See delivery log')}<small>${esc(job?.lastError || '')}</small></td><td>${e.eventType !== 'return' && activeIds.has(e.loanId) ? `<button class="btn secondary" type="button" data-return="${esc(e.loanId)}">Confirm return</button>` : '—'}</td></tr>`;
   }).join('');
-  notice(`Pilot ${config.enabled ? 'enabled' : 'paused'} · Email: ${config.notificationMode || 'off'} · Spreadsheet: ${config.spreadsheetId ? 'configured — check delivery status below' : 'not configured'}.`);
 }
+$('#ownLoans').onclick = event => {
+  const button = event.target.closest('[data-renew]'); if (!button) return;
+  run(button, async () => {
+    const loan = session?.loans.find(item => item.id === button.dataset.renew);
+    if (!loan || !loanStatus(loan, viewNow()).needsCheckout) return;
+    assetId = loan.assetId;
+    const url = new URL(location.href); url.searchParams.set('asset', assetId); history.replaceState(null, '', url);
+    await refreshSession({ quiet: true });
+    renewingLoanId = loan.id; requestId = crypto.randomUUID();
+    $('#checkoutForm').reset(); $('#borrowerName').value = session.profile?.name || '';
+    $('#dueDate').value = displayDate(session.checkoutDueAt); $('#conditionNotes').required = false;
+    $('#confirmation').hidden = true; $('#checkoutPanel').hidden = false;
+    notice('Complete a fresh checkout for the next eight-week module, including condition, accessories, and acknowledgment.');
+    $('#checkoutPanel').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  });
+};
 $('#managerNav').onclick = () => run($('#managerNav'), showManager);
 $('#refreshHistory').onclick = () => run($('#refreshHistory'), showManager);
 $('#backToCheckout').onclick = () => { $('#managerPanel').hidden = true; $('#studentView').hidden = false; location.hash = ''; };
@@ -262,7 +311,7 @@ $('#retryDelivery').onclick = () => run($('#retryDelivery'), async () => { await
 $('#historyRows').onclick = event => {
   const button = event.target.closest('[data-return]'); if (!button) return;
   returningLoanId = button.dataset.return;
-  const loan = managerData.events.find(e => e.loanId === returningLoanId && e.eventType === 'checkout');
+  const loan = managerData.events.find(e => e.loanId === returningLoanId && e.eventType !== 'return');
   $('#returnSummary').textContent = `${loan.assetLabel} · ${loan.assetNumber} · ${loan.borrowerName}. Confirm that lab staff have received the equipment.`;
   $('#returnNotes').value = ''; $('#returnDialog').showModal();
 };
@@ -277,16 +326,15 @@ function csvCell(value) {
 }
 $('#exportHistory').onclick = () => {
   if (!managerData) return;
-  const fields = ['sequence', 'eventType', 'createdAt', 'assetId', 'assetNumber', 'assetLabel', 'borrowerName', 'borrowerEmail', 'course', 'purpose', 'dueDate', 'condition', 'accessories', 'notes', 'recordedBy', 'loanId', 'returnNotes', 'agreement'];
+  const fields = ['sequence', 'eventType', 'createdAt', 'assetId', 'assetNumber', 'assetLabel', 'borrowerName', 'borrowerEmail', 'course', 'purpose', 'dueDate', 'cycleStartedAt', 'renewalDueAt', 'previousLoanId', 'condition', 'accessories', 'notes', 'recordedBy', 'loanId', 'returnNotes', 'agreement'];
   const lines = [fields, ...managerData.events.map(e => fields.map(f => Array.isArray(e[f]) ? e[f].join('; ') : e[f]))];
   const url = URL.createObjectURL(new Blob(['\uFEFF' + lines.map(r => r.map(csvCell).join(',')).join('\r\n')], { type: 'text/csv;charset=utf-8' }));
   const a = document.createElement('a'); a.href = url; a.download = 'TAD-checkout-history.csv'; a.click(); setTimeout(() => URL.revokeObjectURL(url), 1000);
 };
 window.addEventListener('unhandledrejection', event => { showFailure(event.reason || {}); });
-const today = new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Chicago', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date());
-const maxDate = new Date(`${today}T12:00:00Z`); maxDate.setUTCDate(maxDate.getUTCDate() + 30);
-const nextDate = new Date(`${today}T12:00:00Z`); nextDate.setUTCDate(nextDate.getUTCDate() + 1);
-$('#dueDate').min = today;
-$('#dueDate').max = maxDate.toISOString().slice(0, 10);
-$('#dueDate').defaultValue = nextDate.toISOString().slice(0, 10);
+setInterval(() => {
+  if (pageBusy) return;
+  if (session) { renderOwnLoans(session.loans); updateReadiness(); }
+  if (managerData && !$('#managerPanel').hidden) renderManagerLoans();
+}, 60000);
 renderAsset();

@@ -45,6 +45,8 @@ jobs:
           node --check checkout-functions/index.js
           node --check checkout-functions/service.js
           node --check checkout-functions/delivery.js
+          node --check checkout-functions/loan-policy.js
+          node --check checkout/loan-status.mjs
           node --check checkout/app.js
 
       - name: Set up Java for Firestore emulator

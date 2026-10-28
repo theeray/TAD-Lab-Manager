@@ -8,7 +8,15 @@ The case sticker opens `https://tad-lab-manager.web.app/equipment-checkout.html?
 
 Students create an email/password account, open Firebase's verification email, and return to checkout. “I verified my email” reloads the account and refreshes its ID token. The submit function independently requires a verified token **and** a currently verified, enabled account with the same email. Merely hiding/showing the form does not authorize a loan. A verified email confirms mailbox access, not enrollment or faculty permission.
 
-The form collects name, course/project, purpose, return date (today through 30 days), condition/notes, accessories, and a versioned acknowledgment. Email/UID, asset metadata, and timestamps are server-derived. The acknowledgment is a pilot responsibility statement, not a substitute for an institution-approved loan agreement. The old prototype's faculty-approval stage is not part of this simplified pilot. Lab managers confirm physical returns.
+The form collects name, course/project, purpose, an automatic eight-week return/re-checkout deadline (56 days after server submission), condition/notes, accessories, and a versioned acknowledgment. Email/UID, asset metadata, and timestamps are server-derived. The acknowledgment is a pilot responsibility statement, not a substitute for an institution-approved loan agreement. The old prototype's faculty-approval stage is not part of this simplified pilot. Lab managers confirm physical returns.
+
+## Eight-week modules
+
+Every checkout gets a server-derived `cycleStartedAt`, `renewalDueAt` exactly 56 × 24 hours later, and a Central Time due date for the spreadsheet. Students cannot choose or extend that deadline through the form or request. Both student history and the manager's active-loan view show an icon with text: green/current, amber/final seven days, red/re-checkout required at the 56-day boundary, and neutral/closed for returned or replaced cycles. Visible status refreshes every minute. Legacy loans derive their deadline from their original checkout timestamp rather than an old editable return date.
+
+At or after eight weeks, the current borrower can choose **Re-checkout this iPad** and complete a fresh module form with condition, accessories, and the new acknowledgment. The server requires current email verification and matching asset/borrower pointers. Early re-checkout and another borrower's attempts are rejected. A transaction closes the preceding cycle as `renewed`, creates a new loan plus permanent `renewal` event/outbox item, and starts the next 56-day period. The original event remains unchanged. No physical return is recorded unless a manager actually confirms one. Simultaneous requests and connection retries cannot create multiple new cycles.
+
+Checkout, re-checkout, and physical return events use the configured email and spreadsheet deliveries. The status indicator itself does not send a scheduled overdue email.
 
 ## Asset-number validation
 
@@ -24,8 +32,8 @@ The existing `(default)` Firestore database and its current document API are use
 - `checkoutAssets/{assetId}`: registered metadata and current loan pointer; contains no borrower identity.
 - `checkoutProfiles/{uid}`: private name/email autofill, written by the server.
 - `checkoutBorrowers/{uid}`: current loan pointer.
-- `checkoutLoans/{loanId}`: current loan state and immutable original checkout fields. Only the manager return function updates return fields.
-- `checkoutEvents/{eventId}`: permanent append-only checkout/return snapshots. No callable edits or deletes events.
+- `checkoutLoans/{loanId}`: current loan state and immutable original checkout fields. Manager returns and borrower re-checkouts update closure fields; original checkout fields remain unchanged.
+- `checkoutEvents/{eventId}`: permanent append-only checkout/re-checkout/return snapshots. No callable edits or deletes events.
 - `checkoutOutbox/{eventId}`: private delivery progress, bounded retries, and per-event leases.
 - `checkoutCounters/history`, `checkoutDaily/{date}`, `checkoutDeliveryBudgets/{date}`: transactional sequence and daily limits.
 
@@ -90,4 +98,4 @@ npx firebase-tools@latest emulators:exec --config firebase.checkout-emulator.jso
 
 The hosting preview was published and GitHub backend/permission tests passed on Node 22 with Firebase Tools 15.34.1 and the standard-edition Firestore emulator. The existing GitHub Firebase service account could authenticate but received HTTP 403 for both database listing and a read of the known `(default)` database. The backend deployment stopped before any pilot functions or access rules were deployed. No IAM changes were made. Blaze was subsequently confirmed in the owner’s Firebase console; the Google Cloud IAM page was unavailable in the cloud browser, so deployment-account permissions are still unresolved.
 
-The prior automatic PR deployment attempt has been replaced by a manual `Deploy iPad checkout pilot backend` workflow, so ordinary preview/code updates do not keep retrying a permission-blocked deployment. Once an authorized deployment account/session can inspect the existing database and deploy this codebase, run that workflow or the narrow CLI deployment command above. Live Auth/App Check, Gmail receipt and spreadsheet delivery remain unverified.
+After the owner updated the deployment account roles, the `Deploy iPad checkout pilot backend` workflow was re-enabled for backend changes on the specific `feature/verified-ipad-checkout` PR branch, as well as manual dispatch. It tests access controls, inspects only the known default database, and deploys only the equipment-checkout codebase plus the unchanged access rules. Other PR branches cannot trigger backend deployment. The latest run determines which live setup requirements remain. Live Auth/App Check, Gmail receipt and spreadsheet delivery remain unverified.

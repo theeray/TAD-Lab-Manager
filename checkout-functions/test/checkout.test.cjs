@@ -3,14 +3,15 @@ const assert = require('node:assert/strict');
 const { randomUUID } = require('node:crypto');
 const { initializeApp, deleteApp } = require('firebase-admin/app');
 const { getFirestore, FieldValue, Timestamp } = require('firebase-admin/firestore');
-const { createService, STAFF, POLICY, dueDate } = require('../service');
+const { createService, STAFF, POLICY } = require('../service');
 const { createDelivery } = require('../delivery');
 
 if (!process.env.FIRESTORE_EMULATOR_HOST) throw new Error('Tests require the Firestore emulator; no production database may be used.');
 const projectId = 'demo-tad-checkout';
 const app = initializeApp({ projectId });
 const db = getFirestore(app);
-const clock = () => new Date('2026-10-28T15:00:00Z');
+let currentTime = '2026-10-28T15:00:00Z';
+const clock = () => new Date(currentTime);
 let users;
 const service = createService({ db, FieldValue, now: clock, auth: { getUser: async uid => users[uid] } });
 const request = (uid = 'student', data = {}, verified = true) => ({
@@ -23,6 +24,7 @@ async function seed() {
 }
 const reject = (fn, code) => assert.rejects(fn, error => error.code === code);
 beforeEach(async () => {
+  currentTime = '2026-10-28T15:00:00Z';
   const response = await fetch(`http://${process.env.FIRESTORE_EMULATOR_HOST}/emulator/v1/projects/${projectId}/databases/(default)/documents`, { method: 'DELETE' });
   assert.equal(response.ok, true);
   users = {
@@ -72,9 +74,9 @@ test('two students racing for the same iPad produce exactly one successful check
   assert.equal(results.find(r => r.status === 'rejected').reason.code, 'already-exists');
   assert.equal((await db.collection('checkoutEvents').get()).size, 1);
 });
-test('unknown assets, invalid dates, oversized notes and invalid acknowledgments are denied', async () => {
+test('unknown assets, oversized notes and invalid acknowledgments are denied', async () => {
   await reject(() => service.submit(request('student', form({ assetId: 'UNKNOWN' }))), 'not-found');
-  for (const bad of [{ dueDate: '2026-02-31' }, { dueDate: '2027-01-01' }, { dueDate: '2026-10-27' }, { notes: 'a'.repeat(1001) }, { agreement: '' }, { accessories: ['Case', 'Case'] }, { condition: 'Existing damage', notes: '' }]) {
+  for (const bad of [{ notes: 'a'.repeat(1001) }, { agreement: '' }, { accessories: ['Case', 'Case'] }, { condition: 'Existing damage', notes: '' }]) {
     await reject(() => service.submit(request('student', form(bad))), 'invalid-argument');
   }
 });
@@ -165,8 +167,73 @@ test('invalid stored numbers block checkout and enabling without partial loan re
   await service.configure(request('manager', { enabled: false, notificationMode: 'off', spreadsheetId: '' }));
   assert.equal((await db.doc('checkoutConfig/pilot').get()).data().enabled, false);
 });
-test('calendar validation rejects impossible dates', () => {
-  assert.throws(() => dueDate('2026-11-31', clock()), error => error.code === 'invalid-argument');
+test('the server fixes every checkout to 56 days and ignores client-supplied dates', async () => {
+  const result = await service.submit(request('student', form({ dueDate: '2099-01-01', renewalDueAt: '2099-01-01', cycleStartedAt: '2000-01-01' })));
+  const loan = (await db.doc(`checkoutLoans/${result.loanId}`).get()).data();
+  assert.equal(loan.cycleStartedAt.toDate().toISOString(), clock().toISOString());
+  assert.equal(loan.renewalDueAt.toDate().toISOString(), '2026-12-23T15:00:00.000Z');
+  assert.equal(loan.renewalDueAt.toMillis() - loan.cycleStartedAt.toMillis(), 56 * 86400000);
+  assert.equal(result.renewalDueAt, '2026-12-23T15:00:00.000Z');
+  assert.equal(result.dueDate, '2026-12-23');
+});
+test('re-checkout is blocked before the boundary and appends a fresh cycle at exactly eight weeks', async () => {
+  const first = await service.submit(request('student', form()));
+  const original = (await db.doc(`checkoutEvents/${first.loanId}`).get()).data();
+  const nextForm = form({ renewLoanId: first.loanId, course: 'Module two', purpose: 'New module project' });
+  currentTime = '2026-12-23T14:59:59.999Z';
+  await reject(() => service.submit(request('student', nextForm)), 'failed-precondition');
+  assert.equal((await db.collection('checkoutEvents').get()).size, 1);
+  currentTime = first.renewalDueAt;
+  const second = await service.submit(request('student', nextForm));
+  const retry = await service.submit(request('student', nextForm));
+  assert.equal(retry.alreadySaved, true); assert.equal(retry.loanId, second.loanId);
+  assert.equal(second.renewalDueAt, '2027-02-17T15:00:00.000Z');
+  assert.deepEqual((await db.doc(`checkoutEvents/${first.loanId}`).get()).data(), original);
+  const previous = (await db.doc(`checkoutLoans/${first.loanId}`).get()).data();
+  assert.equal(previous.status, 'renewed'); assert.equal(previous.renewedToLoanId, second.loanId);
+  const renewed = (await db.doc(`checkoutEvents/${second.loanId}`).get()).data();
+  assert.equal(renewed.eventType, 'renewal'); assert.equal(renewed.previousLoanId, first.loanId);
+  assert.equal(renewed.course, 'Module two'); assert.equal(renewed.agreement, POLICY);
+  assert.equal((await db.collection('checkoutEvents').get()).size, 2);
+  assert.equal((await db.collection('checkoutOutbox').get()).size, 2);
+  assert.equal((await db.doc('checkoutAssets/IPAD-PILOT').get()).data().currentLoanId, second.loanId);
+  await reject(() => service.recordReturn(request('manager', { loanId: first.loanId })), 'failed-precondition');
+  await service.recordReturn(request('manager', { loanId: second.loanId }));
+  assert.equal((await db.collection('checkoutEvents').get()).size, 3);
+});
+test('another borrower cannot renew a loan and a returned cycle cannot be reopened', async () => {
+  const first = await service.submit(request('student', form()));
+  currentTime = first.renewalDueAt;
+  await reject(() => service.submit(request('other', form({ renewLoanId: first.loanId }))), 'permission-denied');
+  await reject(() => service.submit(request('student', form({ renewLoanId: 'x'.repeat(64) }))), 'invalid-argument');
+  await service.recordReturn(request('manager', { loanId: first.loanId }));
+  await reject(() => service.submit(request('student', form({ renewLoanId: first.loanId }))), 'failed-precondition');
+  assert.equal((await db.collection('checkoutEvents').get()).size, 2);
+});
+test('simultaneous fresh renewal requests create only one new cycle', async () => {
+  const first = await service.submit(request('student', form())); currentTime = first.renewalDueAt;
+  const results = await Promise.allSettled([service.submit(request('student', form({ renewLoanId: first.loanId }))), service.submit(request('student', form({ renewLoanId: first.loanId })))]);
+  assert.equal(results.filter(result => result.status === 'fulfilled').length, 1);
+  assert.equal(results.find(result => result.status === 'rejected').reason.code, 'failed-precondition');
+  assert.equal((await db.collection('checkoutEvents').get()).size, 2);
+});
+test('legacy loan deadlines derive from the saved checkout timestamp and retain renewal protection', async () => {
+  const first = await service.submit(request('student', form()));
+  const originalStart = Timestamp.fromDate(clock());
+  await db.doc(`checkoutLoans/${first.loanId}`).update({ cycleStartedAt: FieldValue.delete(), renewalDueAt: FieldValue.delete(), createdAt: originalStart, dueDate: '2099-01-01' });
+  const own = await service.session(request('student'));
+  assert.equal(own.loans[0].renewalDueAt, first.renewalDueAt);
+  currentTime = '2026-12-23T14:59:59.999Z';
+  await reject(() => service.submit(request('student', form({ renewLoanId: first.loanId }))), 'failed-precondition');
+  currentTime = first.renewalDueAt;
+  await service.submit(request('student', form({ renewLoanId: first.loanId })));
+});
+test('manager dashboard includes active loans even when their events are outside the latest history window', async () => {
+  const first = await service.submit(request('student', form()));
+  await db.doc(`checkoutEvents/${first.loanId}`).delete(); // Test an event outside the dashboard window.
+  const dashboard = await service.dashboard(request('manager'));
+  assert.equal(dashboard.activeLoans[0].id, first.loanId);
+  assert.equal(dashboard.activeLoans[0].renewalDueAt, first.renewalDueAt);
 });
 
 async function deliveryFixture(options = {}) {
