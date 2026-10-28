@@ -4,7 +4,7 @@ This is a one-iPad self-service checkout flow integrated with TAD Lab Manager. T
 
 ## Student workflow
 
-The case sticker opens `https://tad-lab-manager.web.app/equipment-checkout.html?asset=ACTUAL-STICKER-ID`. The ID is looked up against a manager-registered inventory record, never trusted as editable asset metadata. The same ID is included in the verification email's continue URL, so registration/verification does not require rescanning.
+The case sticker opens `https://tad-lab-manager.web.app/equipment-checkout.html?asset=ACTUAL-STICKER-ID`. The manager screen always generates production-origin sticker URLs, even when viewed on a temporary preview. The ID is looked up against a manager-registered inventory record, never trusted as editable asset metadata. The same ID is included in the verification email's continue URL, so registration/verification does not require rescanning.
 
 Students create an email/password account, open Firebase's verification email, and return to checkout. “I verified my email” reloads the account and refreshes its ID token. The submit function independently requires a verified token **and** a currently verified, enabled account with the same email. Merely hiding/showing the form does not authorize a loan. A verified email confirms mailbox access, not enrollment or faculty permission.
 
@@ -79,3 +79,9 @@ npx firebase-tools@latest emulators:exec --config firebase.checkout-emulator.jso
 ```
 
 `TAD_CHECKOUT_CHROMIUM` can select an already-installed Chromium executable. Work Mode can also use its runtime Playwright package. All fixtures and screenshots are local to the emulator test; they are not production asset registrations.
+
+## Live deployment status (October 28, 2026)
+
+The hosting preview was published and GitHub backend/permission tests passed on Node 22 with Firebase Tools 15.34.1 and the standard-edition Firestore emulator. The existing GitHub Firebase service account could authenticate but received HTTP 403 for both database listing and a read of the known `(default)` database. The backend deployment stopped before any pilot functions or access rules were deployed. No IAM changes were made, and this does not establish current Blaze billing status.
+
+The prior automatic PR deployment attempt has been replaced by a manual `Deploy iPad checkout pilot backend` workflow, so ordinary preview/code updates do not keep retrying a permission-blocked deployment. Once an authorized deployment account/session can inspect the existing database and deploy this codebase, run that workflow or the narrow CLI deployment command above. Live Auth/App Check, Gmail receipt and spreadsheet delivery remain unverified.

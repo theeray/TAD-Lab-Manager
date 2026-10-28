@@ -215,7 +215,7 @@ async function showManager() {
   const asset = assets.find(a => a.id === config.pilotAssetId);
   $('#registerForm').hidden = !!asset; $('#registeredAsset').hidden = !asset;
   if (asset) {
-    const url = new URL('/equipment-checkout.html', location.origin); url.searchParams.set('asset', asset.id);
+    const url = new URL('/equipment-checkout.html', localEmulator ? location.origin : 'https://tad-lab-manager.web.app'); url.searchParams.set('asset', asset.id);
     if (localEmulator) url.searchParams.set('emulator', '1');
     $('#registeredAsset').innerHTML = `<p><strong>${esc(asset.label)}</strong><br>Asset ${esc(asset.assetNumber)}<br>${esc(asset.model)}</p><p class="small">QR sticker destination:</p><p><a href="${esc(url.href)}">${esc(url.href)}</a></p><p class="small muted">Use this permanent link when printing the case sticker.</p>`;
   }

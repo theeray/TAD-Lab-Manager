@@ -60,24 +60,3 @@ jobs:
 
       - name: Run Firestore rules tests
         run: npx firebase-tools@latest emulators:exec --only firestore --project demo-tad-checkout "npm --prefix checkout-functions test && npm --prefix tests test"
-
-  deploy_checkout_pilot:
-    name: Deploy paused checkout pilot backend
-    needs: rules_tests
-    if: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.head.ref == 'feature/verified-ipad-checkout' }}
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '22'
-      - name: Authenticate existing Firebase deployment account
-        uses: google-github-actions/auth@v2
-        with:
-          credentials_json: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_TAD_LAB_MANAGER }}
-      - name: Inspect only the existing default Firestore database
-        run: npx firebase-tools@latest firestore:databases:get '(default)' --project tad-lab-manager --non-interactive
-      - name: Install pilot backend dependencies
-        run: npm ci --prefix checkout-functions
-      - name: Deploy only pilot backend and current access rules
-        run: npx firebase-tools@latest deploy --only functions:equipment-checkout,firestore:rules --project tad-lab-manager --non-interactive
