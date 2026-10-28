@@ -4,7 +4,6 @@ const { getAuth } = require('firebase-admin/auth');
 const { getFirestore, FieldValue, Timestamp } = require('firebase-admin/firestore');
 const { onCall, HttpsError } = require('firebase-functions/v2/https');
 const { onDocumentCreated } = require('firebase-functions/v2/firestore');
-const { onSchedule } = require('firebase-functions/v2/scheduler');
 const { defineSecret } = require('firebase-functions/params');
 const { GoogleAuth } = require('google-auth-library');
 const nodemailer = require('nodemailer');
@@ -77,8 +76,6 @@ const delivery = createDelivery({ db, FieldValue, Timestamp, sendEmail, writeShe
 const deliveryOptions = { ...base, secrets: [GMAIL_SMTP_USER, GMAIL_APP_PASSWORD] };
 exports.checkoutDeliverEvent = onDocumentCreated({ ...deliveryOptions, document: 'checkoutOutbox/{eventId}', retry: false },
   event => delivery.deliver(event.params.eventId));
-exports.checkoutRetryPending = onSchedule({ ...deliveryOptions, schedule: 'every 30 minutes', retryCount: 0 },
-  () => delivery.retryPending());
 exports.checkoutRetryDelivery = onCall({ ...callOptions, secrets: [GMAIL_SMTP_USER, GMAIL_APP_PASSWORD], timeoutSeconds: 540 }, async request => {
   try {
     await service.manager(request);

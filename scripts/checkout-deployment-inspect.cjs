@@ -7,7 +7,7 @@ const { GoogleAuth } = backendRequire('google-auth-library');
 const project = 'tad-lab-manager';
 const runtime = `${project}@appspot.gserviceaccount.com`;
 const emailSecrets = ['GMAIL_SMTP_USER', 'GMAIL_APP_PASSWORD'];
-const apis = ['firestore', 'cloudfunctions', 'cloudbuild', 'artifactregistry', 'run', 'eventarc', 'pubsub', 'cloudscheduler', 'secretmanager', 'sheets'];
+const apis = ['firestore', 'cloudfunctions', 'cloudbuild', 'artifactregistry', 'run', 'eventarc', 'pubsub', 'secretmanager', 'sheets'];
 async function inspect(client, url, data) {
   try {
     const response = await client.request({ url, method: data ? 'POST' : 'GET', ...(data ? { data } : {}), timeout: 15000 });
@@ -24,7 +24,7 @@ async function main() {
   const number = details.data.projectNumber;
   const permissions = ['resourcemanager.projects.getIamPolicy', 'resourcemanager.projects.setIamPolicy', 'serviceusage.services.enable',
     'cloudfunctions.functions.create', 'cloudfunctions.functions.update', 'cloudfunctions.functions.setIamPolicy',
-    'cloudscheduler.jobs.create', 'cloudscheduler.jobs.update', 'cloudscheduler.jobs.get', 'run.services.get', 'run.services.setIamPolicy'];
+    'run.services.get', 'run.services.setIamPolicy'];
   await Promise.all([
     ...apis.map(async api => {
       const result = await inspect(client, `https://serviceusage.googleapis.com/v1/projects/${number}/services/${api}.googleapis.com`);
