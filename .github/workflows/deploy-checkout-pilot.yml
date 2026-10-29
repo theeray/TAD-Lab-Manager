@@ -1,0 +1,41 @@
+name: Deploy iPad checkout pilot backend
+
+on:
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-checkout-pilot
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - name: Install dependencies
+        run: |
+          npm ci --prefix tests
+          npm ci --prefix checkout-functions
+      - name: Verify checkout and access controls
+        run: npx firebase-tools@latest emulators:exec --only firestore --project demo-tad-checkout "npm --prefix checkout-functions test && npm --prefix tests test"
+      - name: Authenticate existing Firebase deployment account
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_TAD_LAB_MANAGER }}
+      - name: Inspect required APIs and email-secret metadata without reading secret values
+        run: node scripts/checkout-deployment-inspect.cjs
+      - name: Inspect only the existing default Firestore database
+        run: npx firebase-tools@latest firestore:databases:get '(default)' --project tad-lab-manager --non-interactive
+      - name: Deploy only pilot backend and current access rules
+        run: npx firebase-tools@latest deploy --only functions:equipment-checkout,firestore:rules --project tad-lab-manager --non-interactive

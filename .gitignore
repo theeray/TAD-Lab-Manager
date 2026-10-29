@@ -7,3 +7,4 @@
 
 # Temporary credentials created by google-github-actions/auth
 gha-creds-*.json
+.secret.local

@@ -87,3 +87,16 @@ original origin; the redirect does not transfer them to the new origin.
 
 Run the redirect checks with `node --test scripts/canonical-redirect.test.mjs`.
 See `FIREBASE-SETUP.md` for the original Firebase setup reference.
+
+## Verified-email iPad checkout beta (Blaze backend)
+
+`equipment-checkout.html` provides the one-iPad beta for Student iPad #07,
+asset 1982096. Verified students check out through a retained case QR link.
+Managers search/filter paginated in-app history, export matching CSV, confirm
+returns, and monitor eight-week re-checkout status. Firestore is the record
+store; there is no Google Sheets connection or Scheduler job. Beta email goes
+to Eric and Nick only, with minimal details and a protected record link.
+
+The separate `checkout-functions/` codebase requires Blaze and does not replace
+the existing maintenance functions or rules. See [the beta guide](docs/IPAD-CHECKOUT-PILOT.md)
+for activation, QR artwork, permissions, checks, and current live-test requirements.
