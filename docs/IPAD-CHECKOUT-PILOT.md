@@ -76,11 +76,11 @@ The backend is a separate `equipment-checkout` codebase in `checkout-functions/`
 5. Search/filter the manager table and download matching CSV. Confirm another borrower cannot acquire the checked-out iPad. Have a manager confirm the physical return; verify the separate return row, restored availability, and email.
 6. Use manual email retry if needed. Emulator tests simulate the eight-week boundary and renewal; do not alter production dates to simulate it.
 
-Blaze, the default database, both email-secret grants, and the enabled cloud service APIs have been confirmed. The last deployment attempt reached function creation and returned 403 because the GitHub deployer lacked `iam.serviceAccounts.actAs` on `688198560205-compute@developer.gserviceaccount.com`, Google's default Compute build account. Grant that deployer **Service Account User** on that specific account if still missing. The runtime remains the App Engine account. No IAM changes were made by this implementation.
+Blaze, the default database, both email-secret grants, and the enabled cloud service APIs have been confirmed. The updated in-app-records deployment at https://github.com/theeray/TAD-Lab-Manager/actions/runs/40831305737 passed all checks, confirmed both secret grants and runtime assignment, and reported `actAs: false` for the default Compute build account. It reached creation of all nine functions and returned 403 because the GitHub deployer lacked `iam.serviceAccounts.actAs` on `688198560205-compute@developer.gserviceaccount.com`, Google's default Compute build account. Grant that deployer **Service Account User** on that specific account if still missing. The runtime remains the App Engine account. No IAM changes were made by this implementation.
 
 ## Automated verification
 
-All 37 backend, email, history pagination, filtering, and time-boundary checks passed locally, along with existing maintenance permission checks and 200 direct checkout SDK access-denial checks. Six canonical redirect checks passed. The browser test passed seven-digit registration validation, beta recipients/defaults, actual emulator email verification action code, retained asset, checkout, 56-day warning, fresh module re-checkout, manager search/filters/CSV, physical return, private data clearing at sign-out, and narrow-screen layout.
+All 37 backend, email, history pagination, filtering, and time-boundary checks passed locally and in GitHub CI, along with existing maintenance permission checks and 200 direct checkout SDK access-denial checks. Six canonical redirect checks passed. The browser test passed seven-digit registration validation, beta recipients/defaults, actual emulator email verification action code, retained asset, checkout, 56-day warning, fresh module re-checkout, manager search/filters/CSV, physical return, private data clearing at sign-out, and narrow-screen layout.
 
 ```sh
 npm ci --prefix checkout-functions
@@ -91,3 +91,5 @@ npx firebase-tools@latest emulators:exec --config firebase.checkout-emulator.jso
 ```
 
 Current Firebase Tools requires Java 21. Local tests also passed with Tools 14.15.2 and Java 17. The browser script uses Auth/Firestore emulators and a local adapter to the actual service because this workstation restricts the Functions emulator's Unix sockets. It does not establish production App Check, IAM, or real inbox receipt. External email is disabled in emulator delivery tests.
+
+The updated hosting preview was published, but the permanent production checkout page and backend are not activated. The printable QR PDF is prepared for use after deployment and manager activation. Main remains unchanged. The backend workflow is manual while the owner-side build-account grant is pending.
