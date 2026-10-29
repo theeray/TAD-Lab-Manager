@@ -7,7 +7,7 @@ const { GoogleAuth } = backendRequire('google-auth-library');
 const project = 'tad-lab-manager';
 const runtime = `${project}@appspot.gserviceaccount.com`;
 const emailSecrets = ['GMAIL_SMTP_USER', 'GMAIL_APP_PASSWORD'];
-const apis = ['firestore', 'cloudfunctions', 'cloudbuild', 'artifactregistry', 'run', 'eventarc', 'pubsub', 'secretmanager', 'sheets'];
+const apis = ['firestore', 'cloudfunctions', 'cloudbuild', 'artifactregistry', 'run', 'eventarc', 'pubsub', 'secretmanager'];
 async function inspect(client, url, data) {
   try {
     const response = await client.request({ url, method: data ? 'POST' : 'GET', ...(data ? { data } : {}), timeout: 15000 });
@@ -52,6 +52,8 @@ async function main() {
     (async () => {
       const result = await inspect(client, `https://iam.googleapis.com/v1/projects/-/serviceAccounts/${encodeURIComponent(runtime)}:testIamPermissions`, { permissions: ['iam.serviceAccounts.actAs'] });
       console.log('Runtime assignment:', JSON.stringify(result.ok ? { actAs: result.data.permissions?.includes('iam.serviceAccounts.actAs') === true } : inaccessible(result)));
+      const build = await inspect(client, `https://iam.googleapis.com/v1/projects/-/serviceAccounts/${number}-compute@developer.gserviceaccount.com:testIamPermissions`, { permissions: ['iam.serviceAccounts.actAs'] });
+      console.log('Default compute build-account assignment:', JSON.stringify(build.ok ? { actAs: build.data.permissions?.includes('iam.serviceAccounts.actAs') === true } : inaccessible(build)));
     })(),
   ]);
 }

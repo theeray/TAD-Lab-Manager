@@ -1,109 +1,93 @@
-# Verified-email iPad checkout pilot
+# TAD iPad checkout beta - in-app records
 
-This is a one-iPad self-service checkout flow integrated with TAD Lab Manager. Eric confirmed the test device as **Student iPad #07**, university asset **1982096**. Its registration form is prefilled with that number, case label, and sticker ID `IPAD-07`; prefilling is not production registration. The printed text “PROPERTY OF THE STATE OF MINNESOTA” is ownership wording, not part of the number. Checkouts default to paused and email defaults to off.
+The beta uses **Student iPad #07**, university asset **1982096**, and sticker ID **IPAD-07**. The permanent QR destination is:
 
-## Student workflow
+`https://tad-lab-manager.web.app/equipment-checkout.html?asset=IPAD-07`
 
-The case sticker opens `https://tad-lab-manager.web.app/equipment-checkout.html?asset=ACTUAL-STICKER-ID`. The manager screen always generates production-origin sticker URLs, even when viewed on a temporary preview. The ID is looked up against a manager-registered inventory record, never trusted as editable asset metadata. The same ID is included in the verification email's continue URL, so registration/verification does not require rescanning.
+The manager registration form is prefilled with those values. Registration is still a verified manager action and leaves checkout paused. No fictional inventory or student accounts are seeded in production. The printed ownership phrase “PROPERTY OF THE STATE OF MINNESOTA” is separate from the seven-digit asset number.
 
-Students create an email/password account, open Firebase's verification email, and return to checkout. “I verified my email” reloads the account and refreshes its ID token. The submit function independently requires a verified token **and** a currently verified, enabled account with the same email. Merely hiding/showing the form does not authorize a loan. A verified email confirms mailbox access, not enrollment or faculty permission.
+## Records and manager interface
 
-The form collects name, course/project, purpose, an automatic eight-week return/re-checkout deadline (56 days after server submission), condition/notes, accessories, and a versioned acknowledgment. Email/UID, asset metadata, and timestamps are server-derived. The acknowledgment is a pilot responsibility statement, not a substitute for an institution-approved loan agreement. The old prototype's faculty-approval stage is not part of this simplified pilot. Lab managers confirm physical returns.
+Firestore in the existing `tad-lab-manager` project is the authoritative record store. There is **no Google Sheets connection**, spreadsheet sharing requirement, or Sheets API call. Legacy spreadsheet configuration is ignored. The Google authentication library remains a dependency for read-only deployment diagnostics, not spreadsheet synchronization.
 
-## Eight-week modules
+Verified managers can search by borrower name/email, asset number/ID, course, or purpose; filter by event, current loan status, and Central Time recorded-date range; and sort newest/oldest first. History loads in pages of 100 records. **Load older records** makes older history accessible without a separate spreadsheet. The result count explicitly states how many records are loaded and whether older records remain. Search, filters, and CSV export apply to the loaded history. A fresh refresh loads the newest page again.
 
-Every checkout gets a server-derived `cycleStartedAt`, `renewalDueAt` exactly 56 × 24 hours later, and a Central Time due date for the spreadsheet. Students cannot choose or extend that deadline through the form or request. Both student history and the manager's active-loan view show an icon with text: green/current, amber/final seven days, red/re-checkout required at the 56-day boundary, and neutral/closed for returned or replaced cycles. Visible status refreshes every minute. Legacy loans derive their deadline from their original checkout timestamp rather than an old editable return date.
+CSV export includes the matching loaded events, with protection against spreadsheet formula injection. Older records are not deleted. Current active loans are read separately from asset pointers, so their eight-week indicators remain available even when their original checkout event is outside the initial history page.
 
-At or after eight weeks, the current borrower can choose **Re-checkout this iPad** and complete a fresh module form with condition, accessories, and the new acknowledgment. The server requires current email verification and matching asset/borrower pointers. Early re-checkout and another borrower's attempts are rejected. A transaction closes the preceding cycle as `renewed`, creates a new loan plus permanent `renewal` event/outbox item, and starts the next 56-day period. The original event remains unchanged. No physical return is recorded unless a manager actually confirms one. Simultaneous requests and connection retries cannot create multiple new cycles.
+## Student workflow and eight-week modules
 
-Checkout, re-checkout, and physical return events use the configured email and spreadsheet deliveries. The status indicator itself does not send a scheduled overdue email.
+Students scan the case QR, create an email/password account or sign in, open Firebase's verification email, and return to checkout. The selected asset ID is retained in the verification continue URL, so rescanning is not required. The backend independently requires a verified token and a currently verified, enabled account with the same email; verifying an email confirms mailbox access, not enrollment.
 
-## Asset-number validation
+The form collects name, course/project, purpose, condition/notes, accessories, and a versioned responsibility acknowledgment. Trusted inventory metadata, user identity, and timestamps come from the backend. University asset numbers must contain exactly **seven ASCII digits**, preserving leading zeros. Registration, enabling checkout, and checkout submission enforce that rule. A long paste is rejected rather than silently truncated.
 
-The university asset number must be a string of **exactly seven ASCII digits**. Leading zeros stay intact. Short, long, nonnumeric, signed, decimal, Unicode-lookalike, or ownership-text-inclusive entries are rejected. The form provides a live count and clear error before submission. It permits a long paste to remain visible so an eight-digit value is rejected instead of silently truncating to a valid seven-digit prefix. The seven-digit rule is fixed in the backend, not inferred from the input or controlled by a request parameter.
+Every checkout has a server-derived `cycleStartedAt` and `renewalDueAt` exactly 56 x 24 hours later. A student cannot edit or forge the deadline. Student history and the manager's active-loan view show green/current, amber/final seven days, red/re-checkout required at 56 days, and neutral/closed for returned or replaced cycles. Visible indicators update every minute without a scheduled backend job. Legacy loans derive their deadline from the original checkout timestamp.
 
-Manager registration, pilot enablement, and the checkout transaction enforce this rule. The borrower form uses the registered number and cannot override it; an invalid stored number disables the checkout button and is rejected by a direct backend call too. This validation is for the university asset number, distinct from a case label (`Student iPad #07`) or QR sticker ID (`IPAD-07`).
+At or after eight weeks, the current borrower can choose **Re-checkout this iPad** and complete a fresh module form. The transaction requires current email verification and matching asset/borrower pointers, closes the previous cycle as `renewed`, creates a new loan and permanent `renewal` event, and starts the next 56-day period. Early attempts and attempts by another borrower are denied. Original events are unchanged. A physical return is recorded only when a verified manager confirms receipt.
 
-## Data and access
+## Access and permanent history
 
-The existing `(default)` Firestore database and its current document API are used. No database, auth provider, or existing maintenance rules are replaced. All new checkout paths remain covered by the existing default-deny rules. The browser uses authenticated, App Check enforced callable functions; the Admin SDK performs validated transactions. Verified managers are the same four emails used by the existing app.
+The existing default Firestore database is Native/Standard edition in `us-central1`. Existing maintenance data, auth providers, and maintenance access rules are unchanged. New checkout paths remain covered by the existing default-deny client rules. App Check enforced callable functions validate authorization; the Admin SDK performs the transactions. Browser clients, including staff client SDKs, cannot bypass those callables to read or change checkout records.
 
-- `checkoutConfig/pilot`: private routing, sheet ID, enabled flag, one pilot asset ID.
-- `checkoutAssets/{assetId}`: registered metadata and current loan pointer; contains no borrower identity.
-- `checkoutProfiles/{uid}`: private name/email autofill, written by the server.
-- `checkoutBorrowers/{uid}`: current loan pointer.
-- `checkoutLoans/{loanId}`: current loan state and immutable original checkout fields. Manager returns and borrower re-checkouts update closure fields; original checkout fields remain unchanged.
-- `checkoutEvents/{eventId}`: permanent append-only checkout/re-checkout/return snapshots. No callable edits or deletes events.
-- `checkoutOutbox/{eventId}`: private delivery progress, bounded retries, and per-event leases.
-- `checkoutCounters/history`, `checkoutDaily/{date}`, `checkoutDeliveryBudgets/{date}`: transactional sequence and daily limits.
+Managers are the existing four verified BSU addresses in `checkout-functions/service.js`. Students retrieve only their own loans. Both initial and paginated history endpoints require a verified manager. The app provides no event-edit or event-delete operation; infrastructure administrators still require appropriate operational controls, backups, retention decisions, and institutional review.
 
-Client reads/writes to every new path, including staff client SDK requests, remain denied. Students can retrieve only their own loans through `checkoutSession`. Managers can retrieve up to the newest 500 events and export a spreadsheet-safe CSV. Older events stay in the database. Direct SDK bypass/PII access, role injection, and history alteration are tested against the Firestore emulator.
+- `checkoutAssets/{assetId}`: trusted inventory and active-loan pointer, without borrower identity.
+- `checkoutConfig/pilot`: pilot asset ID, enabled flag, and email mode.
+- `checkoutProfiles/{uid}` and `checkoutBorrowers/{uid}`: private autofill and active-loan pointer.
+- `checkoutLoans/{loanId}`: original checkout snapshot plus current closure state.
+- `checkoutEvents/{eventId}`: append-only checkout, re-checkout, and return snapshots.
+- `checkoutOutbox/{eventId}`: email status, bounded attempts, and delivery lease.
+- History, daily checkout, and email-recipient counters enforce transactional sequencing and limits.
 
-A checkout transaction creates the loan, history event, outbox item, profile, sequence, and availability pointers together. A deterministic UID/request ID makes connection retries idempotent. Concurrent students cannot acquire the same iPad. Returns create a second event and release the asset; the original event remains unchanged. The one-iPad pilot allows only one active loan per borrower.
+Checkout saves the loan, event, outbox item, profile, sequence, and active pointers atomically. UID/request ID based identifiers make connection retries idempotent. Competing borrowers and simultaneous renewals cannot create multiple active loans for the same iPad.
 
-## Delivery setup
+## Beta notifications
 
-The manager screen has a dedicated Google spreadsheet destination and three email modes: off, pilot (Eric only), and all four stakeholders (Nick Lowery, Andrew Graham, Eric Carlson, Chase Cornell). No student can select recipients. Pilot email mode is intended for the first real receipt test; switching to stakeholder mode affects future/not-yet-delivered notices, and does not resend completed pilot notices.
+The default beta mode sends to **Eric Carlson and Nick Lowery only**:
 
-Share a dedicated spreadsheet, restricted to lab managers, as Editor with `tad-lab-manager@appspot.gserviceaccount.com`. App manager permissions do not automatically grant Google spreadsheet access; give each intended manager access to the spreadsheet separately. The Google Sheets API must be enabled on the Firebase project's underlying Google Cloud project. The functions explicitly run as this service account; if a different runtime account is needed, change both backend options and the displayed sharing instructions together.
+- `eric.carlson.2@bemidjistate.edu`
+- `nick.lowery@bemidjistate.edu`
 
-The writer creates a separate `TAD checkout log` tab with an app ownership marker. It refuses to overwrite a pre-existing unmarked tab with that name. Event sequence determines a fixed row, so a retry updates that event's row instead of appending another copy. Values use RAW input so student text cannot execute as sheet formulas. Do not edit/sort/delete rows in the managed tab; use a separate sheet/view for sorting. Firestore remains authoritative. Once set, the destination cannot be changed from the pilot screen.
+Full rollout mode adds Chase Cornell and Andrew Graham using the existing fixed four-person staff list. Students cannot supply recipients or expand the list. Legacy `pilot` mode maps to the new two-person beta group. Registration defaults to beta routing, with checkout paused until a manager enables it.
 
-Gmail SMTP uses the existing `GMAIL_SMTP_USER` and `GMAIL_APP_PASSWORD` Firebase secrets. Their actual availability and BSU receipt must be verified in the deployed environment. The sender is authenticated Gmail, not a spoofed BSU address. Reply-To is Eric's BSU address. Auth verification/reset mail is sent independently by Firebase Auth; Gmail SMTP is for checkout notifications.
+Emails identify the iPad, asset, event, recorded time, deadline, and a link to the manager page. Borrower name, student email, course, purpose, and condition details stay behind manager sign-in. Students receive Firebase verification/reset email separately; no student checkout-receipt email is currently sent.
 
-An outbox worker attempts configured deliveries after a saved event. Cloud Scheduler is omitted from the pilot at Eric’s request. Failed or unconfigured deliveries stay pending until a verified manager chooses **Retry pending deliveries**, for example after fixing configuration or reaching a daily limit. There is no recurring retry job and no Cloud Scheduler API/role requirement. The eight-week status icon compares saved timestamps in the app and does not require a scheduled job. Each component records its own success. Sheet errors or SMTP errors do not undo a checkout. SMTP is at-least-once: a crash after SMTP acceptance but before saving success, or partial recipient rejection, can still cause duplicate notices on retry. A deterministic Message-ID and the event ID help identify duplicates; exactly-once SMTP delivery is not claimed.
+A Firestore event triggers the initial email attempt. Failed or unconfigured notices remain available through **Retry pending deliveries**. Deliberately turning notifications off marks the event `notifications-off`; later enabling email does not automatically send those old notices. No Scheduler job, Scheduler API, or Scheduler role is required.
 
-Limits are 100 successful checkouts/day and 100 checkout-email recipient attempts/day (four stakeholders consume four). Each function has zero minimum and one maximum instance. These are application controls, not a guarantee of a maximum Google Cloud bill. Other app services have their own usage. Configure project budget alerts and appropriate service spend controls separately.
+A delivery failure does not undo the saved checkout. Successful email deliveries are not resent by normal retries. SMTP remains at-least-once: uncertain provider acceptance or partial recipient rejection can produce duplicates after a retry. Deterministic message IDs and event IDs help identify them; exactly-once email is not claimed.
 
-## Deployment and first physical test
+Gmail uses `GMAIL_SMTP_USER` and `GMAIL_APP_PASSWORD` in Secret Manager, with Reply-To set to Eric's BSU address. Both secrets have enabled versions and direct Secret Accessor grants to runtime account `tad-lab-manager@appspot.gserviceaccount.com`. Their values were not retrieved during development diagnostics. Actual inbox delivery still needs a live beta test.
 
-The new backend is a separate `equipment-checkout` codebase in `checkout-functions/`. The existing `functions/` codebase and draft maintenance email implementation are unchanged.
+Limits remain 100 successful checkout cycles/day and 100 recipient email attempts/day; a beta notice consumes two recipient attempts. Functions have zero minimum and one maximum instance each. These controls do not guarantee a maximum cloud bill.
 
-1. In an authenticated Firebase environment, confirm `tad-lab-manager` billing and inspect the existing `(default)` database edition/location. The workstation used for initial development had no authenticated Firebase CLI session; it could not inspect live billing or deploy functions.
-2. Install `npm ci --prefix checkout-functions`. Check the Gmail secrets exist and the runtime service account has Firestore and secret access. Enable the Google Sheets API. Do not put secret values in files or GitHub source.
-3. Deploy only the pilot codebase: `npx firebase-tools@latest deploy --only functions:equipment-checkout --project tad-lab-manager`. This deploys the callable backend and event delivery worker, with normal Functions/Eventarc IAM setup. It creates no Scheduler job. Do not deploy the unrelated default codebase.
-4. Deploy the reviewed hosting changes through the existing main-branch hosting workflow. Check Firebase Auth authorized domains and the verification email template's action handler. Production continuation must retain the asset parameter. Preview hosting domains need their own Auth/reCAPTCHA authorization for real account tests.
-5. Sign in as a verified manager. Review the prefilled Student iPad #07 / asset 1982096 against the physical label and register it; this produces the sticker destination. Registration keeps checkouts paused and email off. No demo inventory is seeded in production.
-6. Configure and share the actual spreadsheet, select Eric-only pilot email, and enable the pilot. Print one QR sticker for the confirmed asset URL.
-7. On a phone, scan the sticker, create a new account, verify actual inbox receipt, follow the verification link, and return to checkout. Attempt checkout before verifying too: it must fail. Confirm autofill and the retained asset after verification.
-8. Submit one checkout and confirm the manager history, spreadsheet row, and actual email receipt. Refresh/retry the request to confirm only one loan exists. A second borrower must be blocked while it is out.
-9. A manager confirms return. Confirm a separate return event/row/email and restored availability. Then select all four stakeholders and verify routing before student rollout.
+## QR artwork
 
-Production registration of the confirmed asset, a real spreadsheet destination, live backend deployment, Auth/App Check live verification, and actual email/spreadsheet receipt are still required to complete the physical pilot. No real email receipt or sheet write is claimed by emulator tests.
+`checkout/qr/IPAD-07.svg` is the exact reusable QR artwork shown in manager setup for the confirmed asset. A separate printable PDF includes the case label, number, QR, print dimensions, and first-test activation instructions. Both the raw image and the rendered PDF were decoded with an independent barcode reader to verify the exact permanent destination.
+
+`scripts/create-ipad-beta-qr.py` reproduces the artwork using qrcode 8.2, ReportLab, and embedded DejaVu fonts. The sticker image contains no student information or sign-in credentials. Printing a sticker does not register an asset or enable checkout.
+
+## Deployment and first live test
+
+The backend is a separate `equipment-checkout` codebase in `checkout-functions/`. Deploy only this codebase; do not deploy the unrelated default functions implementation. The manual workflow tests access controls, reads service/secret metadata without secret values, inspects the known default database, and deploys this codebase plus unchanged access rules.
+
+1. Confirm backend deployment, then publish the reviewed hosting changes through the existing main-branch workflow. Production registration and live Auth/App Check validation require the deployed backend. Preview hosts may also need Auth/reCAPTCHA domain authorization.
+2. Sign in to the checkout page with a verified lab-manager BSU account. Register the prefilled Student iPad #07 / asset 1982096 / sticker ID IPAD-07, checking the physical label first.
+3. Keep **Beta test - Eric and Nick** selected, enable checkout, and save beta settings. No Google spreadsheet setup is required.
+4. Scan the QR on a phone. Create/verify an account, confirm that submitting before verification fails, then record the checkout. Verify the saved in-app row and actual Eric/Nick inbox receipt.
+5. Search/filter the manager table and download matching CSV. Confirm another borrower cannot acquire the checked-out iPad. Have a manager confirm the physical return; verify the separate return row, restored availability, and email.
+6. Use manual email retry if needed. Emulator tests simulate the eight-week boundary and renewal; do not alter production dates to simulate it.
+
+Blaze, the default database, both email-secret grants, and the enabled cloud service APIs have been confirmed. The last deployment attempt reached function creation and returned 403 because the GitHub deployer lacked `iam.serviceAccounts.actAs` on `688198560205-compute@developer.gserviceaccount.com`, Google's default Compute build account. Grant that deployer **Service Account User** on that specific account if still missing. The runtime remains the App Engine account. No IAM changes were made by this implementation.
 
 ## Automated verification
 
-Install `npm ci --prefix tests` and `npm ci --prefix checkout-functions`, then run:
+All 37 backend, email, history pagination, filtering, and time-boundary checks passed locally, along with existing maintenance permission checks and 200 direct checkout SDK access-denial checks. Six canonical redirect checks passed. The browser test passed seven-digit registration validation, beta recipients/defaults, actual emulator email verification action code, retained asset, checkout, 56-day warning, fresh module re-checkout, manager search/filters/CSV, physical return, private data clearing at sign-out, and narrow-screen layout.
 
 ```sh
+npm ci --prefix checkout-functions
+npm ci --prefix tests
 npx firebase-tools@latest emulators:exec --only firestore --project demo-tad-checkout "npm --prefix checkout-functions test && npm --prefix tests test"
 node --test scripts/canonical-redirect.test.mjs
-```
-
-Use Java 21 with current Firebase Tools. Local initial verification also passed with Firebase Tools 14.15.2/Firestore emulator 1.19.8 and Java 17. Production runtime is Node 22; the initial workstation used Node 24 for local tests.
-
-For local browser testing only, `firebase.checkout-emulator.json` runs Auth, Firestore, Functions and Hosting against the `demo-tad-checkout` project. Add ignored `checkout-functions/.secret.local` dummy SMTP values if the emulator requests them. The browser connects to emulators only on `localhost`/`127.0.0.1` with `?emulator=1`; production hosts cannot opt into emulator mode. The delivery worker refuses all external email/sheet operations in emulator mode.
-
-The browser smoke test (`scripts/checkout-browser-smoke.cjs`) uses actual Auth and Firestore emulators, actual email action codes, and a local HTTP callable adapter to the real service. It covers signup, the verification gate, asset retention, autofilled email, checkout, manager history, confirmed return, clearing private data on sign-out, and narrow-screen layout. It does not test deployed Cloud Functions IAM/App Check enforcement or real email/Sheets delivery. The adapter avoids the workstation's restriction on the Functions emulator's Unix sockets.
-
-```sh
-npm install --prefix .local --no-save playwright
-# Install that Playwright version's Chromium using its CLI, then:
 npx firebase-tools@latest emulators:exec --config firebase.checkout-emulator.json --project demo-tad-checkout --only auth,firestore,hosting "node scripts/checkout-browser-smoke.cjs"
 ```
 
-`TAD_CHECKOUT_CHROMIUM` can select an already-installed Chromium executable. Work Mode can also use its runtime Playwright package. All fixtures and screenshots are local to the emulator test; they are not production asset registrations.
-
-## Live deployment status (October 28, 2026)
-
-The eight-week update is published to the PR hosting preview. All 32 service/delivery/time-boundary tests passed locally and in GitHub CI, along with the existing access-control checks. The Auth/Firestore emulator browser test passed the 56-day red status, a fresh module re-checkout, manager status, and a physical return. Cloud Scheduler has been removed entirely; failed deliveries wait for a verified manager to choose Retry pending deliveries. The syntax and six canonical redirect checks passed, and backend/access-control checks passed again in the latest deployment retry.
-
-Blaze and the existing default database are confirmed: Firestore Native, Standard edition, `us-central1`. The latest read-only policy inspection confirms the owner successfully added unconditional direct runtime Secret Accessor grants on **both** `GMAIL_SMTP_USER` and `GMAIL_APP_PASSWORD`. Both secrets exist, have enabled latest versions, and are readable as metadata by the GitHub deployer. The Sheets API is now enabled too. Secret values were not requested or logged. Runtime assignment on `tad-lab-manager@appspot.gserviceaccount.com` passes.
-
-The retry at https://github.com/theeray/TAD-Lab-Manager/actions/runs/40775479068 passed secret access and reached creation of all eight Node 22 second-generation functions. Each creation request then returned 403 because the caller lacks `iam.serviceAccounts.actAs` on `688198560205-compute@developer.gserviceaccount.com`, Google's default Compute service account used for the build/deployment step. The runtime remains explicitly set to the App Engine account; local SDK endpoint inspection confirmed that setting on all eight function exports.
-
-The owner can grant **Service Account User** (`roles/iam.serviceAccountUser`) to `github-action-tad-lab-manager@tad-lab-manager.iam.gserviceaccount.com` directly on `688198560205-compute@developer.gserviceaccount.com`. This is separate from the already-resolved runtime account and secret grants. No broader project-wide grant or IAM write privilege for the deployer is being requested. Rerun the failed deployment job after that grant; its backend implementation is current. No IAM changes were made by this implementation.
-
-Firestore, Functions, Cloud Build, Artifact Registry, Cloud Run, Eventarc, Pub/Sub, Secret Manager, and Sheets APIs are enabled. There is no Scheduler function export or job. The manual deployment workflow prevents ordinary PR edits from retrying deployment. It tests access controls, reads service/secret metadata without secret values, inspects only the known default database, and deploys only the equipment-checkout codebase plus unchanged access rules.
-
-The pilot functions and production hosting update are not live yet. Production asset registration, restricted spreadsheet sharing, deployed Auth/App Check validation, and actual email/spreadsheet receipt still need the live pilot checks above. Main remains unchanged.
+Current Firebase Tools requires Java 21. Local tests also passed with Tools 14.15.2 and Java 17. The browser script uses Auth/Firestore emulators and a local adapter to the actual service because this workstation restricts the Functions emulator's Unix sockets. It does not establish production App Check, IAM, or real inbox receipt. External email is disabled in emulator delivery tests.

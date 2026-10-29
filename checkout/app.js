@@ -1,3 +1,4 @@
+import { eventViews, filterHistory } from './history-view.mjs';
 import { loanStatus } from './loan-status.mjs';
 import { firebaseConfig, appCheckConfig } from '../firebase-config.js';
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.17.1/firebase-app.js';
@@ -147,9 +148,10 @@ async function refreshSession({ quiet = false } = {}) {
 function clearPrivateViews() {
   session = null; managerData = null; renewingLoanId = ''; serverTimeOffset = 0;
   $('#managerPanel').hidden = true; $('#studentView').hidden = false; $('#managerNav').hidden = true;
-  $('#activeLoans').replaceChildren(); $('#historyRows').replaceChildren(); $('#ownLoans').replaceChildren(); $('#ownLoansPanel').hidden = true;
+  $('#activeLoans').replaceChildren(); $('#historyRows').replaceChildren(); $('#historyFilters').reset(); $('#historyResults').textContent = ''; $('#loadOlderHistory').hidden = true; $('#ownLoans').replaceChildren(); $('#ownLoansPanel').hidden = true;
   $('#confirmation').hidden = true; $('#checkoutForm').reset(); $('#borrowerName').value = '';
-  $('#returnDialog').close();
+  $('#returnDialog').close(); $('#returnSummary').textContent = ''; $('#returnNotes').value = ''; returningLoanId = '';
+  $('#recipientList').textContent = ''; $('#registeredAsset').replaceChildren();
 }
 onAuthStateChanged(auth, async user => {
   authGeneration += 1;
@@ -222,7 +224,7 @@ $('#checkoutForm').onsubmit = event => {
     });
     $('#confirmationText').textContent = `${session.asset.label} · Asset ${session.asset.assetNumber} · Return or re-checkout by ${displayDate(result.renewalDueAt)}. Record ${result.loanId.slice(0, 12)}.`;
     $('#confirmation').hidden = false; $('#checkoutPanel').hidden = true;
-    notice(`${wasRenewal ? 'New eight-week checkout' : 'Checkout'} saved. Email and spreadsheet deliveries are tracked separately by lab managers.`);
+    notice(`${wasRenewal ? 'New eight-week checkout' : 'Checkout'} saved. Email notifications are tracked separately by lab managers.`);
     await refreshSession({ quiet: true });
     requestId = crypto.randomUUID();
     $('#confirmation').scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -235,38 +237,66 @@ async function showManager() {
   managerData = data; syncClock(data);
   $('#studentView').hidden = true; $('#managerPanel').hidden = false;
   location.hash = 'manager';
-  const { config, assets, events, outbox, recipients, sheetServiceAccount } = managerData;
+  const { config, assets } = managerData;
   const asset = assets.find(a => a.id === config.pilotAssetId);
   $('#registerForm').hidden = !!asset; $('#registeredAsset').hidden = !asset;
   if (asset) {
     const url = new URL('/equipment-checkout.html', localEmulator ? location.origin : 'https://tad-lab-manager.web.app'); url.searchParams.set('asset', asset.id);
     if (localEmulator) url.searchParams.set('emulator', '1');
-    $('#registeredAsset').innerHTML = `<p><strong>${esc(asset.label)}</strong><br>Asset ${esc(asset.assetNumber)}<br>${esc(asset.model)}</p><p class="small">University asset numbers must contain exactly 7 digits.</p><p class="small">QR sticker destination:</p><p><a href="${esc(url.href)}">${esc(url.href)}</a></p><p class="small muted">Use this permanent link when printing the case sticker.</p>`;
+    $('#registeredAsset').innerHTML = `<p><strong>${esc(asset.label)}</strong><br>Asset ${esc(asset.assetNumber)}<br>${esc(asset.model)}</p><p class="small">University asset numbers must contain exactly 7 digits.</p><p class="small">QR sticker destination:</p><p><a href="${esc(url.href)}">${esc(url.href)}</a></p><p class="small muted">Use this permanent link when printing the case sticker.</p>${asset.id === 'IPAD-07' && asset.assetNumber === '1982096' ? '<figure class="pilot-qr"><img src="checkout/qr/IPAD-07.svg" alt="QR code for Student iPad number 07, asset 1982096" width="220" height="220"><figcaption><a href="checkout/qr/IPAD-07.svg" download="TAD-iPad-07-QR.svg">Download QR sticker image</a></figcaption></figure>' : ''}`;
   }
-  $('#sheetUrl').value = config.spreadsheetId || '';
-  $('#sheetUrl').readOnly = !!config.spreadsheetId;
-  $('#sheetAccount').textContent = sheetServiceAccount;
-  $('#notificationMode').value = config.notificationMode || 'off';
+  $('#notificationMode').value = config.notificationMode || 'beta';
   $('#pilotEnabled').checked = config.enabled === true;
-  $('#recipientList').textContent = recipients.join(' · ');
+  updateRecipientSummary();
   renderManagerLoans();
-  notice(`Pilot ${config.enabled ? 'enabled' : 'paused'} · Email: ${config.notificationMode || 'off'} · Spreadsheet: ${config.spreadsheetId ? 'configured — check delivery status below' : 'not configured'}.`);
+  notice(`Pilot ${config.enabled ? 'enabled' : 'paused'} · Email: ${config.notificationMode || 'off'} · Records saved in TAD Lab Manager.`);
+}
+function updateRecipientSummary() {
+  if (!managerData) return;
+  const mode = $('#notificationMode').value;
+  const recipients = mode === 'stakeholders' ? managerData.recipients : managerData.betaRecipients;
+  $('#recipientList').textContent = mode === 'off' ? 'Email is off. Checkout records are still saved in this app.'
+    : `${mode === 'beta' ? 'Beta: Eric Carlson and Nick Lowery' : 'Full rollout: Eric, Chase, Andrew, and Nick'} · ${recipients.join(' · ')}`;
+}
+$('#notificationMode').onchange = updateRecipientSummary;
+function visibleHistory() {
+  if (!managerData) return [];
+  return filterHistory(eventViews(managerData.events, managerData.activeLoans), {
+    query: $('#historySearch').value, eventType: $('#historyEvent').value, state: $('#historyState').value,
+    from: $('#historyFrom').value, to: $('#historyTo').value, order: $('#historyOrder').value,
+  }, viewNow());
 }
 function renderManagerLoans() {
   if (!managerData) return;
-  const { events, outbox, activeLoans } = managerData;
-  const activeIds = new Set(activeLoans.map(loan => loan.id));
-  const returnedIds = new Set(events.filter(e => e.eventType === 'return').map(e => e.loanId));
+  const { outbox, activeLoans } = managerData;
   $('#activeLoans').innerHTML = activeLoans.length ? activeLoans.map(loan => `<div class="loan-row"><strong>${esc(loan.assetLabel)}</strong> · Asset ${esc(loan.assetNumber)}<br>${statusMarkup(loan)}<p>${esc(loan.borrowerName)} · ${esc(loan.borrowerEmail)}<br>Return or re-checkout by ${esc(displayDate(loan.renewalDueAt))}</p></div>`).join('') : '<p class="muted">No iPads are currently checked out.</p>';
-  $('#historyEmpty').hidden = events.length > 0;
-  $('#historyRows').innerHTML = events.map(e => {
+  const rows = visibleHistory();
+  $('#historyEmpty').hidden = rows.length > 0;
+  $('#historyEmpty').textContent = managerData.events.length ? 'No matching records in the loaded history. Adjust the filters or load older records.' : 'No checkout records yet.';
+  $('#historyResults').textContent = `${rows.length} matching / ${managerData.events.length} loaded records${managerData.hasMore ? ' · Older records are available below. Search and export apply to loaded records.' : ' · All saved records are loaded.'}`;
+  $('#historyTo').min = $('#historyFrom').value;
+  if ($('#historyFrom').value && $('#historyTo').value && $('#historyFrom').value > $('#historyTo').value) $('#historyResults').textContent = 'Choose an end date on or after the start date.';
+  $('#loadOlderHistory').hidden = !managerData.hasMore;
+  $('#historyRows').innerHTML = rows.map(e => {
     const job = outbox.find(o => o.eventId === e.id);
-    const statusLoan = e.eventType === 'return' ? { ...e, status: 'returned' }
-      : activeIds.has(e.loanId) ? { ...e, status: 'checked-out' }
-      : { ...e, status: returnedIds.has(e.loanId) ? 'returned' : 'renewed' };
-    return `<tr><td>${esc(displayDate(e.createdAt))}</td><td>${esc(e.eventType)}</td><td>${esc(e.assetNumber)}<small>${esc(e.assetLabel)}</small></td><td>${esc(e.borrowerName)}<small>${esc(e.borrowerEmail)}</small></td><td>${statusMarkup(statusLoan)}</td><td>${esc(displayDate(e.renewalDueAt))}</td><td>${esc(job?.status || 'See delivery log')}<small>${esc(job?.lastError || '')}</small></td><td>${e.eventType !== 'return' && activeIds.has(e.loanId) ? `<button class="btn secondary" type="button" data-return="${esc(e.loanId)}">Confirm return</button>` : '—'}</td></tr>`;
+    const emailState = { pending: 'Pending', delivered: 'Sent', failed: 'Failed — retry available', 'notifications-off': 'Off — not sent', 'awaiting-configuration': 'Needs email setup', processing: 'Sending', emulator: 'Local test' }[job?.status] || 'Not recorded';
+    const eventLabel = { checkout: 'Checkout', renewal: 'Re-checkout', return: 'Return' }[e.eventType] || e.eventType;
+    return `<tr><td>${esc(displayDate(e.createdAt))}</td><td>${esc(eventLabel)}</td><td>${esc(e.assetNumber)}<small>${esc(e.assetLabel)}</small></td><td>${esc(e.borrowerName)}<small>${esc(e.borrowerEmail)}</small></td><td>${esc(e.course)}<small>${esc(e.purpose)}</small></td><td>${statusMarkup(e.currentLoan)}</td><td>${esc(displayDate(e.renewalDueAt))}</td><td>${esc(emailState)}<small>${esc(job?.lastError || '')}</small></td><td>${e.canReturn ? `<button class="btn secondary" type="button" data-return="${esc(e.loanId)}">Confirm return</button>` : '—'}</td></tr>`;
   }).join('');
 }
+for (const id of ['historySearch', 'historyEvent', 'historyState', 'historyFrom', 'historyTo', 'historyOrder']) $(`#${id}`).addEventListener('input', renderManagerLoans);
+$('#clearHistoryFilters').onclick = () => { $('#historyFilters').reset(); renderManagerLoans(); };
+$('#historyFilters').onsubmit = event => event.preventDefault();
+$('#loadOlderHistory').onclick = () => run($('#loadOlderHistory'), async () => {
+  const generation = authGeneration;
+  const page = await call('checkoutHistory', { beforeSequence: managerData.nextSequence });
+  if (generation !== authGeneration || !managerData) return;
+  const existing = new Set(managerData.events.map(event => event.id));
+  managerData.events.push(...page.events.filter(event => !existing.has(event.id)));
+  managerData.outbox.push(...page.outbox);
+  managerData.hasMore = page.hasMore; managerData.nextSequence = page.nextSequence;
+  renderManagerLoans();
+});
 $('#ownLoans').onclick = event => {
   const button = event.target.closest('[data-renew]'); if (!button) return;
   run(button, async () => {
@@ -302,9 +332,7 @@ $('#registerForm').onsubmit = event => { event.preventDefault(); updateAssetNumb
   await showManager();
 }); };
 $('#settingsForm').onsubmit = event => { event.preventDefault(); run(event.submitter, async () => {
-  const entered = $('#sheetUrl').value.trim();
-  const spreadsheetId = entered.match(/^https:\/\/docs\.google\.com\/spreadsheets\/d\/([A-Za-z0-9_-]+)/)?.[1] || entered;
-  await call('checkoutConfigure', { enabled: $('#pilotEnabled').checked, notificationMode: $('#notificationMode').value, spreadsheetId });
+  await call('checkoutConfigure', { enabled: $('#pilotEnabled').checked, notificationMode: $('#notificationMode').value });
   await showManager();
 }); };
 $('#retryDelivery').onclick = () => run($('#retryDelivery'), async () => { await call('checkoutRetryDelivery'); await showManager(); });
@@ -327,9 +355,9 @@ function csvCell(value) {
 $('#exportHistory').onclick = () => {
   if (!managerData) return;
   const fields = ['sequence', 'eventType', 'createdAt', 'assetId', 'assetNumber', 'assetLabel', 'borrowerName', 'borrowerEmail', 'course', 'purpose', 'dueDate', 'cycleStartedAt', 'renewalDueAt', 'previousLoanId', 'condition', 'accessories', 'notes', 'recordedBy', 'loanId', 'returnNotes', 'agreement'];
-  const lines = [fields, ...managerData.events.map(e => fields.map(f => Array.isArray(e[f]) ? e[f].join('; ') : e[f]))];
+  const lines = [fields, ...visibleHistory().map(e => fields.map(f => Array.isArray(e[f]) ? e[f].join('; ') : e[f]))];
   const url = URL.createObjectURL(new Blob(['\uFEFF' + lines.map(r => r.map(csvCell).join(',')).join('\r\n')], { type: 'text/csv;charset=utf-8' }));
-  const a = document.createElement('a'); a.href = url; a.download = 'TAD-checkout-history.csv'; a.click(); setTimeout(() => URL.revokeObjectURL(url), 1000);
+  const a = document.createElement('a'); a.href = url; a.download = 'TAD-checkout-filtered-history.csv'; a.click(); setTimeout(() => URL.revokeObjectURL(url), 1000);
 };
 window.addEventListener('unhandledrejection', event => { showFailure(event.reason || {}); });
 setInterval(() => {

@@ -3,8 +3,8 @@ const assert = require('node:assert/strict');
 const { randomUUID } = require('node:crypto');
 const { initializeApp, deleteApp } = require('firebase-admin/app');
 const { getFirestore, FieldValue, Timestamp } = require('firebase-admin/firestore');
-const { createService, STAFF, POLICY } = require('../service');
-const { createDelivery } = require('../delivery');
+const { createService, STAFF, BETA_RECIPIENTS, HISTORY_PAGE_SIZE, POLICY } = require('../service');
+const { createDelivery, message } = require('../delivery');
 
 if (!process.env.FIRESTORE_EMULATOR_HOST) throw new Error('Tests require the Firestore emulator; no production database may be used.');
 const projectId = 'demo-tad-checkout';
@@ -20,7 +20,7 @@ const request = (uid = 'student', data = {}, verified = true) => ({
 const form = (extra = {}) => ({ assetId: 'IPAD-PILOT', requestId: randomUUID(), name: 'Test Student', course: 'Illustration', purpose: 'Class drawing project', dueDate: '2026-10-30', condition: 'Good', notes: '', accessories: ['Case'], agreement: POLICY, ...extra });
 async function seed() {
   await service.registerAsset(request('manager', { assetId: 'IPAD-PILOT', assetNumber: '0000024', label: 'Test iPad', model: 'Fictional test fixture' }));
-  await service.configure(request('manager', { enabled: true, notificationMode: 'off', spreadsheetId: '' }));
+  await service.configure(request('manager', { enabled: true, notificationMode: 'off' }));
 }
 const reject = (fn, code) => assert.rejects(fn, error => error.code === code);
 beforeEach(async () => {
@@ -81,11 +81,11 @@ test('unknown assets, oversized notes and invalid acknowledgments are denied', a
   }
 });
 test('a paused pilot cannot create loans', async () => {
-  await service.configure(request('manager', { enabled: false, notificationMode: 'off', spreadsheetId: '' }));
+  await service.configure(request('manager', { enabled: false, notificationMode: 'off' }));
   await reject(() => service.submit(request('student', form())), 'failed-precondition');
 });
 test('non-managers cannot register assets, configure routing, view dashboard or confirm returns', async () => {
-  for (const method of ['registerAsset', 'configure', 'dashboard', 'recordReturn']) {
+  for (const method of ['registerAsset', 'configure', 'dashboard', 'history', 'recordReturn']) {
     await reject(() => service[method](request('student', {})), 'permission-denied');
   }
 });
@@ -113,10 +113,34 @@ test('students see only their own loan records and ISO timestamp strings', async
   assert.equal(other.loans.length, 0);
   assert.equal('borrowerEmail' in other.asset, false);
 });
-test('one-iPad registration and fixed spreadsheet destination are enforced', async () => {
+test('one-iPad registration and fixed beta recipients are enforced without a spreadsheet destination', async () => {
   await reject(() => seed(), 'already-exists');
-  await service.configure(request('manager', { enabled: true, notificationMode: 'pilot', spreadsheetId: 'a'.repeat(30) }));
-  await reject(() => service.configure(request('manager', { enabled: true, notificationMode: 'pilot', spreadsheetId: 'b'.repeat(30) })), 'failed-precondition');
+  await service.configure(request('manager', { enabled: true, notificationMode: 'beta', recipients: ['forged@example.test'], spreadsheetId: 'ignored-legacy-input' }));
+  const dashboard = await service.dashboard(request('manager'));
+  assert.deepEqual(dashboard.betaRecipients, [STAFF[0], STAFF[3]]);
+  assert.equal('spreadsheetId' in dashboard.config, false);
+  assert.equal('sheetServiceAccount' in dashboard, false);
+  assert.equal('spreadsheetId' in (await db.doc('checkoutConfig/pilot').get()).data(), false);
+});
+test('manager-only history pages cover older records without duplicates', async () => {
+  const first = await service.submit(request('student', form()));
+  const batch = db.batch();
+  for (let sequence = 2; sequence <= HISTORY_PAGE_SIZE + 5; sequence++) batch.create(db.doc(`checkoutEvents/page-${sequence}`), {
+    sequence, loanId: `old-${sequence}`, eventType: 'checkout', borrowerEmail: 'historic@example.test', assetNumber: '1982096', createdAt: Timestamp.fromDate(clock()),
+  });
+  await batch.commit();
+  const initial = await service.dashboard(request('manager'));
+  assert.equal(initial.events.length, HISTORY_PAGE_SIZE); assert.equal(initial.hasMore, true);
+  assert.equal(initial.activeLoans[0].id, first.loanId);
+  const older = await service.history(request('manager', { beforeSequence: initial.nextSequence }));
+  assert.equal(older.events.length, 5); assert.equal(older.hasMore, false); assert.equal(older.nextSequence, null);
+  const all = [...initial.events, ...older.events];
+  assert.equal(new Set(all.map(event => event.id)).size, HISTORY_PAGE_SIZE + 5);
+  assert.equal(all.at(-1).id, first.loanId);
+  assert.equal(older.outbox[0].eventId, first.loanId);
+  await reject(() => service.history(request('student', { beforeSequence: initial.nextSequence })), 'permission-denied');
+  await reject(() => service.history(request('manager', {}, false)), 'failed-precondition');
+  for (const beforeSequence of ['1', -1, 0, 1.5, Number.MAX_SAFE_INTEGER + 1]) await reject(() => service.history(request('manager', { beforeSequence })), 'invalid-argument');
 });
 test('server daily checkout cap prevents further writes', async () => {
   await db.doc('checkoutDaily/2026-10-28').set({ count: 100 });
@@ -136,7 +160,7 @@ test('the confirmed test iPad uses asset 1982096 and a separate case label', asy
   await service.registerAsset(request('manager', {
     assetId: 'IPAD-PILOT', assetNumber: '1982096', label: 'Student iPad #07',
   }));
-  await service.configure(request('manager', { enabled: true, notificationMode: 'off', spreadsheetId: '' }));
+  await service.configure(request('manager', { enabled: true, notificationMode: 'off' }));
   const { loanId } = await service.submit(request('student', form()));
   assert.equal((await db.doc(`checkoutEvents/${loanId}`).get()).data().assetNumber, '1982096');
   assert.equal((await db.doc(`checkoutEvents/${loanId}`).get()).data().assetLabel, 'Student iPad #07');
@@ -147,7 +171,7 @@ test('seven-digit asset numbers preserve leading zeros through registration and 
   await service.registerAsset(request('manager', {
     assetId: 'IPAD-PILOT', assetNumber: ' 0000024 ', label: 'Leading-zero test iPad',
   }));
-  await service.configure(request('manager', { enabled: true, notificationMode: 'off', spreadsheetId: '' }));
+  await service.configure(request('manager', { enabled: true, notificationMode: 'off' }));
   const { loanId } = await service.submit(request('student', form()));
   for (const path of ['checkoutAssets/IPAD-PILOT', `checkoutLoans/${loanId}`, `checkoutEvents/${loanId}`]) {
     assert.equal((await db.doc(path).get()).data().assetNumber, '0000024');
@@ -159,12 +183,12 @@ test('invalid stored numbers block checkout and enabling without partial loan re
     const state = await service.session(request('student', { assetId: 'IPAD-PILOT' }));
     assert.equal(state.asset.assetNumberValid, false);
     await reject(() => service.submit(request('student', form({ assetNumberLength: String(assetNumber).length }))), 'failed-precondition');
-    await reject(() => service.configure(request('manager', { enabled: true, notificationMode: 'off', spreadsheetId: '' })), 'failed-precondition');
+    await reject(() => service.configure(request('manager', { enabled: true, notificationMode: 'off' })), 'failed-precondition');
   }
   for (const collection of ['checkoutLoans', 'checkoutEvents', 'checkoutOutbox']) {
     assert.equal((await db.collection(collection).get()).size, 0);
   }
-  await service.configure(request('manager', { enabled: false, notificationMode: 'off', spreadsheetId: '' }));
+  await service.configure(request('manager', { enabled: false, notificationMode: 'off' }));
   assert.equal((await db.doc('checkoutConfig/pilot').get()).data().enabled, false);
 });
 test('the server fixes every checkout to 56 days and ignores client-supplied dates', async () => {
@@ -238,55 +262,77 @@ test('manager dashboard includes active loans even when their events are outside
 
 async function deliveryFixture(options = {}) {
   const { loanId } = await service.submit(request('student', form()));
-  const mails = []; const rows = [];
+  const mails = [];
   const delivery = createDelivery({ db, FieldValue, Timestamp, now: clock,
-    sendEmail: async mail => mails.push(mail), writeSheet: async (...args) => rows.push(args), ...options });
-  return { loanId, mails, rows, delivery };
+    sendEmail: async mail => mails.push(mail), ...options });
+  return { loanId, mails, delivery };
 }
-test('delivery waits for configuration without losing the checkout', async () => {
+test('email off leaves the checkout saved and does not queue historical notifications', async () => {
   const f = await deliveryFixture();
   await f.delivery.deliver(f.loanId);
-  assert.equal((await db.doc(`checkoutOutbox/${f.loanId}`).get()).data().status, 'awaiting-configuration');
-  assert.equal(f.mails.length, 0); assert.equal(f.rows.length, 0);
+  assert.equal((await db.doc(`checkoutOutbox/${f.loanId}`).get()).data().status, 'notifications-off');
+  assert.equal(f.mails.length, 0);
   assert.equal((await db.collection('checkoutEvents').get()).size, 1);
+  await service.configure(request('manager', { enabled: true, notificationMode: 'beta' }));
+  await f.delivery.retryPending({ force: true });
+  assert.equal(f.mails.length, 0);
 });
-test('pilot sends only Eric and retries do not resend or append duplicate sheet rows', async () => {
+test('beta emails go to Eric and Nick only, and retries do not resend successful notices', async () => {
   const f = await deliveryFixture();
-  await service.configure(request('manager', { enabled: true, notificationMode: 'pilot', spreadsheetId: 'a'.repeat(30) }));
+  await service.configure(request('manager', { enabled: true, notificationMode: 'beta' }));
   await f.delivery.deliver(f.loanId); await f.delivery.deliver(f.loanId);
-  assert.equal(f.mails.length, 1); assert.deepEqual(f.mails[0].to, [STAFF[0]]);
-  assert.equal(f.rows.length, 1); assert.equal(f.rows[0][1], 2);
+  assert.equal(f.mails.length, 1); assert.deepEqual(f.mails[0].to, BETA_RECIPIENTS);
+  assert.equal((await db.doc(`checkoutOutbox/${f.loanId}`).get()).data().status, 'delivered');
+  assert.deepEqual((await db.doc(`checkoutOutbox/${f.loanId}`).get()).data().emailRecipients, BETA_RECIPIENTS);
+  assert.equal((await db.doc('checkoutDeliveryBudgets/2026-10-28').get()).data().count, 2);
+});
+test('legacy spreadsheet configuration is ignored and cannot block beta emails', async () => {
+  const f = await deliveryFixture();
+  await db.doc('checkoutConfig/pilot').set({ notificationMode: 'pilot', spreadsheetId: 'an-unshared-legacy-sheet' }, { merge: true });
+  await f.delivery.deliver(f.loanId);
+  assert.deepEqual(f.mails[0].to, BETA_RECIPIENTS);
   assert.equal((await db.doc(`checkoutOutbox/${f.loanId}`).get()).data().status, 'delivered');
 });
-test('all stakeholder mode uses the fixed four-recipient list', async () => {
+test('full stakeholder mode uses the fixed four-recipient list', async () => {
   const f = await deliveryFixture();
-  await service.configure(request('manager', { enabled: true, notificationMode: 'stakeholders', spreadsheetId: 'a'.repeat(30) }));
+  await service.configure(request('manager', { enabled: true, notificationMode: 'stakeholders' }));
   await f.delivery.deliver(f.loanId);
   assert.deepEqual(f.mails[0].to, STAFF);
   assert.equal((await db.doc('checkoutDeliveryBudgets/2026-10-28').get()).data().count, 4);
 });
-test('a mail failure leaves the loan saved and does not rewrite a successful spreadsheet delivery', async () => {
-  let fail = true; let sent = 0; let written = 0;
-  const f = await deliveryFixture({ sendEmail: async () => { if (fail) throw new Error('fixture failure'); sent++; }, writeSheet: async () => written++ });
-  await service.configure(request('manager', { enabled: true, notificationMode: 'pilot', spreadsheetId: 'a'.repeat(30) }));
+test('email notifications keep borrower details behind manager login', async () => {
+  const f = await deliveryFixture();
+  await service.configure(request('manager', { enabled: true, notificationMode: 'beta' }));
+  await f.delivery.deliver(f.loanId);
+  const email = f.mails[0];
+  for (const personal of ['Test Student', users.student.email, 'Illustration', 'Class drawing project']) assert.equal(email.text.includes(personal), false);
+  assert.ok(email.text.includes('0000024'));
+  assert.ok(email.text.includes('equipment-checkout.html#manager'));
+  assert.ok(message('renewal-test', { eventType: 'renewal', assetLabel: 'Test iPad', assetNumber: '1982096' }).subject.includes('Re-checked out'));
+});
+test('a mail failure leaves the loan saved and a manager retry can complete the email', async () => {
+  let fail = true; let sent = 0;
+  const f = await deliveryFixture({ sendEmail: async () => { if (fail) throw new Error('fixture failure'); sent++; } });
+  await service.configure(request('manager', { enabled: true, notificationMode: 'beta' }));
   await f.delivery.deliver(f.loanId);
   assert.equal((await db.doc(`checkoutOutbox/${f.loanId}`).get()).data().status, 'failed');
-  fail = false; await f.delivery.deliver(f.loanId, { force: true });
-  assert.equal(written, 1); assert.equal(sent, 1);
+  fail = false; await f.delivery.retryPending({ force: true });
+  assert.equal(sent, 1);
+  assert.equal((await db.doc(`checkoutOutbox/${f.loanId}`).get()).data().status, 'delivered');
   assert.equal((await db.collection('checkoutEvents').get()).size, 1);
 });
 test('recipient cap prevents external email attempts', async () => {
   const f = await deliveryFixture();
-  await service.configure(request('manager', { enabled: true, notificationMode: 'stakeholders', spreadsheetId: 'a'.repeat(30) }));
+  await service.configure(request('manager', { enabled: true, notificationMode: 'stakeholders' }));
   await db.doc('checkoutDeliveryBudgets/2026-10-28').set({ count: 98 });
   await f.delivery.deliver(f.loanId);
   assert.equal(f.mails.length, 0);
   assert.equal((await db.doc(`checkoutOutbox/${f.loanId}`).get()).data().status, 'failed');
 });
-test('emulator delivery cannot contact mail or spreadsheet services', async () => {
+test('emulator delivery cannot contact external email', async () => {
   const f = await deliveryFixture({ emulator: true });
-  await service.configure(request('manager', { enabled: true, notificationMode: 'stakeholders', spreadsheetId: 'a'.repeat(30) }));
+  await service.configure(request('manager', { enabled: true, notificationMode: 'beta' }));
   await f.delivery.deliver(f.loanId);
-  assert.equal(f.mails.length, 0); assert.equal(f.rows.length, 0);
+  assert.equal(f.mails.length, 0);
   assert.equal((await db.doc(`checkoutOutbox/${f.loanId}`).get()).data().status, 'emulator');
 });

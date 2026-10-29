@@ -8,6 +8,8 @@ const STAFF = Object.freeze([
   'andrew.graham@bemidjistate.edu',
   'nick.lowery@bemidjistate.edu',
 ]);
+const BETA_RECIPIENTS = Object.freeze([STAFF[0], STAFF[3]]);
+const HISTORY_PAGE_SIZE = 100;
 const ACCESSORIES = ['Case', 'Apple Pencil', 'Charging cable', 'Power adapter', 'Keyboard'];
 const POLICY = 'ipad-eight-week-v2';
 class CheckoutError extends Error {
@@ -183,18 +185,36 @@ function createService({ db, auth, FieldValue, now = () => new Date() }) {
       return { alreadySaved: false };
     });
   }
+  function configView(data = {}) {
+    return { pilotAssetId: data.pilotAssetId || null, enabled: data.enabled === true,
+      notificationMode: data.notificationMode === 'pilot' ? 'beta' : data.notificationMode || 'beta' };
+  }
+  async function historyPage(data = {}) {
+    const cursor = data.beforeSequence;
+    ensure(cursor === undefined || cursor === null || (Number.isSafeInteger(cursor) && cursor > 0),
+      'invalid-argument', 'Use a valid history cursor.');
+    let query = db.collection('checkoutEvents').orderBy('sequence', 'desc');
+    if (cursor != null) query = query.startAfter(cursor);
+    const snapshot = await query.limit(HISTORY_PAGE_SIZE + 1).get();
+    const page = snapshot.docs.slice(0, HISTORY_PAGE_SIZE);
+    const jobs = page.length ? await db.getAll(...page.map(doc => db.doc(`checkoutOutbox/${doc.id}`))) : [];
+    const hasMore = snapshot.size > HISTORY_PAGE_SIZE;
+    return { events: page.map(doc => loanView(serial(doc))), outbox: jobs.filter(doc => doc.exists).map(serial),
+      hasMore, nextSequence: hasMore ? page.at(-1).data().sequence : null };
+  }
+  async function history(request) {
+    await manager(request);
+    return historyPage(request.data || {});
+  }
   async function dashboard(request) {
     await manager(request);
-    const [cfg, assets, events, outbox] = await Promise.all([
-      configRef.get(), db.collection('checkoutAssets').limit(10).get(),
-      db.collection('checkoutEvents').orderBy('sequence', 'desc').limit(500).get(),
-      db.collection('checkoutOutbox').orderBy('createdAt', 'desc').limit(100).get(),
+    const [cfg, assets, page] = await Promise.all([
+      configRef.get(), db.collection('checkoutAssets').limit(10).get(), historyPage(),
     ]);
     const activeIds = [...new Set(assets.docs.map(doc => doc.data().currentLoanId).filter(Boolean))];
     const activeLoans = await Promise.all(activeIds.map(async loanId => loanView(serial(await db.doc(`checkoutLoans/${loanId}`).get()) || {})));
-    return { serverNow: now().toISOString(), activeLoans: activeLoans.filter(loan => loan.id), config: cfg.data() || { enabled: false, notificationMode: 'off', spreadsheetId: '' },
-      assets: assets.docs.map(serial), events: events.docs.map(doc => loanView(serial(doc))), outbox: outbox.docs.map(serial),
-      recipients: STAFF, sheetServiceAccount: 'tad-lab-manager@appspot.gserviceaccount.com' };
+    return { serverNow: now().toISOString(), activeLoans: activeLoans.filter(loan => loan.id), config: configView(cfg.data()),
+      assets: assets.docs.map(serial), ...page, recipients: STAFF, betaRecipients: BETA_RECIPIENTS };
   }
   async function registerAsset(request) {
     const staff = await manager(request);
@@ -210,7 +230,7 @@ function createService({ db, auth, FieldValue, now = () => new Date() }) {
       const cfg = await tx.get(configRef);
       ensure(!cfg.data()?.pilotAssetId, 'already-exists', 'The one-iPad pilot already has an asset registered.');
       tx.create(db.doc(`checkoutAssets/${assetId}`), asset);
-      tx.set(configRef, { pilotAssetId: assetId, enabled: false, notificationMode: 'off', spreadsheetId: '',
+      tx.set(configRef, { pilotAssetId: assetId, enabled: false, notificationMode: 'beta',
         createdAt: FieldValue.serverTimestamp() });
       return { assetId };
     });
@@ -218,10 +238,8 @@ function createService({ db, auth, FieldValue, now = () => new Date() }) {
   async function configure(request) {
     const staff = await manager(request);
     const d = request.data || {};
-    ensure(typeof d.enabled === 'boolean' && ['off', 'pilot', 'stakeholders'].includes(d.notificationMode),
+    ensure(typeof d.enabled === 'boolean' && ['off', 'beta', 'stakeholders'].includes(d.notificationMode),
       'invalid-argument', 'Choose valid pilot and notification settings.');
-    const spreadsheetId = text(d.spreadsheetId || '', 'Spreadsheet ID', 120);
-    ensure(!spreadsheetId || /^[A-Za-z0-9_-]{20,120}$/.test(spreadsheetId), 'invalid-argument', 'Enter a valid Google spreadsheet ID or URL.');
     return db.runTransaction(async tx => {
       const cfg = await tx.get(configRef);
       ensure(cfg.data()?.pilotAssetId, 'failed-precondition', 'Register the pilot iPad first.');
@@ -230,14 +248,11 @@ function createService({ db, auth, FieldValue, now = () => new Date() }) {
         ensure(asset.exists && validAssetNumber(asset.data().assetNumber),
           'failed-precondition', 'Verify the 7-digit university asset number before enabling checkouts.');
       }
-      // Once rows have been written, changing the destination would leave an incomplete history.
-      ensure(!cfg.data()?.spreadsheetId || cfg.data().spreadsheetId === spreadsheetId,
-        'failed-precondition', 'An existing spreadsheet destination cannot be changed from the pilot screen.');
-      tx.set(configRef, { enabled: d.enabled, notificationMode: d.notificationMode, spreadsheetId,
+      tx.set(configRef, { enabled: d.enabled, notificationMode: d.notificationMode,
         updatedAt: FieldValue.serverTimestamp(), updatedBy: staff.email }, { merge: true });
       return { saved: true };
     });
   }
-  return { session, submit, recordReturn, dashboard, registerAsset, configure, manager };
+  return { session, submit, recordReturn, dashboard, history, registerAsset, configure, manager };
 }
-module.exports = { createService, CheckoutError, STAFF, POLICY, ACCESSORIES, day };
+module.exports = { createService, CheckoutError, STAFF, BETA_RECIPIENTS, HISTORY_PAGE_SIZE, POLICY, ACCESSORIES, day };
